@@ -12,6 +12,9 @@ import Splitter from './Splitter.jsx';
 import { QuizStep, OrderStep, PredictStep } from './StepPanels.jsx';
 import WorldView from '../world/WorldView.jsx';
 import { playSound } from './sound.js';
+import Icon from './Icons.jsx';
+import Robot from './Robot.jsx';
+import { Scramble, Burst } from './fx.jsx';
 
 const RETRY_SKELETON = (step) => {
   const includes = (step.starter.match(/^#include[^\n]*$/gm) || ['#include <stdio.h>']).join('\n');
@@ -85,6 +88,12 @@ export default function MissionScreen({ cur, mission, save, update, lang, settin
   const [retryHint, setRetryHint] = useState(0);
   const [gridView, setGridView] = useState(null); // { config, run }
   const [toolchainError, setToolchainError] = useState(null);
+  const [feedback, setFeedback] = useState(null); // 'shake' | 'flash-ok' (decorative)
+  const pulse = (kind) => {
+    setFeedback(null);
+    requestAnimationFrame(() => setFeedback(kind));
+    setTimeout(() => setFeedback(null), 900);
+  };
 
   const step = steps[stepIdx];
   const codeStep = step.type === 'code' ? step : steps[codeStepIndex];
@@ -166,6 +175,7 @@ export default function MissionScreen({ cur, mission, save, update, lang, settin
     if (!c.ok) {
       setPhase('idle');
       setConsoleTab('diagnostics');
+      pulse('shake');
       playSound('fail', settings.sound);
       return { compile: c };
     }
@@ -257,9 +267,13 @@ export default function MissionScreen({ cur, mission, save, update, lang, settin
       } else outcome = { stepOnly: true };
     });
     if (res.passed) {
+      pulse('flash-ok');
       playSound('success', settings.sound);
       setResult({ ...(outcome || {}), retry });
-    } else playSound('fail', settings.sound);
+    } else {
+      pulse('shake');
+      playSound('fail', settings.sound);
+    }
   };
 
   const onReset = () => {
@@ -431,7 +445,7 @@ export default function MissionScreen({ cur, mission, save, update, lang, settin
             <nav className="step-nav" aria-label={t(lang, 'mission.steps')}>
               {steps.map((s, i) => (
                 <button key={s.id} type="button" className={`step-pill ${i === stepIdx ? 'step-current' : ''} ${stepDone(i) ? 'step-done' : ''}`} disabled={!canOpen(i)} aria-current={i === stepIdx ? 'step' : undefined} onClick={() => setStepIdx(i)}>
-                  {stepDone(i) ? '✔' : i + 1}. {t(lang, `step.types.${s.type}`)}
+                  {stepDone(i) ? <Icon name="check" size={12} /> : `${i + 1}.`} {t(lang, `step.types.${s.type}`)}
                 </button>
               ))}
             </nav>
@@ -510,29 +524,29 @@ export default function MissionScreen({ cur, mission, save, update, lang, settin
   );
 
   const editorPanel = (
-    <section className="editor-panel" aria-label={t(lang, 'editor.label')}>
+    <section className={`editor-panel ${feedback || ''}`} aria-label={t(lang, 'editor.label')}>
       <div className="toolbar">
         <button type="button" className="btn btn-primary" onClick={onRun} disabled={phase !== 'idle' || step.type !== 'code'} title="Ctrl+Enter">
-          ▶ {t(lang, 'editor.run')}
+          <Icon name="play" /> {t(lang, 'editor.run')}
         </button>
         <button type="button" className="btn btn-accent" onClick={onCheck} disabled={phase !== 'idle' || step.type !== 'code'} title="Ctrl+Shift+Enter">
-          ✔ {t(lang, 'editor.check')}
+          <Icon name="check" /> {t(lang, 'editor.check')}
         </button>
         <button type="button" className="btn btn-danger" onClick={onStop} disabled={phase === 'idle'} title="Esc">
-          ■ {t(lang, 'editor.stop')}
+          <Icon name="stop" /> {t(lang, 'editor.stop')}
         </button>
         <button type="button" className="btn" onClick={onReset} disabled={step.type !== 'code' || phase !== 'idle'}>
-          ↺ {t(lang, 'editor.reset')}
+          <Icon name="reset" /> {t(lang, 'editor.reset')}
         </button>
         <button type="button" className="btn" onClick={() => { setLeftTab('hints'); if (focusMode) setFocusMode(false); }} disabled={step.type !== 'code' && !codeStep}>
-          💡 {t(lang, 'editor.hint')}
+          <Icon name="bulb" /> {t(lang, 'editor.hint')}
         </button>
         <span className="toolbar-spacer" />
         <span className={`badge ${usesIsland ? 'badge-warn' : ''}`} title={usesIsland ? t(lang, 'editor.usesIsland') : t(lang, 'editor.standardC')}>
           {usesIsland ? 'C17 + island.h' : 'C17'}
         </span>
         <button type="button" className="btn btn-icon" onClick={() => setFocusMode(!focusMode)} aria-pressed={focusMode} title={`${focusMode ? t(lang, 'mission.exitFocus') : t(lang, 'mission.focusMode')} (Alt+Z)`}>
-          {focusMode ? '⤡' : '⤢'}
+          <Icon name={focusMode ? 'collapse' : 'expand'} />
         </button>
       </div>
       {editorReadOnly && <div className="readonly-note small">{step.type === 'predict' ? t(lang, 'mission.readOnly') : t(lang, `step.types.${step.type}`)}</div>}
@@ -591,10 +605,13 @@ export default function MissionScreen({ cur, mission, save, update, lang, settin
     <main id="main" className={`mission-screen ${focusMode ? 'focus-mode' : ''}`} ref={containerRef} style={style}>
       <div className="mission-titlebar">
         <button type="button" className="btn btn-small" onClick={() => navigate({ screen: 'map', chapter: mission.chapter })}>
-          ← {t(lang, 'nav.map')}
+          <Icon name="left" /> {t(lang, 'nav.map')}
         </button>
         <h1 className="mission-title">
-          <span className="muted">{chapter.letter} · {tx(cur, lang, chapter, 'title')} ·</span> {txm('title')}
+          <span className="muted">
+            {chapter.letter} / {tx(cur, lang, chapter, 'title')} /
+          </span>{' '}
+          <Scramble className="mt-name" text={txm('title')} />
         </h1>
       </div>
       <div className="mission-grid">
@@ -648,23 +665,43 @@ function ResultDialog({ cur, mission, codeStep, lang, result, onClose, onNext, o
   return (
     <div className="modal-backdrop" role="presentation" onClick={onClose}>
       <div className="modal result-modal" role="dialog" aria-modal="true" aria-labelledby="result-title" onClick={(e) => e.stopPropagation()} tabIndex={-1} ref={ref}>
-        <h2 id="result-title">🎉 {t(lang, 'result.passTitle')}</h2>
-        <p className="ok-text">{t(lang, 'result.pass')}</p>
+        <Burst />
+        <div className="result-head">
+          <div className="robot-wrap">
+            <Robot size={86} mood="happy" />
+          </div>
+          <div>
+            <p className="access-granted" aria-hidden="true">
+              <Scramble text={t(lang, 'result.granted')} duration={700} />
+            </p>
+            <h2 id="result-title" className="result-sub">
+              {t(lang, 'result.passTitle')} · {t(lang, 'result.pass')}
+            </h2>
+          </div>
+        </div>
         {result.retry ? (
-          <p className="ok-text">★ {t(lang, 'result.retryPassed')}</p>
+          <p className="ok-text">
+            <Icon name="star" /> {t(lang, 'result.retryPassed')}
+          </p>
         ) : result.stepOnly ? null : result.assisted ? (
           <p className="warn-text">{t(lang, 'result.assisted')}</p>
         ) : (
-          <p className="ok-text">★ {t(lang, 'result.mastered')}</p>
+          <p className="ok-text">
+            <Icon name="star" /> {t(lang, 'result.mastered')}
+          </p>
         )}
         <h3>{t(lang, 'result.learned')}</h3>
         <Markdown text={txm('success')} lang={lang} />
         <h3>{t(lang, 'result.why')}</h3>
         <Markdown text={tx(cur, lang, codeStep, 'explanation')} lang={lang} />
         <div className="row">
-          {lastMission && <p className="accent-text">🏁 {t(lang, 'result.lastMission')}</p>}
+          {lastMission && (
+            <p className="accent-text">
+              <Icon name="flag" /> {t(lang, 'result.lastMission')}
+            </p>
+          )}
           <button type="button" className="btn btn-primary" onClick={onNext}>
-            {lastMission ? t(lang, 'result.toEnding') : t(lang, 'result.next')} →
+            {lastMission ? t(lang, 'result.toEnding') : t(lang, 'result.next')} <Icon name="right" />
           </button>
           <button type="button" className="btn" onClick={onMap}>
             {t(lang, 'result.map')}

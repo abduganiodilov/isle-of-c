@@ -1,7 +1,7 @@
 import { t } from '../i18n/index.js';
+import Icon, { STATUS_ICON } from './Icons.jsx';
 import { tx, txKey, missionStatus } from '../engine/curriculum.js';
 
-const ICON = { locked: '🔒', available: '○', 'in-progress': '◐', completed: '✔', mastered: '★' };
 
 export default function CurriculumScreen({ cur, save, lang, navigate }) {
   return (
@@ -36,7 +36,7 @@ export default function CurriculumScreen({ cur, save, lang, navigate }) {
                           const st = missionStatus(cur, save, id);
                           return (
                             <span key={id} className="cov-mission">
-                              <span aria-hidden="true">{ICON[st]}</span>{' '}
+                              <Icon name={STATUS_ICON[st]} size={13} />{' '}
                               {st === 'locked' ? (
                                 <span className="muted">{tx(cur, lang, cur.missionById.get(id), 'title')}</span>
                               ) : (

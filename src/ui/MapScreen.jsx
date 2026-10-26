@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { t } from '../i18n/index.js';
 import { tx, missionStatus, chapterProgress, campaignComplete, topicProgress, missingPrerequisites } from '../engine/curriculum.js';
 
-const STATUS_ICON = { locked: '🔒', available: '○', 'in-progress': '◐', completed: '✔', mastered: '★' };
+import Icon, { STATUS_ICON } from './Icons.jsx';
+import { Scramble } from './fx.jsx';
+
+const COAST = 'M8 78 C 4 60, 14 40, 30 30 C 44 20, 60 6, 78 14 C 92 20, 96 40, 90 56 C 84 74, 70 86, 50 88 C 30 90, 12 90, 8 78 Z';
 
 export default function MapScreen({ cur, save, lang, navigate, selectedChapter }) {
   const firstOpen = cur.chapters.find((c) => !chapterProgress(cur, save, c.id).done && chapterProgress(cur, save, c.id).unlocked) || cur.chapters[0];
@@ -24,12 +27,30 @@ export default function MapScreen({ cur, save, lang, navigate, selectedChapter }
             </radialGradient>
           </defs>
           <rect width="100" height="100" fill="url(#mapsea)" />
-          <path d="M8 78 C 4 60, 14 40, 30 30 C 44 20, 60 6, 78 14 C 92 20, 96 40, 90 56 C 84 74, 70 86, 50 88 C 30 90, 12 90, 8 78 Z" fill="var(--land)" stroke="var(--land-edge)" strokeWidth="0.6" />
-          <path d="M72 18 L80 8 L88 20 Z" fill="var(--land-dark)" />
-          <circle cx="90" cy="70" r="5" fill="var(--land)" stroke="var(--land-edge)" strokeWidth="0.5" />
-          <circle cx="84" cy="80" r="3" fill="var(--land)" stroke="var(--land-edge)" strokeWidth="0.5" />
-          <polyline points={mainChapters.map((c) => `${c.map?.x ?? 50},${c.map?.y ?? 50}`).join(' ')} fill="none" stroke="var(--path)" strokeWidth="0.7" strokeDasharray="1.5 1.2" />
+          <g className="map-grid">
+            {Array.from({ length: 9 }, (_, i) => (i + 1) * 10).map((v) => (
+              <g key={v}>
+                <line x1={v} y1="0" x2={v} y2="100" />
+                <line x1="0" y1={v} x2="100" y2={v} />
+              </g>
+            ))}
+          </g>
+          <path d={COAST} fill="var(--land)" stroke="var(--land-edge)" strokeWidth="0.45" className="map-coast" />
+          {[0.86, 0.7, 0.54, 0.38].map((k, i) => (
+            <path key={k} d={COAST} className="map-contour" strokeOpacity={0.18 + i * 0.08} transform={`translate(${52 * (1 - k)} ${50 * (1 - k)}) scale(${k})`} />
+          ))}
+          {[4, 2.6, 1.4].map((r, i) => (
+            <circle key={r} cx="80" cy="15" r={r} className="map-contour" strokeOpacity={0.3 + i * 0.15} />
+          ))}
+          <circle cx="90" cy="70" r="5" fill="var(--land)" stroke="var(--land-edge)" strokeWidth="0.35" />
+          <circle cx="90" cy="70" r="3" className="map-contour" strokeOpacity="0.3" />
+          <circle cx="84" cy="80" r="3" fill="var(--land)" stroke="var(--land-edge)" strokeWidth="0.35" />
+          <polyline points={mainChapters.map((c) => `${c.map?.x ?? 50},${c.map?.y ?? 50}`).join(' ')} fill="none" stroke="var(--path)" strokeWidth="0.5" strokeDasharray="1.2 1.2" className="map-route" />
         </svg>
+        <div className="radar-sweep" aria-hidden="true" />
+        <div className="map-coords" aria-hidden="true">
+          LAT 07°14′N · LON 151°52′E · {done}/{cur.mandatory.length} SYS
+        </div>
         {cur.chapters.map((c) => {
           const p = chapterProgress(cur, save, c.id);
           return (
@@ -42,7 +63,7 @@ export default function MapScreen({ cur, save, lang, navigate, selectedChapter }
               aria-pressed={sel === c.id}
               aria-label={`${c.letter} ${tx(cur, lang, c, 'title')}: ${p.completed}/${p.total}${p.unlocked ? '' : ' — ' + t(lang, 'map.locked')}`}
             >
-              <span className="node-letter">{p.unlocked ? c.letter : '🔒'}</span>
+              <span className="node-letter">{p.unlocked ? c.letter : <Icon name="lock" size={13} />}</span>
               <span className="node-name">{tx(cur, lang, c, 'title')}</span>
               <span className="node-progress">{p.completed}/{p.total}</span>
             </button>
@@ -53,11 +74,11 @@ export default function MapScreen({ cur, save, lang, navigate, selectedChapter }
         <p className="small muted">{t(lang, 'map.overall', { done, total: cur.mandatory.length, mastered, topics: topics.filter((x) => x.practised).length, topicsTotal: topics.length })}</p>
         {campaignComplete(cur, save) && (
           <button type="button" className="btn btn-accent" onClick={() => navigate({ screen: 'ending' })}>
-            🏁 {t(lang, 'map.endingReady')}
+            <Icon name="flag" /> {t(lang, 'map.endingReady')}
           </button>
         )}
         <h1>
-          <span className="muted">{chapter.letter}</span> {tx(cur, lang, chapter, 'title')}
+          <span className="muted">{chapter.letter}</span> <Scramble text={tx(cur, lang, chapter, 'title')} />
         </h1>
         <p className="muted">{tx(cur, lang, chapter, 'region')}</p>
         <p>{tx(cur, lang, chapter, 'intro')}</p>
@@ -79,7 +100,7 @@ export default function MapScreen({ cur, save, lang, navigate, selectedChapter }
             return (
               <li key={id} className={`mission-item mi-${st}`}>
                 <span className="mi-icon" aria-hidden="true">
-                  {STATUS_ICON[st]}
+                  <Icon name={STATUS_ICON[st]} size={18} />
                 </span>
                 <div className="mi-body">
                   <div className="mi-title">
@@ -94,7 +115,13 @@ export default function MapScreen({ cur, save, lang, navigate, selectedChapter }
                   <div className="mi-meta small muted">
                     <span className="badge">{t(lang, `map.kinds.${m.kind}`)}</span> {t(lang, `map.status.${st}`)} · {t(lang, 'map.minutes', { n: m.estimatedMinutes || 10 })}
                     {cur.isOptional(m) ? ` · ${t(lang, 'map.optional')}` : ''}
-                    {rec?.hintLevel ? ` · 💡${rec.hintLevel}` : ''}
+                    {rec?.hintLevel ? (
+                      <>
+                        {' · '}
+                        <Icon name="bulb" size={12} />
+                        {rec.hintLevel}
+                      </>
+                    ) : null}
                   </div>
                   {missing.length > 0 && (
                     <div className="small muted">
@@ -111,7 +138,9 @@ export default function MapScreen({ cur, save, lang, navigate, selectedChapter }
             );
           })}
         </ol>
-        {chapterProgress(cur, save, chapter.id).done && chapter.outro && <p className="outro">✔ {tx(cur, lang, chapter, 'outro')}</p>}
+        {chapterProgress(cur, save, chapter.id).done && chapter.outro && <p className="outro">
+            <Icon name="checkCircle" /> {tx(cur, lang, chapter, 'outro')}
+          </p>}
       </section>
     </main>
   );

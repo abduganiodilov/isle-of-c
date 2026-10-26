@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import Icon from '../ui/Icons.jsx';
 import GridScene from './GridScene.jsx';
 import { checkpointStatus } from '../engine/assess.js';
 
@@ -82,7 +83,7 @@ function TerminalScene({ world, data, lang, variant }) {
         )}
         {status === 'ok' && <div className="crt-banner">{L(lang, 'SYSTEM ONLINE', 'СИСТЕМА В СЕТИ')}</div>}
       </div>
-      {world.goal && <p className="scene-goal small">🎯 {world.goal}</p>}
+      {world.goal && <p className="scene-goal small"><Icon name="target" size={13} /> {world.goal}</p>}
     </div>
   );
 }
@@ -208,9 +209,9 @@ function FramesScene({ world, data, lang }) {
       </div>
       <p className="frame-caption">{s.caption}</p>
       <div className="grid-controls">
-        <button type="button" className="btn btn-small" disabled={i === 0} onClick={() => setI(i - 1)}>◀ {L(lang, 'Back', 'Назад')}</button>
+        <button type="button" className="btn btn-small" disabled={i === 0} onClick={() => setI(i - 1)}><Icon name="left" /> {L(lang, 'Back', 'Назад')}</button>
         <span className="small">{i + 1} / {steps.length}</span>
-        <button type="button" className="btn btn-small" disabled={i >= steps.length - 1} onClick={() => setI(i + 1)}>{L(lang, 'Next', 'Далее')} ▶</button>
+        <button type="button" className="btn btn-small" disabled={i >= steps.length - 1} onClick={() => setI(i + 1)}>{L(lang, 'Next', 'Далее')} <Icon name="right" /></button>
       </div>
       {data.run && (
         <div className="real-output">
@@ -272,7 +273,7 @@ function CoreScene({ world, data, lang }) {
           const st = cps.find((c) => c.checkpoint === i + 1);
           return (
             <li key={i} className={st ? (st.pass ? 'ok-text' : 'err-text') : 'muted'}>
-              {st ? (st.pass ? '✔ ' : '✘ ') : '○ '}
+              <Icon name={st ? (st.pass ? 'checkCircle' : 'x') : 'circle'} size={13} />{' '}
               {n}
             </li>
           );
@@ -288,7 +289,7 @@ function TestStrip({ data, lang }) {
     <div className="test-strip" aria-label={L(lang, 'Test results', 'Результаты тестов')}>
       {data.tests.tests.map((t) => (
         <span key={t.id} className={`chip ${t.pass ? 'chip-ok' : 'chip-bad'}`}>
-          {t.pass ? '✔' : '✘'} {t.id}
+          <Icon name={t.pass ? 'check' : 'x'} size={11} /> {t.id}
         </span>
       ))}
     </div>

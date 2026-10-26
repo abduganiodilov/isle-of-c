@@ -100,7 +100,7 @@ async function doStep(m, s, i) {
     await page.locator('.step-card').getByRole('button', { name: /Done/ }).click();
   } else if (s.type === 'code') {
     await setEditor(s.solution);
-    await page.getByRole('button', { name: /^✔ Check/ }).click();
+    await page.getByRole('button', { name: 'Check', exact: true }).click();
     await page.waitForFunction(() => document.querySelector('.result-modal') || document.querySelector('.tests > p.err-text') || document.querySelector('.diagnostics > p.err-text'), null, { timeout: 120000 });
     if (!(await page.locator('.result-modal').count())) {
       const detail = await page.locator('.console-body').innerText();

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import Icon from './Icons.jsx';
 import { t } from '../i18n/index.js';
 import { tx, notebookUnlocked } from '../engine/curriculum.js';
 import Markdown from './Markdown.jsx';
@@ -77,7 +78,7 @@ export default function NotebookScreen({ cur, save, lang, entryId, navigate }) {
           ))}
         </ul>
         {!results.length && <p className="muted">{t(lang, 'notebook.noResults')}</p>}
-        {lockedCount > 0 && <p className="small muted">🔒 {t(lang, 'notebook.lockedEntries', { n: lockedCount })}</p>}
+        {lockedCount > 0 && <p className="small muted"><Icon name="lock" size={13} /> {t(lang, 'notebook.lockedEntries', { n: lockedCount })}</p>}
       </aside>
       <article className="notebook-entry">
         {current && (

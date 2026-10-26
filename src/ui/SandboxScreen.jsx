@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import Icon from './Icons.jsx';
 import { t } from '../i18n/index.js';
 import { engine } from '../exec/engine.js';
 import CodeEditor from './CodeEditor.jsx';
@@ -76,13 +77,13 @@ export default function SandboxScreen({ save, update, lang, settings, reducedMot
         <section className="editor-panel">
           <div className="toolbar">
             <button type="button" className="btn btn-primary" onClick={onRun} disabled={phase !== 'idle'}>
-              ▶ {t(lang, 'editor.run')}
+              <Icon name="play" /> {t(lang, 'editor.run')}
             </button>
             <button type="button" className="btn btn-danger" onClick={() => engine.stop()} disabled={phase === 'idle'}>
-              ■ {t(lang, 'editor.stop')}
+              <Icon name="stop" /> {t(lang, 'editor.stop')}
             </button>
             <button type="button" className="btn" onClick={() => { if (window.confirm(t(lang, 'editor.resetConfirm'))) { pending.current = null; update((s) => (s.sandbox.code = null)); setJumpTo({ reset: Date.now() }); } }}>
-              ↺ {t(lang, 'editor.reset')}
+              <Icon name="reset" /> {t(lang, 'editor.reset')}
             </button>
           </div>
           <CodeEditor value={code} docKey="sandbox" forceValue={jumpTo?.reset || 0} onChange={onChange} fontSize={settings.fontSize} diagnostics={compile?.diagnostics || []} ariaLabel={t(lang, 'editor.label')} onRun={onRun} onStop={() => engine.stop()} jumpTo={jumpTo?.line ? jumpTo : null} />

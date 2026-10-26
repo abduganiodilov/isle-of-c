@@ -13,6 +13,9 @@ import CurriculumScreen from './ui/CurriculumScreen.jsx';
 import EndingScreen from './ui/EndingScreen.jsx';
 import SettingsDialog from './ui/SettingsDialog.jsx';
 import { CLANG_PACKAGE_VERSION } from './exec/toolchain.js';
+import CommandPalette from './ui/CommandPalette.jsx';
+import Icon from './ui/Icons.jsx';
+import { FxContext } from './ui/fx.jsx';
 
 const cur = indexCurriculum(curriculumData);
 
@@ -53,11 +56,19 @@ function ToolchainStatus({ lang }) {
   if (st.phase === 'download' && st.total) {
     text = t(lang, 'toolchain.download', { percent: Math.floor((st.done / st.total) * 100), done: (st.done / 1048576).toFixed(0), total: (st.total / 1048576).toFixed(0) });
   } else text = t(lang, `toolchain.${st.phase === 'download' ? 'loading' : st.phase}`, { error: st.error });
+  const pct = st.phase === 'download' && st.total ? st.done / st.total : st.phase === 'ready' ? 1 : 0;
+  const cells = 10;
+  const bar = st.phase === 'download' ? '█'.repeat(Math.round(pct * cells)).padEnd(cells, '░') : null;
   return (
     <span className={`toolchain toolchain-${st.phase}`} role="status" aria-live="polite" title={text}>
+      <Icon name="cpu" size={15} />
       <span className="lamp-dot" aria-hidden="true" />
       <span className="toolchain-text">{text}</span>
-      {st.phase === 'download' && st.total ? <progress max={st.total} value={st.done} /> : null}
+      {bar && (
+        <span className="ascii-bar" aria-hidden="true">
+          [{bar}]
+        </span>
+      )}
     </span>
   );
 }
@@ -68,10 +79,24 @@ export default function App() {
   const [route, setRoute] = useState(parseHash);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const systemReduced = usePrefersReducedMotion();
   const settings = save.settings;
   const lang = settings.lang;
   const reducedMotion = settings.reducedMotion === 'on' || (settings.reducedMotion === 'system' && systemReduced);
+  const fx = settings.effects !== false && !reducedMotion;
+
+  // Ctrl/Cmd+K opens the command palette from anywhere.
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        setPaletteOpen((o) => !o);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   useEffect(() => {
     const onHash = () => setRoute(parseHash());
@@ -93,8 +118,9 @@ export default function App() {
     document.documentElement.lang = lang;
     document.documentElement.dataset.theme = settings.theme;
     document.documentElement.classList.toggle('reduced-motion', reducedMotion);
+    document.documentElement.classList.toggle('fx-on', fx);
     document.title = route.screen === 'mission' && cur.missionById.get(route.id) ? `${tx(cur, lang, cur.missionById.get(route.id), 'title')} — Isle of C` : 'Isle of C';
-  }, [lang, settings.theme, reducedMotion, route]);
+  }, [lang, settings.theme, reducedMotion, fx, route]);
 
   // Start downloading/initialising the compiler early (it is cached afterwards).
   useEffect(() => {
@@ -135,33 +161,35 @@ export default function App() {
       <a href="#code-editor" className="skip-link">
         {t(lang, 'a11y.skip')}
       </a>
-      <button type="button" className="brand" onClick={() => navigate({ screen: 'title' })}>
-        <svg className="brand-mark" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-          <circle cx="12" cy="12" r="11" fill="var(--sea1)" />
-          <path d="M3 16 Q8 8 13 10 T21 16 Z" fill="var(--land)" />
-          <circle cx="18" cy="7" r="2.2" fill="var(--accent)" />
-        </svg>{' '}
-        Isle of C
+      <button type="button" className="brand" onClick={() => navigate({ screen: 'title' })} aria-label="Isle of C">
+        <span className="brand-prompt" aria-hidden="true">~/</span>
+        <span className="brand-name">isle_of_c</span>
+        <span className="brand-caret" aria-hidden="true" />
       </button>
       <nav className="topnav" aria-label="Main">
         <button type="button" className={`nav-btn ${route.screen === 'map' ? 'nav-active' : ''}`} onClick={() => navigate({ screen: 'map' })}>
-          🗺 <span>{t(lang, 'nav.map')}</span>
+          <Icon name="map" /> <span>{t(lang, 'nav.map')}</span>
         </button>
         <button type="button" className={`nav-btn ${route.screen === 'notebook' ? 'nav-active' : ''}`} onClick={() => navigate({ screen: 'notebook' })}>
-          📓 <span>{t(lang, 'nav.notebook')}</span>
+          <Icon name="book" /> <span>{t(lang, 'nav.notebook')}</span>
         </button>
         <button type="button" className={`nav-btn ${route.screen === 'sandbox' ? 'nav-active' : ''}`} onClick={() => navigate({ screen: 'sandbox' })}>
-          🧪 <span>{t(lang, 'nav.sandbox')}</span>
+          <Icon name="flask" /> <span>{t(lang, 'nav.sandbox')}</span>
         </button>
         <button type="button" className={`nav-btn ${route.screen === 'curriculum' ? 'nav-active' : ''}`} onClick={() => navigate({ screen: 'curriculum' })}>
-          📚 <span>{t(lang, 'nav.curriculum')}</span>
+          <Icon name="layers" /> <span>{t(lang, 'nav.curriculum')}</span>
         </button>
         {complete && (
           <button type="button" className={`nav-btn ${route.screen === 'ending' ? 'nav-active' : ''}`} onClick={() => navigate({ screen: 'ending' })}>
-            🏁 <span>{t(lang, 'nav.ending')}</span>
+            <Icon name="flag" /> <span>{t(lang, 'nav.ending')}</span>
           </button>
         )}
       </nav>
+      <button type="button" className="palette-trigger" onClick={() => setPaletteOpen(true)} aria-label={t(lang, 'palette.title')}>
+        <Icon name="search" size={14} />
+        <span className="palette-trigger-text">{t(lang, 'palette.placeholder')}</span>
+        <kbd>Ctrl K</kbd>
+      </button>
       <span className="topbar-spacer" />
       <ToolchainStatus lang={lang} />
       <div className="lang-switch" role="group" aria-label={t(lang, 'a11y.language')}>
@@ -172,10 +200,10 @@ export default function App() {
         ))}
       </div>
       <button type="button" className="btn btn-icon" aria-label={settings.sound ? t(lang, 'a11y.mute') : t(lang, 'a11y.unmute')} aria-pressed={settings.sound} onClick={() => update((s) => (s.settings.sound = !s.settings.sound))}>
-        {settings.sound ? '🔊' : '🔇'}
+        <Icon name={settings.sound ? 'volume' : 'mute'} />
       </button>
       <button type="button" className="btn btn-icon" aria-label={t(lang, 'nav.settings')} onClick={() => setSettingsOpen(true)}>
-        ⚙
+        <Icon name="gear" />
       </button>
     </header>
   );
@@ -194,6 +222,7 @@ export default function App() {
   else screen = <TitleScreen {...common} store={store} />;
 
   return (
+    <FxContext.Provider value={fx}>
     <div className={`app screen-${route.screen}`}>
       {topbar}
       {store.notices.length > 0 && (
@@ -208,8 +237,25 @@ export default function App() {
           ))}
         </div>
       )}
-      {screen}
+      <div className="screen-fade" key={route.screen === 'mission' ? 'mission' : route.screen}>
+        {screen}
+      </div>
+      {paletteOpen && (
+        <CommandPalette
+          cur={cur}
+          save={save}
+          lang={lang}
+          navigate={navigate}
+          onClose={() => setPaletteOpen(false)}
+          onAction={(a) => {
+            if (a === 'settings') setSettingsOpen(true);
+            if (a === 'lang') setLang(lang === 'ru' ? 'en' : 'ru');
+            if (a === 'fx') update((s) => (s.settings.effects = s.settings.effects === false));
+          }}
+        />
+      )}
       {settingsOpen && <SettingsDialog {...common} store={store} onClose={() => setSettingsOpen(false)} clangVersion={CLANG_PACKAGE_VERSION} />}
     </div>
+    </FxContext.Provider>
   );
 }

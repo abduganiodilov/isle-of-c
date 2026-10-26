@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import Icon from '../ui/Icons.jsx';
 
 // Replays the island API calls recorded while the program ran. Every frame is
 // derived from a real event in the log — nothing is scripted.
@@ -98,12 +99,12 @@ export default function GridScene({ config, run, lang, reducedMotion, label }) {
         </g>
       </svg>
       <div className="grid-controls">
-        <button type="button" className="btn btn-small" onClick={() => setIdx(0)} aria-label={ru ? 'В начало' : 'Rewind'}>⏮</button>
-        <button type="button" className="btn btn-small" onClick={() => setIdx((i) => Math.max(0, i - 1))} aria-label={ru ? 'Шаг назад' : 'Step back'}>◀</button>
+        <button type="button" className="btn btn-small" onClick={() => setIdx(0)} aria-label={ru ? 'В начало' : 'Rewind'}><Icon name="rewind" /></button>
+        <button type="button" className="btn btn-small" onClick={() => setIdx((i) => Math.max(0, i - 1))} aria-label={ru ? 'Шаг назад' : 'Step back'}><Icon name="left" /></button>
         <button type="button" className="btn btn-small" onClick={() => setPlaying((p) => !p)} disabled={frames.length < 2}>
-          {playing ? (ru ? '⏸ Пауза' : '⏸ Pause') : ru ? '▶ Воспроизвести' : '▶ Play'}
+          <Icon name={playing ? 'pause' : 'play'} /> {playing ? (ru ? 'Пауза' : 'Pause') : ru ? 'Воспроизвести' : 'Play'}
         </button>
-        <button type="button" className="btn btn-small" onClick={() => setIdx((i) => Math.min(frames.length - 1, i + 1))} aria-label={ru ? 'Шаг вперёд' : 'Step forward'}>▶</button>
+        <button type="button" className="btn btn-small" onClick={() => setIdx((i) => Math.min(frames.length - 1, i + 1))} aria-label={ru ? 'Шаг вперёд' : 'Step forward'}><Icon name="right" /></button>
         <label className="small">
           {ru ? 'Скорость' : 'Speed'}{' '}
           <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))}>

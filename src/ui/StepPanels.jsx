@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import Icon from './Icons.jsx';
 import { t } from '../i18n/index.js';
 import Markdown from './Markdown.jsx';
 import { normalizeOutput } from '../validate/checker.js';
@@ -61,7 +62,7 @@ export function QuizStep({ step, lang, txs, record, onDone }) {
         )}
       </div>
       <div aria-live="polite">
-        {state === 'correct' && <p className="ok-text">✔ {t(lang, 'step.correct')}</p>}
+        {state === 'correct' && <p className="ok-text"><Icon name="check" /> {t(lang, 'step.correct')}</p>}
         {state === 'wrong' && <p className="err-text">{t(lang, 'step.incorrect')}</p>}
       </div>
       {(state === 'correct' || state === 'shown') && <Markdown text={txs('explanation')} lang={lang} className="explanation" />}
@@ -124,7 +125,7 @@ export function OrderStep({ step, lang, txs, record, onDone }) {
         </div>
       )}
       <div aria-live="polite">
-        {state === 'correct' && <p className="ok-text">✔ {t(lang, 'step.orderCorrect')}</p>}
+        {state === 'correct' && <p className="ok-text"><Icon name="check" /> {t(lang, 'step.orderCorrect')}</p>}
         {state === 'wrong' && <p className="err-text">{t(lang, 'step.orderWrong', { n: wrong })}</p>}
       </div>
       {state === 'correct' && <Markdown text={txs('explanation')} lang={lang} className="explanation" />}
@@ -173,12 +174,12 @@ export function PredictStep({ step, lang, txs, record, onRunPrediction, onDone, 
       )}
       {!outcome && (
         <button type="button" className="btn btn-primary" disabled={busy || (ans.kind === 'choice' ? choice == null : !text.trim())} onClick={lockIn}>
-          ▶ {t(lang, 'step.lockIn')}
+          <Icon name="play" /> {t(lang, 'step.lockIn')}
         </button>
       )}
       {outcome && (
         <div className="predict-outcome" aria-live="polite">
-          <p className={outcome.correct ? 'ok-text' : 'err-text'}>{outcome.correct ? '✔ ' + t(lang, 'step.predictedRight') : t(lang, 'step.predictedWrong')}</p>
+          <p className={outcome.correct ? 'ok-text' : 'err-text'}>{outcome.correct ? <><Icon name="check" /> {t(lang, 'step.predictedRight')}</> : <><Icon name="x" /> {t(lang, 'step.predictedWrong')}</>}</p>
           {outcome.compileFailed ? (
             <>
               <div className="small muted">{t(lang, 'step.compileErrorActual')}</div>

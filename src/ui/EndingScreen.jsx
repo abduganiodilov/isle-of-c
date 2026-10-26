@@ -1,4 +1,7 @@
 import { useEffect } from 'react';
+import Icon from './Icons.jsx';
+import Robot from './Robot.jsx';
+import { DigitalRain, Scramble } from './fx.jsx';
 import { t } from '../i18n/index.js';
 import { topicProgress, tx } from '../engine/curriculum.js';
 
@@ -15,38 +18,35 @@ export default function EndingScreen({ cur, save, update, lang, navigate, reduce
   const extras = cur.chapters.find((c) => c.optional);
   return (
     <main id="main" className={`ending-screen ${reducedMotion ? '' : 'ending-animate'}`}>
-      <div className="ending-sky" aria-hidden="true">
-        <svg viewBox="0 0 400 160" className="ending-svg">
-          <rect width="400" height="160" fill="var(--sea2)" />
-          <circle cx="200" cy="150" r="70" fill="var(--accent)" opacity="0.5" className="sunrise" />
-          <path d="M0 130 Q100 110 200 125 T400 120 L400 160 L0 160 Z" fill="var(--sea1)" />
-          <path d="M120 128 Q200 70 280 128 Z" fill="var(--land)" />
-          <circle cx="200" cy="96" r="5" fill="var(--ok)" className="blink" />
-        </svg>
+      <DigitalRain opacity={0.1} />
+      <div className="ending-robot" aria-hidden="true">
+        <Robot size={170} mood="happy" className="pip7-float" />
       </div>
-      <h1>{t(lang, 'ending.title')}</h1>
+      <h1 className="glitch" data-text={t(lang, 'ending.title')}>
+        <Scramble text={t(lang, 'ending.title')} duration={900} />
+      </h1>
       <p className="tbc">{t(lang, 'ending.toBeContinued')}</p>
       <p className="ending-text">{t(lang, 'ending.text')}</p>
       <p className="muted">{t(lang, 'ending.stats', { missions: completed, mastered, topics })}</p>
       <div className="ending-actions">
         <button type="button" className="btn btn-primary" onClick={() => navigate({ screen: 'map' })}>
-          🗺 {t(lang, 'ending.replay')}
+          <Icon name="map" /> {t(lang, 'ending.replay')}
         </button>
         {improvable.length > 0 && (
           <button type="button" className="btn" onClick={() => navigate({ screen: 'mission', id: improvable[0] })}>
-            ★ {t(lang, 'ending.improve', { n: improvable.length })}
+            <Icon name="star" /> {t(lang, 'ending.improve', { n: improvable.length })}
           </button>
         )}
         {extras && (
           <button type="button" className="btn" onClick={() => navigate({ screen: 'map', chapter: extras.id })}>
-            + {t(lang, 'ending.extras')} ({tx(cur, lang, extras, 'title')})
+            <Icon name="spark" /> {t(lang, 'ending.extras')} ({tx(cur, lang, extras, 'title')})
           </button>
         )}
         <button type="button" className="btn" onClick={() => navigate({ screen: 'sandbox' })}>
-          🧪 {t(lang, 'ending.sandbox')}
+          <Icon name="flask" /> {t(lang, 'ending.sandbox')}
         </button>
         <button type="button" className="btn" onClick={() => navigate({ screen: 'notebook' })}>
-          📓 {t(lang, 'ending.notebook')}
+          <Icon name="book" /> {t(lang, 'ending.notebook')}
         </button>
       </div>
     </main>

@@ -71,6 +71,11 @@ export default function SettingsDialog({ save, update, lang, store, onClose, cla
               </option>
             ))}
           </select>
+          <label htmlFor="set-fx">{t(lang, 'settings.effects')}</label>
+          <select id="set-fx" value={s.effects === false ? 'off' : 'on'} onChange={(e) => set('effects', e.target.value === 'on')}>
+            <option value="on">{t(lang, 'settings.effectsOn')}</option>
+            <option value="off">{t(lang, 'settings.effectsOff')}</option>
+          </select>
           <label htmlFor="set-sound">{t(lang, 'settings.sound')}</label>
           <select id="set-sound" value={s.sound ? 'on' : 'off'} onChange={(e) => set('sound', e.target.value === 'on')}>
             <option value="off">{t(lang, 'settings.soundOff')}</option>

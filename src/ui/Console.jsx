@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Icon from './Icons.jsx';
 import { t, fill } from '../i18n/index.js';
 import { classifyDiagnostic, sortDiagnostics, hiddenRuntimeFile } from '../validate/feedback.js';
 import { describeExpectation } from '../validate/checker.js';
@@ -15,13 +16,13 @@ function Transcript({ transcript, lang }) {
 export function RunStatus({ run, lang }) {
   if (!run) return null;
   if (run.stopped) return <div className="run-status warn-text">{t(lang, 'console.stopped')}</div>;
-  if (run.timedOut) return <div className="run-status err-text">⏱ {t(lang, 'console.timeout', { seconds: (run.timeoutMs || 3000) / 1000 })}</div>;
+  if (run.timedOut) return <div className="run-status err-text"><Icon name="clock" /> {t(lang, 'console.timeout', { seconds: (run.timeoutMs || 3000) / 1000 })}</div>;
   if (run.outputLimitExceeded) return <div className="run-status err-text">{t(lang, 'console.outputLimit')}</div>;
   if (run.trap) {
     const kind = t(lang, `trap.${run.trap.kind}`);
     return (
       <div className="run-status err-text">
-        💥 {t(lang, 'failure.trap', { kind })}
+        <Icon name="alert" /> {t(lang, 'failure.trap', { kind })}
         {run.trap.func ? t(lang, 'trap.inFunction', { func: run.trap.func }) : ''}
         <div className="small muted">{t(lang, 'trap.nativeNote')}</div>
       </div>
@@ -108,7 +109,7 @@ function TestRecord({ rec, lang, open, onToggle, noteText, onShowWorld }) {
   return (
     <div className={`test ${rec.pass ? 'test-pass' : 'test-fail'}`}>
       <button type="button" className="test-head" aria-expanded={open} onClick={onToggle}>
-        <span aria-hidden="true">{rec.pass ? '✔' : '✘'}</span>
+        <span aria-hidden="true">{rec.pass ? <Icon name="check" /> : <Icon name="x" />}</span>
         <span className="mono">{test.id}</span>
         {rec.checkpoint != null && <span className="badge">{t(lang, 'result.checkpoint', { n: rec.checkpoint })}</span>}
         {test.harness && <span className="badge">{t(lang, 'console.hiddenFile')}</span>}
@@ -143,7 +144,7 @@ function TestRecord({ rec, lang, open, onToggle, noteText, onShowWorld }) {
           <RunStatus run={rec.run} lang={lang} />
           {rec.run.world && onShowWorld && (
             <button type="button" className="btn btn-small" onClick={() => onShowWorld(rec)}>
-              🤖 {lang === 'ru' ? 'Показать этот тест в мире' : 'Replay this test in the world'}
+              <Icon name="robot" /> {lang === 'ru' ? 'Показать этот тест в мире' : 'Replay this test in the world'}
             </button>
           )}
         </div>

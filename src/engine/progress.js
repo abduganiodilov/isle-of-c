@@ -14,6 +14,7 @@ export function defaultSettings() {
     theme: 'dark',
     reducedMotion: 'system', // 'system' | 'on' | 'off'
     sound: false,
+    effects: true,
     layout: { left: 27, right: 38, bottom: 34 }, // percentages
   };
 }

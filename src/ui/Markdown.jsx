@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import Icon from './Icons.jsx';
 import { Marked } from 'marked';
 
 // Content is authored by the project (trusted), but we still escape raw HTML
@@ -65,7 +66,7 @@ export default function Markdown({ text, lang = 'en', onRunExample, onLoadExampl
               <div className="example-actions">
                 {onRunExample && (
                   <button type="button" className="btn btn-small" onClick={() => onRunExample(p.code, p.stdin)}>
-                    ▶ {lang === 'ru' ? 'Запустить пример' : 'Run example'}
+                    <Icon name="play" size={12} /> {lang === 'ru' ? 'Запустить пример' : 'Run example'}
                     {p.stdin ? (lang === 'ru' ? ` (ввод: ${p.stdin.replace(/\n/g, ' ')})` : ` (input: ${p.stdin.replace(/\n/g, ' ')})`) : ''}
                   </button>
                 )}

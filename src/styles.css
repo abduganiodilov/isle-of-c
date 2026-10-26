@@ -1,50 +1,67 @@
 /* Isle of C — restrained research-island look. Colours meet WCAG AA on their backgrounds. */
 
+/* Isle of C — "elegant terminal" theme: phosphor green and cyan on near-black,
+   monospace chrome, readable sans-serif prose. Text colours meet WCAG AA. */
+
 :root,
 [data-theme='dark'] {
-  --bg: #0e171b;
-  --panel: #142228;
-  --panel2: #1a2c33;
-  --panel3: #213840;
-  --border: #2c4650;
-  --text: #e4ece7;
-  --muted: #9db2ae;
-  --accent: #f2c14e;
-  --accent-ink: #1b1607;
-  --teal: #5cc2b6;
-  --ok: #7bd389;
-  --err: #ff8a7a;
-  --warn: #f3b562;
-  --focus: #8ad3ff;
-  --sea1: #1f5561;
-  --sea2: #0f2d36;
-  --land: #c9b27a;
-  --land-dark: #7d6a3e;
-  --land-edge: #e8d9a8;
-  --path: #f2c14e;
-  --robot: #d6e4e8;
-  --code-bg: #0a1215;
-  --code-fg: #dfe8e4;
-  --code-gutter: #0d171b;
-  --code-active: #13232a;
-  --code-selection: #24495a;
-  --syn-keyword: #f0a6ca;
-  --syn-type: #8fd3ff;
-  --syn-string: #b5e48c;
-  --syn-number: #ffcb8b;
-  --syn-comment: #8aa39e;
-  --syn-preproc: #f2c14e;
-  --syn-function: #9be7d8;
-  --syn-punct: #c9d6d2;
-  --syn-escape: #ffd27a;
-  --in: #9ae6a0;
-  --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
-  --radius: 8px;
+  --bg: #04080a;
+  --bg-grid: rgba(92, 225, 255, 0.035);
+  --panel: #081013;
+  --panel2: #0c171b;
+  --panel3: #122227;
+  --border: #1b3238;
+  --border-hi: #2a5560;
+  --text: #d6f3e7;
+  --muted: #84a99d;
+  --accent: #3dffa2;
+  --accent-ink: #011a0d;
+  --accent2: #5ce1ff;
+  --teal: #5ce1ff;
+  --magenta: #ff6ec7;
+  --ok: #3dffa2;
+  --err: #ff5c7a;
+  --warn: #ffcc66;
+  --focus: #5ce1ff;
+  --rain: #3dffa2;
+  --glow: 0 0 10px rgba(61, 255, 162, 0.35);
+  --glow2: 0 0 14px rgba(92, 225, 255, 0.35);
+  --sea1: #06232a;
+  --sea2: #01080a;
+  --land: #0b2620;
+  --land-dark: #14473a;
+  --land-edge: #3dffa2;
+  --path: #5ce1ff;
+  --robot: #d6f3e7;
+  --code-bg: #03070a;
+  --code-fg: #d6f3e7;
+  --code-gutter: #050c0f;
+  --code-active: #0a171b;
+  --code-selection: #10404a;
+  --syn-keyword: #ff6ec7;
+  --syn-type: #5ce1ff;
+  --syn-string: #3dffa2;
+  --syn-number: #ffcc66;
+  --syn-comment: #5d8578;
+  --syn-preproc: #c9a2ff;
+  --syn-function: #9fffd6;
+  --syn-punct: #93b7ad;
+  --syn-escape: #ffcc66;
+  --in: #ffcc66;
+  --font-ui: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --radius: 4px;
   color-scheme: dark;
 }
 
 [data-theme='light'] {
+  --bg-grid: rgba(0, 80, 90, 0.05);
+  --border-hi: #9a8a66;
+  --accent2: #006f80;
+  --magenta: #a3195b;
+  --rain: #1f7a70;
+  --glow: none;
+  --glow2: none;
   --bg: #f3eee3;
   --panel: #fffaf0;
   --panel2: #f6efe0;
