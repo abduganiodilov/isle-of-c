@@ -7,11 +7,14 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'dist');
 const PORT = Number(process.env.PORT || 8080);
-const HOST = process.env.HOST || '127.0.0.1';
+// --lan (or HOST=0.0.0.0) lets other devices on the same network open the game.
+const LAN = process.argv.includes('--lan');
+const HOST = process.env.HOST || (LAN ? '0.0.0.0' : '127.0.0.1');
 const TYPES = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.wasm': 'application/wasm',
@@ -55,4 +58,13 @@ http.createServer((req, res) => {
   headers['content-length'] = fs.statSync(file).size;
   res.writeHead(200, headers);
   fs.createReadStream(file).pipe(res);
-}).listen(PORT, HOST, () => console.log(`Isle of C running at http://${HOST}:${PORT}/`));
+}).listen(PORT, HOST, () => {
+  if (HOST !== '0.0.0.0') {
+    console.log(`Isle of C running at http://${HOST}:${PORT}/`);
+    return;
+  }
+  console.log(`Isle of C running on this computer at http://127.0.0.1:${PORT}/`);
+  const addrs = Object.values(os.networkInterfaces()).flat().filter((a) => a && a.family === 'IPv4' && !a.internal);
+  for (const a of addrs) console.log(`Other devices on the same network: http://${a.address}:${PORT}/`);
+  console.log('Press Ctrl+C to stop.');
+});

@@ -16,7 +16,8 @@
     "postinstall": "node scripts/copy-toolchain.mjs",
     "postbuild": "node scripts/compress-dist.mjs",
     "e2e": "node tests/e2e/campaign.mjs --all",
-    "content:strict": "node scripts/build-content.mjs --strict"
+    "content:strict": "node scripts/build-content.mjs --strict",
+    "share": "node server.mjs --lan"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.4",

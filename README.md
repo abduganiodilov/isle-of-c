@@ -28,6 +28,12 @@ npm start            # serves dist/ at http://127.0.0.1:8080/
 
 For development with hot reload: `npm run dev` (http://localhost:5173/).
 
+**Play on other devices on the same Wi-Fi:** run `npm run share` instead of `npm start`. It
+prints an address such as `http://192.168.1.23:8080/`; open it in a browser on any laptop
+on the same network (nothing to install there). Each player's progress is saved in their own
+browser. If it does not load, allow Node.js through the computer's firewall (macOS asks on
+first run). Stop sharing with Ctrl+C.
+
 The first visit downloads the C compiler once (~100 MB, ~27 MB compressed when served by
 `npm start`); the browser caches it, so later visits start in about a second. Everything
 else is static: `dist/` can be served by any static web server (GitHub Pages, nginx, …) —
