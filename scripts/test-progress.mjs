@@ -10,7 +10,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { parseSave, migrate, exportSave, emptySave, completeMission, recordHint, completeRetry, SAVE_SCHEMA_VERSION } from '../src/engine/progress.js';
+import { parseSave, migrate, exportSave, emptySave, completeMission, recordHint, completeRetry, recordCompileError, touchMission, SAVE_SCHEMA_VERSION } from '../src/engine/progress.js';
+import { newAchievements, awardAchievements, rankFor, ACHIEVEMENTS } from '../src/engine/achievements.js';
 import { indexCurriculum, campaignComplete, missionStatus, nextMission } from '../src/engine/curriculum.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -63,6 +64,53 @@ function check(cond, msg) {
   check(s.missions[fake.id].mastered, 'retry turns assisted completion into mastery');
   const round = parseSave(exportSave(s));
   check(JSON.stringify(round.save.missions) === JSON.stringify(s.missions), 'export/import round trip');
+}
+
+{
+  // New optional fields: absent in older saves, repaired when malformed.
+  const { save } = migrate({ schemaVersion: 2, missions: {}, achievements: { boot: 7, speedrun: '2026-01-01T00:00:00Z' }, stats: { runs: -3, checks: 4 }, mapSeen: 'x', settings: { theme: 'neon' } });
+  check(!('boot' in save.achievements) && save.achievements.speedrun, 'malformed achievement dropped, valid kept');
+  check(save.stats.runs === 0 && save.stats.checks === 4 && save.stats.compileErrors === 0, 'stats repaired and defaulted');
+  check(save.mapSeen === null, 'malformed mapSeen reset');
+  check(save.settings.theme === 'dark', 'unknown theme falls back to the default');
+  check(migrate({ schemaVersion: 2, settings: { theme: 'amber' } }).save.settings.theme === 'amber', 'theme variant kept');
+}
+
+// ---------------------------------------------------------------- 1b. achievements
+{
+  const cur = indexCurriculum(JSON.parse(fs.readFileSync(path.join(ROOT, 'src/generated/curriculum.json'), 'utf8')));
+  const code = cur.missions.find((m) => m.steps.some((st) => st.type === 'code'));
+  const code2 = cur.missions.filter((m) => m.steps.some((st) => st.type === 'code'))[1];
+  check(newAchievements(cur, emptySave()).length === 0, 'a new save has no badges');
+
+  // Seeded/legacy completions (no Check presses, no completion time) earn only progress badges.
+  const legacy = parseSave(JSON.stringify({ completed: [code.id] })).save;
+  const legacyIds = newAchievements(cur, legacy);
+  check(legacyIds.includes('boot') && !legacyIds.includes('zero-hints') && !legacyIds.includes('first-try'), 'legacy completions do not earn per-mission badges');
+
+  // A clean, quick, first-try solve.
+  const s = emptySave();
+  const m = touchMission(s, code.id);
+  m.attempts = 1;
+  completeMission(s, code);
+  const ids = awardAchievements(cur, s);
+  for (const id of ['boot', 'zero-hints', 'clean-compile', 'first-try', 'speedrun', 'flawless']) check(ids.includes(id), `clean solve earns ${id}`);
+  check(newAchievements(cur, s).length === 0, 'earned badges are not awarded twice');
+
+  // A slow, messy solve with hints earns none of the per-mission badges.
+  const t2 = emptySave();
+  const m2 = touchMission(t2, code2.id);
+  m2.startedAt = new Date(Date.now() - 3600e3).toISOString();
+  m2.attempts = 3;
+  recordHint(t2, code2.id, 2);
+  recordCompileError(t2, code2.id);
+  completeMission(t2, code2);
+  const ids2 = newAchievements(cur, t2);
+  check(t2.stats.compileErrors === 1 && t2.missions[code2.id].compileErrors === 1, 'compile errors counted globally and per mission');
+  check(ids2.includes('boot') && !ids2.some((x) => ['zero-hints', 'clean-compile', 'first-try', 'speedrun', 'flawless'].includes(x)), 'messy solve earns only the progress badge');
+  t2.settings.theme = 'cyber';
+  check(newAchievements(cur, t2).includes('reskin'), 'switching theme earns New skin');
+  check(rankFor(0).id === 'newbie' && rankFor(ACHIEVEMENTS.length).id === 'root', 'ranks span from newbie to root');
 }
 
 // ---------------------------------------------------------------- 2. append a sample chapter

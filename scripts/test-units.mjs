@@ -4,6 +4,7 @@
 import { checkTest, extractNumbers, normalizeOutput } from '../src/validate/checker.js';
 import { checkRequirements, stripCode, definedFunctions } from '../src/validate/sourceChecks.js';
 import { classifyDiagnostic } from '../src/validate/feedback.js';
+import { diffOutput, diffChars } from '../src/validate/diff.js';
 import { parseDiagnostics } from '../src/exec/toolchain.js';
 import { compileC, runModule } from './lib/nodeExec.mjs';
 
@@ -33,6 +34,20 @@ check(checkTest({ expect: { exitCode: 3, output: '' } }, { exitCode: 3, stdout: 
 check(!checkTest({ expect: { output: 'x' } }, { exitCode: null, stdout: 'x', timedOut: true, timeoutMs: 3000 }).pass, 'timeout fails even with right output');
 check(checkTest({ expect: { world: { allRepaired: true, robotAt: [2, 0] } } }, ok('', { world: { summary: { x: 2, y: 0, remainingDamage: [], moves: 2, blocked: 0, wastedRepairs: 0, repairs: 1 } } })).pass, 'world expectations');
 check(checkTest({ expect: { world: { allRepaired: true } } }, ok('', { world: { summary: { x: 0, y: 0, remainingDamage: [[1, 0, 1]], moves: 0, blocked: 0, wastedRepairs: 0, repairs: 0 } } })).failures[0].code === 'worldDamageLeft', 'damage left reported');
+
+// ---------------------------------------------------------------- output diff
+{
+  const rows = diffOutput('Sum: 7\nDone', 'Sum: 8\nDone');
+  check(rows.length === 2 && rows[0].kind === 'changed' && rows[1].kind === 'same', 'diff pairs a changed line and keeps the matching one');
+  const marked = (segs) => segs.filter((g) => g.diff).map((g) => g.text).join('');
+  check(marked(rows[0].expected) === '7' && marked(rows[0].actual) === '8', 'diff highlights only the differing characters');
+  const miss = diffOutput('a\nb\nc', 'a\nc');
+  check(miss.map((r) => r.kind).join() === 'same,missing,same', 'diff reports a missing line');
+  const extra = diffOutput('a', 'a\nDEBUG');
+  check(extra.map((r) => r.kind).join() === 'same,extra', 'diff reports an extra line');
+  const big = diffChars('x'.repeat(500), 'x'.repeat(250) + 'y' + 'x'.repeat(249));
+  check(big.actual.some((g) => g.diff && g.text === 'y'), 'long lines use the bounded prefix/suffix diff');
+}
 
 // ---------------------------------------------------------------- source checks
 check(!stripCode('/* switch */ int x = 1; // switch\nchar *s = "switch";').includes('switch'), 'stripCode removes comments and strings');

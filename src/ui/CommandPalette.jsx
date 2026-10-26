@@ -29,6 +29,8 @@ export default function CommandPalette({ cur, save, lang, navigate, onClose, onA
       { id: 'go:notebook', icon: 'book', label: t(lang, 'nav.notebook'), kind: 'screen', run: () => navigate({ screen: 'notebook' }) },
       { id: 'go:sandbox', icon: 'flask', label: t(lang, 'nav.sandbox'), kind: 'screen', run: () => navigate({ screen: 'sandbox' }) },
       { id: 'go:curriculum', icon: 'layers', label: t(lang, 'nav.curriculum'), kind: 'screen', run: () => navigate({ screen: 'curriculum' }) },
+      { id: 'go:profile', icon: 'trophy', label: t(lang, 'nav.profile'), kind: 'screen', run: () => navigate({ screen: 'profile' }) },
+      ...Object.entries(t(lang, 'settings.themes')).map(([k, v]) => ({ id: `act:theme:${k}`, icon: 'layers', label: `${t(lang, 'palette.theme')}: ${v}`, kind: 'action', run: () => onAction(`theme:${k}`) })),
       { id: 'act:settings', icon: 'gear', label: t(lang, 'nav.settings'), kind: 'action', run: () => onAction('settings') },
       { id: 'act:lang', icon: 'globe', label: lang === 'ru' ? 'Switch to English' : 'Переключить на русский', kind: 'action', run: () => onAction('lang') },
       { id: 'act:fx', icon: 'spark', label: t(lang, 'palette.toggleFx'), kind: 'action', run: () => onAction('fx') },

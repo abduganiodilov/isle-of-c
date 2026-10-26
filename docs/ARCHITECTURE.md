@@ -114,7 +114,16 @@ grid stops the program with a clear error.
 ## Persistence
 
 `localStorage["isle-of-c.save"]` holds `{ schemaVersion, settings, missions{id → record},
-drafts{"missionId#stepId" → code/stdin}, sandbox, endingsSeen, lastMission, … }`.
+drafts{"missionId#stepId" → code/stdin}, sandbox, endingsSeen, lastMission, achievements{id →
+time}, stats{compileErrors, runs, sandboxRuns, checks}, mapSeen[chapterIds], … }`.
+
+* Achievements (`src/engine/achievements.js`) are pure rules over the save, re-evaluated on
+  every change; earned badges are stored and never removed. Per-mission badges only count
+  missions completed with a Check press (`attempts ≥ 1`) and a completion time, so legacy or
+  imported completions cannot earn them by accident. Adding a badge = one rule + EN/RU
+  strings under `ach.<id>`.
+* `mapSeen` remembers which main-route chapters PIP-7 has already walked to on the map, so
+  the walk animation plays once per unlock (`null` = initialise silently).
 
 * Records are keyed by **stable mission ids**, so appending content never invalidates them.
 * `MIGRATIONS` upgrade older formats step by step (0 → 1 → 2); `sanitize()` repairs malformed

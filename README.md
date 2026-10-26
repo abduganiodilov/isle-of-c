@@ -68,8 +68,16 @@ there is **no backend**.
 * **Notebook** — searchable reference that grows with completed missions (includes an ASCII
   table and the island API). **Curriculum** — lecture-topic coverage with your progress and
   all corrections to the slides. **Sandbox** — free practice, optionally with the robot grid.
-* Settings: language (EN/RU), editor font size, dark/light theme, reduced motion, sound,
-  export/import/erase progress.
+* **Failed tests** show an animated side-by-side diff of the expected output and yours, with
+  the differing characters highlighted.
+* **Profile** — 16 hacker achievements (*Zero hints*, *No compile errors*, *One shot*,
+  *Speedrun*, a secret one, …), a rank from *Newbie* to *root*, and your statistics. New
+  badges pop up as toasts.
+* **Island map** — when a region unlocks, PIP-7 walks along the route to it.
+* Settings: language (EN/RU), editor font size, five themes (phosphor-green terminal, amber
+  CRT, classic IBM blue, cyberpunk magenta, daylight), reduced motion, visual effects, sound
+  (terminal beeps and key clicks while typing), export/import/erase progress. Ctrl+K opens a
+  command palette.
 
 ## Project structure
 

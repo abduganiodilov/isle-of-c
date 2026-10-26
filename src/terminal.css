@@ -386,7 +386,7 @@ kbd {
   line-height: 1;
   margin: 10px 0 6px;
   color: var(--accent);
-  text-shadow: 0 0 18px rgba(61, 255, 162, 0.45), 0 0 2px rgba(61, 255, 162, 0.9);
+  text-shadow: 0 0 18px rgb(var(--accent-rgb) / 0.45), 0 0 2px rgb(var(--accent-rgb) / 0.9);
   letter-spacing: -0.03em;
 }
 [data-theme='light'] .title {
@@ -459,7 +459,7 @@ kbd {
   background: color-mix(in srgb, var(--code-bg) 92%, transparent);
   border: 1px solid var(--border-hi);
   border-radius: 6px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(92, 225, 255, 0.05);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgb(var(--accent2-rgb) / 0.05);
   overflow: hidden;
 }
 .terminal-bar {
@@ -487,7 +487,7 @@ kbd {
   background: #ffcc66;
 }
 .terminal-bar i:nth-child(3) {
-  background: #3dffa2;
+  background: var(--accent);
 }
 .terminal-bar span {
   margin-left: 8px;
@@ -516,7 +516,7 @@ kbd {
   animation: caret-blink 1s steps(1) infinite;
 }
 .pip7 {
-  filter: drop-shadow(0 0 18px rgba(92, 225, 255, 0.25));
+  filter: drop-shadow(0 0 18px rgb(var(--accent2-rgb) / 0.25));
 }
 .pip7 .pip-label {
   font-family: var(--font-mono);
@@ -573,7 +573,7 @@ html.fx-on .glitch::after {
 .island-map {
   border-radius: 6px;
   border-color: var(--border-hi);
-  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(92, 225, 255, 0.06);
+  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgb(var(--accent2-rgb) / 0.06);
   background: var(--sea2);
 }
 .map-grid line {
@@ -587,13 +587,13 @@ html.fx-on .glitch::after {
   stroke-width: 0.25;
 }
 .map-coast {
-  filter: drop-shadow(0 0 1.2px rgba(61, 255, 162, 0.7));
+  filter: drop-shadow(0 0 1.2px rgb(var(--accent-rgb) / 0.7));
 }
 .radar-sweep {
   position: absolute;
   inset: -20%;
   pointer-events: none;
-  background: conic-gradient(from 0deg, rgba(61, 255, 162, 0) 0deg, rgba(61, 255, 162, 0) 300deg, rgba(61, 255, 162, 0.16) 355deg, rgba(61, 255, 162, 0.32) 360deg);
+  background: conic-gradient(from 0deg, rgb(var(--accent-rgb) / 0) 0deg, rgb(var(--accent-rgb) / 0) 300deg, rgb(var(--accent-rgb) / 0.16) 355deg, rgb(var(--accent-rgb) / 0.32) 360deg);
   border-radius: 50%;
   animation: radar 7s linear infinite;
   mix-blend-mode: screen;
@@ -909,7 +909,7 @@ progress::-moz-progress-bar {
   border: 1px solid var(--border-hi);
   border-radius: 6px;
   background: radial-gradient(ellipse at center, #031b12 0%, #010805 100%);
-  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(61, 255, 162, 0.06);
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8), 0 0 0 1px rgb(var(--accent-rgb) / 0.06);
 }
 .crt-text {
   color: #63ffb1;
@@ -933,7 +933,7 @@ html.fx-on .crt-banner {
 }
 .gauge-fill {
   stroke: var(--accent);
-  filter: drop-shadow(0 0 3px rgba(61, 255, 162, 0.7));
+  filter: drop-shadow(0 0 3px rgb(var(--accent-rgb) / 0.7));
 }
 .gauge-value {
   color: var(--accent);
@@ -970,7 +970,7 @@ html.fx-on .crt-banner {
 }
 .robot-body {
   fill: var(--accent2);
-  filter: drop-shadow(0 0 4px rgba(92, 225, 255, 0.8));
+  filter: drop-shadow(0 0 4px rgb(var(--accent2-rgb) / 0.8));
 }
 .robot-path {
   stroke: var(--accent);
@@ -1009,7 +1009,7 @@ html.fx-on .crt-banner {
 .modal {
   border-radius: 4px;
   border-color: var(--border-hi);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(92, 225, 255, 0.06);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgb(var(--accent2-rgb) / 0.06);
 }
 html.fx-on .modal {
   animation: modal-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2);
@@ -1318,7 +1318,7 @@ html.fx-on .screen-fade {
 }
 @keyframes flash-ok {
   0% {
-    box-shadow: inset 0 0 0 2px var(--accent), 0 0 30px rgba(61, 255, 162, 0.5);
+    box-shadow: inset 0 0 0 2px var(--accent), 0 0 30px rgb(var(--accent-rgb) / 0.5);
   }
   100% {
     box-shadow: none;
@@ -1378,5 +1378,403 @@ html.fx-on .map-route {
 @keyframes route-flow {
   to {
     stroke-dashoffset: -4.8;
+  }
+}
+
+/* =====================================================================
+   Animated output diff (failed tests)
+   ===================================================================== */
+.diff {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--code-bg);
+  margin: 0.3rem 0 0.6rem;
+  overflow-x: auto;
+  font-size: 0.86em;
+}
+.diff-row {
+  display: grid;
+  grid-template-columns: 3.2em minmax(0, 1fr) minmax(0, 1fr);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+  animation: diff-in 0.32s ease-out both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+.diff-row:last-of-type {
+  border-bottom: 0;
+}
+.diff-headrow {
+  animation: none;
+  background: var(--panel2);
+}
+.diff-cell {
+  margin: 0;
+  padding: 0.15rem 0.5rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+  border-left: 1px solid var(--border);
+  min-height: 1.4em;
+}
+.diff-gutter {
+  padding: 0.15rem 0.35rem;
+  color: var(--muted);
+  text-align: right;
+  font-size: 0.85em;
+  user-select: none;
+}
+.diff-same .diff-cell {
+  color: var(--muted);
+}
+.diff-changed,
+.diff-missing,
+.diff-extra {
+  background: color-mix(in srgb, var(--err) 7%, transparent);
+}
+.diff-changed .diff-gutter,
+.diff-missing .diff-gutter,
+.diff-extra .diff-gutter {
+  color: var(--err);
+}
+.diff-ch {
+  color: var(--bg);
+  background: var(--err);
+  border-radius: 2px;
+  padding: 0 1px;
+  animation: diff-pop 0.5s ease-out both;
+  animation-delay: calc(var(--i, 0) * 45ms + 0.25s);
+}
+.diff-row > .diff-cell:last-child .diff-ch {
+  background: var(--warn);
+}
+.diff-first {
+  box-shadow: inset 3px 0 0 var(--err);
+}
+.diff-first .diff-ch {
+  animation: diff-pop 0.5s ease-out both, diff-blink 1.2s ease-in-out 0.9s 3;
+}
+.diff-absent,
+.diff-empty {
+  color: var(--muted);
+  font-style: italic;
+}
+.diff-foot {
+  padding: 0.3rem 0.5rem;
+  border-top: 1px solid var(--border);
+}
+.diff-raw > summary {
+  cursor: pointer;
+  margin: 0.2rem 0;
+}
+.reduced-motion .diff-row,
+.reduced-motion .diff-ch {
+  animation: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .diff-row,
+  .diff-ch {
+    animation: none !important;
+  }
+}
+@keyframes diff-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes diff-pop {
+  0% {
+    background: transparent;
+    color: inherit;
+  }
+  60% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes diff-blink {
+  50% {
+    box-shadow: 0 0 0 2px var(--err), 0 0 12px var(--err);
+  }
+}
+
+/* =====================================================================
+   Profile and achievements
+   ===================================================================== */
+.profile-screen {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 1.2rem 3rem;
+}
+.profile-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 1.4rem;
+  align-items: center;
+  background: var(--panel);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.4rem;
+}
+.profile-id h1 {
+  margin: 0.1rem 0 0.3rem;
+  font-family: var(--font-mono);
+  color: var(--accent);
+  text-shadow: var(--glow);
+  font-size: 2rem;
+}
+.profile-id p {
+  margin: 0;
+}
+.rank-bar {
+  margin-top: 0.6rem;
+  height: 6px;
+  max-width: 360px;
+  background: var(--panel3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.rank-bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent2), var(--accent));
+  box-shadow: var(--glow);
+  transition: width 0.8s ease-out;
+}
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(7rem, 1fr));
+  gap: 0.5rem 1rem;
+  margin: 0;
+}
+.profile-stats .stat {
+  border-left: 2px solid var(--border-hi);
+  padding-left: 0.6rem;
+}
+.profile-stats dd {
+  margin: 0;
+  font-size: 1.35rem;
+  color: var(--accent2);
+}
+.profile-h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  margin: 1.8rem 0 0.8rem;
+}
+.badge-grid {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 0.7rem;
+}
+.ach {
+  display: flex;
+  gap: 0.8rem;
+  align-items: flex-start;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+  animation: slide-in 0.4s ease-out both;
+  animation-delay: calc(var(--i, 0) * 35ms);
+}
+.ach-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+.ach-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--border-hi);
+  background: var(--panel2);
+  color: var(--muted);
+}
+.ach-earned {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, var(--panel)), var(--panel));
+}
+.ach-earned .ach-icon {
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: var(--glow), inset 0 0 12px rgb(var(--accent-rgb) / 0.2);
+}
+.ach-earned .ach-state {
+  color: var(--accent);
+}
+.ach-locked {
+  opacity: 0.62;
+}
+.ach-locked .ach-icon {
+  border-style: dashed;
+}
+.ach-state {
+  color: var(--muted);
+}
+.nav-count {
+  font-size: 0.7rem;
+  padding: 0 0.35rem;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  margin-left: 0.15rem;
+}
+
+/* Toasts */
+.ach-toasts {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+.ach-toast {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 260px;
+  padding: 0.7rem 1rem;
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  box-shadow: var(--glow), 0 12px 40px rgba(0, 0, 0, 0.5);
+  animation: toast-in 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both, toast-out 0.5s ease-in 4.6s forwards;
+}
+.ach-toast .ach-icon {
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+}
+.ach-toast-kicker {
+  color: var(--accent);
+  letter-spacing: 0.12em;
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(110%);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes toast-out {
+  to {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+/* Result dialog: newly unlocked region */
+.region-unlocked {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* =====================================================================
+   PIP-7 on the island map
+   ===================================================================== */
+.map-pip {
+  position: absolute;
+  z-index: 4;
+  width: 40px;
+  height: 40px;
+  margin: -66px 0 0 -20px;
+  pointer-events: none;
+  filter: drop-shadow(0 0 6px rgb(var(--accent-rgb) / 0.6));
+}
+.map-pip .robot-svg,
+.map-pip svg {
+  animation: pip-hover 2.4s ease-in-out infinite;
+}
+.pip-walking svg {
+  animation: pip-step 0.32s ease-in-out infinite alternate;
+}
+.map-walking {
+  position: absolute;
+  left: 50%;
+  bottom: 2.4rem;
+  transform: translateX(-50%);
+  z-index: 5;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--accent2);
+  background: color-mix(in srgb, var(--panel) 90%, transparent);
+  color: var(--accent2);
+  border-radius: var(--radius);
+  box-shadow: var(--glow2);
+  white-space: nowrap;
+}
+.node-arrived {
+  animation: node-arrive 1s ease-out 2;
+  border-color: var(--accent) !important;
+  box-shadow: var(--glow);
+}
+.node-new {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translate(-50%, 4px);
+  font-size: 0.65rem;
+  white-space: nowrap;
+  color: var(--accent-ink);
+  background: var(--accent);
+  padding: 0 0.35rem;
+  border-radius: 2px;
+}
+@keyframes pip-hover {
+  50% {
+    transform: translateY(-3px);
+  }
+}
+@keyframes pip-step {
+  from {
+    transform: translateY(0) rotate(-4deg);
+  }
+  to {
+    transform: translateY(-4px) rotate(4deg);
+  }
+}
+@keyframes node-arrive {
+  0% {
+    box-shadow: 0 0 0 0 rgb(var(--accent-rgb) / 0.7);
+  }
+  100% {
+    box-shadow: 0 0 0 18px rgb(var(--accent-rgb) / 0);
+  }
+}
+
+@media (max-width: 760px) {
+  .profile-card {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  .rank-bar {
+    margin-inline: auto;
+  }
+  .profile-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    text-align: left;
+  }
+  .diff-row {
+    grid-template-columns: 2.4em minmax(0, 1fr) minmax(0, 1fr);
   }
 }

@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Icon from './Icons.jsx';
 import { t, fill } from '../i18n/index.js';
 import { classifyDiagnostic, sortDiagnostics, hiddenRuntimeFile } from '../validate/feedback.js';
-import { describeExpectation } from '../validate/checker.js';
+import { describeExpectation, normalizeOutput, collapseSpaces } from '../validate/checker.js';
+import { diffOutput } from '../validate/diff.js';
 
 function Transcript({ transcript, lang }) {
   if (!transcript || !transcript.length) return <span className="muted">{t(lang, 'console.emptyOutput')}</span>;
@@ -104,8 +105,90 @@ export function requirementText(f, lang) {
   return t(lang, `requirement.${f.code}`, f.params);
 }
 
+/** What the diff compares for a failed test, or null when a diff would not help. */
+function diffSource(rec) {
+  const e = rec.test.expect || {};
+  const codes = rec.failures.map((f) => f.code);
+  const stdout = rec.run.stdout || '';
+  if (e.output != null && codes.includes('outputMismatch')) {
+    return e.collapseSpaces ? { expected: collapseSpaces(e.output), actual: collapseSpaces(stdout) } : { expected: normalizeOutput(e.output), actual: normalizeOutput(stdout) };
+  }
+  if (e.lines && (codes.includes('missingLine') || codes.includes('lineCount'))) {
+    const lines = normalizeOutput(stdout).split('\n').map((l) => collapseSpaces(l));
+    return { expected: e.lines.map((l) => collapseSpaces(l)).join('\n'), actual: (e.exactLineCount ? lines.filter(Boolean) : lines).join('\n') };
+  }
+  return null;
+}
+
+function Segs({ segs, lang }) {
+  if (segs.length === 1 && segs[0].text === '') return <span className="diff-empty">{t(lang, 'console.diffEmpty')}</span>;
+  return segs.map((g, i) =>
+    g.diff ? (
+      <mark key={i} className="diff-ch">
+        {g.text.replace(/ /g, '·') || '¶'}
+      </mark>
+    ) : (
+      <span key={i}>{g.text}</span>
+    ),
+  );
+}
+
+/** Animated side-by-side diff: matching lines dim, differing characters highlighted. */
+export function DiffView({ expected, actual, lang }) {
+  const rows = useMemo(() => diffOutput(expected, actual), [expected, actual]);
+  const first = rows.findIndex((r) => r.kind !== 'same');
+  const mark = { same: ' ', changed: '~', missing: '−', extra: '+' };
+  return (
+    <div className="diff" role="table" aria-label={t(lang, 'console.diffTitle')}>
+      <div className="diff-row diff-headrow" role="row">
+        <span className="diff-gutter" aria-hidden="true" />
+        <span className="diff-cell small muted" role="columnheader">
+          {t(lang, 'console.testExpected')}
+        </span>
+        <span className="diff-cell small muted" role="columnheader">
+          {t(lang, 'console.testActual')}
+        </span>
+      </div>
+      {rows.map((r, i) => (
+        <div key={i} role="row" className={`diff-row diff-${r.kind} ${i === first ? 'diff-first' : ''}`} style={{ '--i': Math.min(i, 30) }}>
+          <span className="diff-gutter mono" aria-hidden="true">
+            {i + 1}
+            {mark[r.kind]}
+          </span>
+          <pre className="diff-cell mono" role="cell">
+            {r.expected ? <Segs segs={r.expected} lang={lang} /> : <span className="diff-absent">{t(lang, 'console.diffExtra')}</span>}
+          </pre>
+          <pre className="diff-cell mono" role="cell">
+            {r.actual ? <Segs segs={r.actual} lang={lang} /> : <span className="diff-absent">{t(lang, 'console.diffMissing')}</span>}
+          </pre>
+        </div>
+      ))}
+      {first >= 0 && <div className="small muted diff-foot">{t(lang, 'console.diffFirst', { line: first + 1 })}</div>}
+    </div>
+  );
+}
+
 function TestRecord({ rec, lang, open, onToggle, noteText, onShowWorld }) {
   const test = rec.test;
+  const diff = !rec.pass ? diffSource(rec) : null;
+  const cols = (
+    <div className="test-cols">
+      <div>
+        <div className="muted small">{t(lang, 'console.testInput')}</div>
+        <pre className="mono">{test.stdin ? test.stdin : t(lang, 'console.noInput')}</pre>
+      </div>
+      <div>
+        <div className="muted small">{t(lang, 'console.testExpected')}</div>
+        <pre className="mono">{describeExpectation(test)}</pre>
+      </div>
+      <div>
+        <div className="muted small">{t(lang, 'console.testActual')}</div>
+        <pre className="mono">
+          <Transcript transcript={rec.run.transcript} lang={lang} />
+        </pre>
+      </div>
+    </div>
+  );
   return (
     <div className={`test ${rec.pass ? 'test-pass' : 'test-fail'}`}>
       <button type="button" className="test-head" aria-expanded={open} onClick={onToggle}>
@@ -125,22 +208,20 @@ function TestRecord({ rec, lang, open, onToggle, noteText, onShowWorld }) {
               ))}
             </ul>
           )}
-          <div className="test-cols">
-            <div>
-              <div className="muted small">{t(lang, 'console.testInput')}</div>
-              <pre className="mono">{test.stdin ? test.stdin : t(lang, 'console.noInput')}</pre>
-            </div>
-            <div>
-              <div className="muted small">{t(lang, 'console.testExpected')}</div>
-              <pre className="mono">{describeExpectation(test)}</pre>
-            </div>
-            <div>
-              <div className="muted small">{t(lang, 'console.testActual')}</div>
-              <pre className="mono">
-                <Transcript transcript={rec.run.transcript} lang={lang} />
-              </pre>
-            </div>
-          </div>
+          {diff && (
+            <>
+              <div className="muted small">{t(lang, 'console.diffTitle')}</div>
+              <DiffView expected={diff.expected} actual={diff.actual} lang={lang} />
+            </>
+          )}
+          {diff ? (
+            <details className="diff-raw">
+              <summary className="small muted">{t(lang, 'console.diffRaw')}</summary>
+              {cols}
+            </details>
+          ) : (
+            cols
+          )}
           <RunStatus run={rec.run} lang={lang} />
           {rec.run.world && onShowWorld && (
             <button type="button" className="btn btn-small" onClick={() => onShowWorld(rec)}>

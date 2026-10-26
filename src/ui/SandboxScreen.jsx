@@ -5,6 +5,8 @@ import { engine } from '../exec/engine.js';
 import CodeEditor from './CodeEditor.jsx';
 import Console from './Console.jsx';
 import GridScene from '../world/GridScene.jsx';
+import { recordCompileError } from '../engine/progress.js';
+import { playSound } from './sound.js';
 
 const SANDBOX_GRID = { width: 7, height: 5, start: [0, 0], damage: [[2, 0, 1], [5, 1, 2], [1, 3, 1], [6, 4, 3], [3, 2, 1]] };
 
@@ -43,10 +45,17 @@ export default function SandboxScreen({ save, update, lang, settings, reducedMot
     if (!c.ok) {
       setPhase('idle');
       setTab('diagnostics');
+      update((s) => recordCompileError(s, null));
+      playSound('compileError', settings.sound);
       return;
     }
     setPhase('running');
     setTab('output');
+    playSound('run', settings.sound);
+    update((s) => {
+      s.stats.runs++;
+      s.stats.sandboxRuns++;
+    });
     const segs = [];
     setLive([]);
     const r = await engine.run(c.module, {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import curriculumData from './generated/curriculum.json';
 import { indexCurriculum, tx, campaignComplete } from './engine/curriculum.js';
 import { useSaveStore } from './state/store.js';
@@ -16,6 +16,9 @@ import { CLANG_PACKAGE_VERSION } from './exec/toolchain.js';
 import CommandPalette from './ui/CommandPalette.jsx';
 import Icon from './ui/Icons.jsx';
 import { FxContext } from './ui/fx.jsx';
+import ProfileScreen, { AchievementToasts } from './ui/ProfileScreen.jsx';
+import { newAchievements } from './engine/achievements.js';
+import { playSound, keySound } from './ui/sound.js';
 
 const cur = indexCurriculum(curriculumData);
 
@@ -25,7 +28,7 @@ function parseHash() {
   const [screen, ...rest] = h.split('/');
   if (screen === 'mission') return { screen, id: rest.join('/') };
   if (screen === 'map') return { screen, chapter: rest[0] || null };
-  if (['notebook', 'sandbox', 'curriculum', 'ending'].includes(screen)) return { screen, entry: rest.join('/') || null };
+  if (['notebook', 'sandbox', 'curriculum', 'ending', 'profile'].includes(screen)) return { screen, entry: rest.join('/') || null };
   return { screen: 'title' };
 }
 
@@ -85,6 +88,38 @@ export default function App() {
   const lang = settings.lang;
   const reducedMotion = settings.reducedMotion === 'on' || (settings.reducedMotion === 'system' && systemReduced);
   const fx = settings.effects !== false && !reducedMotion;
+  const [toasts, setToasts] = useState([]);
+
+  // Award badges whenever the save changes; each new one gets a toast and a chime.
+  useEffect(() => {
+    const ids = newAchievements(cur, save);
+    if (!ids.length) return;
+    const now = new Date().toISOString();
+    update((s) => {
+      for (const id of ids) s.achievements[id] = now;
+    });
+    const items = ids.map((id, i) => ({ id, key: `${id}-${Date.now()}-${i}` }));
+    setToasts((ts) => [...ts, ...items]);
+    playSound('achievement', settings.sound);
+    setTimeout(() => setToasts((ts) => ts.filter((x) => !items.includes(x))), 5200);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [save]);
+
+  // Soft key clicks while typing in the editor or any text field.
+  useEffect(() => {
+    if (!settings.sound) return;
+    const onKey = (e) => {
+      const el = e.target;
+      if (!(el.closest?.('.cm-editor') || el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && /^(text|search|)$/.test(el.type)))) return;
+      const name = keySound(e);
+      if (name) playSound(name, true);
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [settings.sound]);
+
+  const latestSound = useRef(settings.sound);
+  latestSound.current = settings.sound;
 
   // Ctrl/Cmd+K opens the command palette from anywhere.
   useEffect(() => {
@@ -92,6 +127,7 @@ export default function App() {
       if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
         e.preventDefault();
         setPaletteOpen((o) => !o);
+        playSound('open', latestSound.current);
       }
     };
     window.addEventListener('keydown', onKey);
@@ -106,6 +142,7 @@ export default function App() {
 
   const navigate = (r) => {
     const h = routeToHash(r);
+    if (r.screen !== route.screen) playSound('beep', settings.sound);
     if (h !== location.hash) {
       if (h === '') history.pushState(null, '', location.pathname + location.search);
       else location.hash = h;
@@ -179,13 +216,17 @@ export default function App() {
         <button type="button" className={`nav-btn ${route.screen === 'curriculum' ? 'nav-active' : ''}`} onClick={() => navigate({ screen: 'curriculum' })}>
           <Icon name="layers" /> <span>{t(lang, 'nav.curriculum')}</span>
         </button>
+        <button type="button" className={`nav-btn ${route.screen === 'profile' ? 'nav-active' : ''}`} onClick={() => navigate({ screen: 'profile' })}>
+          <Icon name="trophy" /> <span>{t(lang, 'nav.profile')}</span>
+          {Object.keys(save.achievements).length > 0 && <span className="nav-count mono">{Object.keys(save.achievements).length}</span>}
+        </button>
         {complete && (
           <button type="button" className={`nav-btn ${route.screen === 'ending' ? 'nav-active' : ''}`} onClick={() => navigate({ screen: 'ending' })}>
             <Icon name="flag" /> <span>{t(lang, 'nav.ending')}</span>
           </button>
         )}
       </nav>
-      <button type="button" className="palette-trigger" onClick={() => setPaletteOpen(true)} aria-label={t(lang, 'palette.title')}>
+      <button type="button" className="palette-trigger" onClick={() => { setPaletteOpen(true); playSound('open', settings.sound); }} aria-label={t(lang, 'palette.title')}>
         <Icon name="search" size={14} />
         <span className="palette-trigger-text">{t(lang, 'palette.placeholder')}</span>
         <kbd>Ctrl K</kbd>
@@ -219,6 +260,7 @@ export default function App() {
   else if (route.screen === 'sandbox') screen = <SandboxScreen {...common} />;
   else if (route.screen === 'curriculum') screen = <CurriculumScreen {...common} />;
   else if (route.screen === 'ending') screen = <EndingScreen {...common} />;
+  else if (route.screen === 'profile') screen = <ProfileScreen {...common} />;
   else screen = <TitleScreen {...common} store={store} />;
 
   return (
@@ -251,9 +293,11 @@ export default function App() {
             if (a === 'settings') setSettingsOpen(true);
             if (a === 'lang') setLang(lang === 'ru' ? 'en' : 'ru');
             if (a === 'fx') update((s) => (s.settings.effects = s.settings.effects === false));
+            if (a.startsWith('theme:')) update((s) => (s.settings.theme = a.slice(6)));
           }}
         />
       )}
+      <AchievementToasts items={toasts} lang={lang} />
       {settingsOpen && <SettingsDialog {...common} store={store} onClose={() => setSettingsOpen(false)} clangVersion={CLANG_PACKAGE_VERSION} />}
     </div>
     </FxContext.Provider>

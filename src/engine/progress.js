@@ -6,6 +6,7 @@
 
 export const SAVE_SCHEMA_VERSION = 2;
 export const STORAGE_KEY = 'isle-of-c.save';
+export const THEMES = ['dark', 'amber', 'ibm', 'cyber', 'light'];
 
 export function defaultSettings() {
   return {
@@ -33,7 +34,14 @@ export function emptySave() {
     sandbox: { code: null, stdin: '', grid: false },
     endingsSeen: {},
     notebookSeen: [],
+    achievements: {}, // id -> ISO time it was earned
+    stats: emptyStats(),
+    mapSeen: null, // main chapters whose unlock PIP-7 already walked to (null = not tracked yet)
   };
+}
+
+export function emptyStats() {
+  return { compileErrors: 0, runs: 0, sandboxRuns: 0, checks: 0 };
 }
 
 export function emptyMissionRecord() {
@@ -44,6 +52,7 @@ export function emptyMissionRecord() {
     contentVersion: null,
     attempts: 0, // Check presses on the main code step
     runs: 0,
+    compileErrors: 0, // failed compilations while working on the mission
     hintLevel: 0, // highest hint level revealed (0-5)
     solutionRevealed: false,
     solutionRevealedAt: null,
@@ -121,6 +130,7 @@ export function sanitize(s, notes = []) {
   } else {
     out.settings = { ...base.settings, ...out.settings, layout: { ...base.settings.layout, ...(isObj(out.settings.layout) ? out.settings.layout : {}) } };
     if (!['en', 'ru'].includes(out.settings.lang)) out.settings.lang = 'en';
+    if (!THEMES.includes(out.settings.theme)) out.settings.theme = base.settings.theme;
     const fs = Number(out.settings.fontSize);
     out.settings.fontSize = Number.isFinite(fs) ? Math.min(28, Math.max(11, fs)) : base.settings.fontSize;
   }
@@ -142,6 +152,12 @@ export function sanitize(s, notes = []) {
   if (!isObj(out.sandbox)) out.sandbox = base.sandbox;
   if (!isObj(out.endingsSeen)) out.endingsSeen = {};
   if (!Array.isArray(out.notebookSeen)) out.notebookSeen = [];
+  if (!isObj(out.achievements)) out.achievements = {};
+  for (const [k, v] of Object.entries(out.achievements)) if (typeof v !== 'string') delete out.achievements[k];
+  const stats = isObj(out.stats) ? out.stats : {};
+  out.stats = emptyStats();
+  for (const k of Object.keys(out.stats)) if (Number.isFinite(stats[k]) && stats[k] >= 0) out.stats[k] = stats[k];
+  if (out.mapSeen != null && !(Array.isArray(out.mapSeen) && out.mapSeen.every((x) => typeof x === 'string'))) out.mapSeen = null;
   if (out.lastMission != null && typeof out.lastMission !== 'string') out.lastMission = null;
   out.schemaVersion = SAVE_SCHEMA_VERSION;
   return out;
@@ -184,6 +200,12 @@ export function recordHint(save, id, level) {
     m.solutionRevealed = true;
     m.solutionRevealedAt = new Date().toISOString();
   }
+}
+
+/** A failed compilation (missionId null = sandbox or other screens). */
+export function recordCompileError(save, missionId) {
+  save.stats.compileErrors++;
+  if (missionId) touchMission(save, missionId).compileErrors++;
 }
 
 export function completeStep(save, id, stepId, data = {}) {

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Icon from './Icons.jsx';
 import { t } from '../i18n/index.js';
 import { tx, notebookUnlocked } from '../engine/curriculum.js';
@@ -46,7 +46,7 @@ export function AsciiTable({ lang, filter = '' }) {
   );
 }
 
-export default function NotebookScreen({ cur, save, lang, entryId, navigate }) {
+export default function NotebookScreen({ cur, save, update, lang, entryId, navigate }) {
   const [query, setQuery] = useState('');
   const entries = cur.notebook.map((e) => ({ e, unlocked: notebookUnlocked(cur, save, e) }));
   const unlocked = entries.filter((x) => x.unlocked).map((x) => x.e);
@@ -61,6 +61,15 @@ export default function NotebookScreen({ cur, save, lang, entryId, navigate }) {
   }, [q, unlocked, cur, lang]);
   const [openId, setOpenId] = useState(entryId || null);
   const current = results.find((e) => e.id === openId) || results[0];
+  // Remember which entries were read (counts towards the "Scholar" badge).
+  useEffect(() => {
+    if (current && !save.notebookSeen.includes(current.id)) {
+      update((s) => {
+        s.notebookSeen.push(current.id);
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current?.id]);
 
   return (
     <main id="main" className="notebook-screen">

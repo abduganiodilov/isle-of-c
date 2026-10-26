@@ -6,7 +6,9 @@
 :root,
 [data-theme='dark'] {
   --bg: #04080a;
-  --bg-grid: rgba(92, 225, 255, 0.035);
+  --bg-grid: rgb(var(--accent2-rgb) / 0.035);
+  --accent-rgb: 61 255 162;
+  --accent2-rgb: 92 225 255;
   --panel: #081013;
   --panel2: #0c171b;
   --panel3: #122227;
@@ -54,8 +56,160 @@
   color-scheme: dark;
 }
 
+/* Amber CRT monitor: warm phosphor on brown-black. */
+[data-theme='amber'] {
+  --bg: #0a0602;
+  --bg-grid: rgb(var(--accent-rgb) / 0.03);
+  --accent-rgb: 255 176 0;
+  --accent2-rgb: 255 214 120;
+  --panel: #120b03;
+  --panel2: #1a1006;
+  --panel3: #24170a;
+  --border: #3d2a10;
+  --border-hi: #6b4a18;
+  --text: #ffd99a;
+  --muted: #b8915a;
+  --accent: #ffb000;
+  --accent-ink: #1a0e00;
+  --accent2: #ffd678;
+  --teal: #ffd678;
+  --magenta: #ff8a3d;
+  --ok: #ffc94a;
+  --err: #ff6b4a;
+  --warn: #fff07a;
+  --focus: #ffd678;
+  --rain: #ffb000;
+  --glow: 0 0 10px rgb(255 176 0 / 0.4);
+  --glow2: 0 0 14px rgb(255 214 120 / 0.35);
+  --sea1: #1c1206;
+  --sea2: #080401;
+  --land: #2a1a07;
+  --land-dark: #4a300c;
+  --land-edge: #ffb000;
+  --path: #ffd678;
+  --robot: #ffd99a;
+  --code-bg: #080501;
+  --code-fg: #ffd99a;
+  --code-gutter: #0d0803;
+  --code-active: #1a1005;
+  --code-selection: #4a3008;
+  --syn-keyword: #ff8a3d;
+  --syn-type: #ffd678;
+  --syn-string: #ffe9b0;
+  --syn-number: #fff07a;
+  --syn-comment: #8a6a3a;
+  --syn-preproc: #ffb86b;
+  --syn-function: #ffc94a;
+  --syn-punct: #c9a46a;
+  --syn-escape: #fff07a;
+  --in: #fff07a;
+  color-scheme: dark;
+}
+
+/* Classic IBM blue: bright white-cyan text on deep blue, like an old PC console. */
+[data-theme='ibm'] {
+  --bg: #000c3a;
+  --bg-grid: rgb(var(--accent2-rgb) / 0.05);
+  --accent-rgb: 255 255 255;
+  --accent2-rgb: 85 255 255;
+  --panel: #001256;
+  --panel2: #00186a;
+  --panel3: #002080;
+  --border: #2a4aa8;
+  --border-hi: #5577dd;
+  --text: #e8eeff;
+  --muted: #a8b8ec;
+  --accent: #ffffff;
+  --accent-ink: #000c3a;
+  --accent2: #55ffff;
+  --teal: #55ffff;
+  --magenta: #ff77ff;
+  --ok: #55ff55;
+  --err: #ff7a7a;
+  --warn: #ffff55;
+  --focus: #ffff55;
+  --rain: #55ffff;
+  --glow: 0 0 8px rgb(255 255 255 / 0.35);
+  --glow2: 0 0 12px rgb(85 255 255 / 0.35);
+  --sea1: #001a80;
+  --sea2: #000a30;
+  --land: #0030a0;
+  --land-dark: #2050c0;
+  --land-edge: #55ffff;
+  --path: #ffff55;
+  --robot: #ffffff;
+  --code-bg: #000a30;
+  --code-fg: #e8eeff;
+  --code-gutter: #00104a;
+  --code-active: #001a66;
+  --code-selection: #2a4aa8;
+  --syn-keyword: #ffff55;
+  --syn-type: #55ffff;
+  --syn-string: #55ff55;
+  --syn-number: #ff77ff;
+  --syn-comment: #8898cc;
+  --syn-preproc: #ffaa55;
+  --syn-function: #ffffff;
+  --syn-punct: #c8d4ff;
+  --syn-escape: #ff77ff;
+  --in: #ffff55;
+  color-scheme: dark;
+}
+
+/* Cyberpunk: neon magenta and electric cyan on violet-black. */
+[data-theme='cyber'] {
+  --bg: #0a0414;
+  --bg-grid: rgb(var(--accent-rgb) / 0.04);
+  --accent-rgb: 255 46 196;
+  --accent2-rgb: 0 240 255;
+  --panel: #12081f;
+  --panel2: #1a0c2c;
+  --panel3: #24113b;
+  --border: #3a1d5c;
+  --border-hi: #6a2e8f;
+  --text: #f4e6ff;
+  --muted: #b292cc;
+  --accent: #ff2ec4;
+  --accent-ink: #1a0014;
+  --accent2: #00f0ff;
+  --teal: #00f0ff;
+  --magenta: #ff2ec4;
+  --ok: #3dffb0;
+  --err: #ff4d6d;
+  --warn: #f9f871;
+  --focus: #00f0ff;
+  --rain: #ff2ec4;
+  --glow: 0 0 12px rgb(255 46 196 / 0.45);
+  --glow2: 0 0 14px rgb(0 240 255 / 0.4);
+  --sea1: #1d0a33;
+  --sea2: #06020c;
+  --land: #2a0f40;
+  --land-dark: #4a1a6a;
+  --land-edge: #ff2ec4;
+  --path: #00f0ff;
+  --robot: #f4e6ff;
+  --code-bg: #07030e;
+  --code-fg: #f4e6ff;
+  --code-gutter: #0d0618;
+  --code-active: #1a0c2c;
+  --code-selection: #4a1a6a;
+  --syn-keyword: #ff2ec4;
+  --syn-type: #00f0ff;
+  --syn-string: #3dffb0;
+  --syn-number: #f9f871;
+  --syn-comment: #7a5f96;
+  --syn-preproc: #c77dff;
+  --syn-function: #ff9ef0;
+  --syn-punct: #c2a6dc;
+  --syn-escape: #f9f871;
+  --in: #f9f871;
+  color-scheme: dark;
+}
+
 [data-theme='light'] {
   --bg-grid: rgba(0, 80, 90, 0.05);
+  --accent-rgb: 154 106 0;
+  --accent2-rgb: 0 111 128;
   --border-hi: #9a8a66;
   --accent2: #006f80;
   --magenta: #a3195b;

@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { t } from '../i18n/index.js';
 import { tx, missionStatus, chapterProgress, campaignComplete, topicProgress, missingPrerequisites } from '../engine/curriculum.js';
 
 import Icon, { STATUS_ICON } from './Icons.jsx';
 import { Scramble } from './fx.jsx';
+import Robot from './Robot.jsx';
+import { playSound } from './sound.js';
 
 const COAST = 'M8 78 C 4 60, 14 40, 30 30 C 44 20, 60 6, 78 14 C 92 20, 96 40, 90 56 C 84 74, 70 86, 50 88 C 30 90, 12 90, 8 78 Z';
 
-export default function MapScreen({ cur, save, lang, navigate, selectedChapter }) {
+export default function MapScreen({ cur, save, update, lang, settings, navigate, selectedChapter, reducedMotion }) {
   const firstOpen = cur.chapters.find((c) => !chapterProgress(cur, save, c.id).done && chapterProgress(cur, save, c.id).unlocked) || cur.chapters[0];
   const [sel, setSel] = useState(selectedChapter || firstOpen.id);
   const chapter = cur.chapterById.get(sel) || firstOpen;
@@ -15,6 +17,8 @@ export default function MapScreen({ cur, save, lang, navigate, selectedChapter }
   const mastered = cur.order.filter((id) => save.missions[id]?.mastered).length;
   const topics = topicProgress(cur, save);
   const mainChapters = cur.chapters.filter((c) => !c.optional);
+  const walk = usePipWalk({ cur, save, update, mainChapters, reducedMotion, sound: settings.sound, onArrive: setSel });
+  const at = (c) => ({ left: `${c.map?.x ?? 50}%`, top: `${c.map?.y ?? 50}%` });
 
   return (
     <main id="main" className="map-screen">
@@ -48,6 +52,17 @@ export default function MapScreen({ cur, save, lang, navigate, selectedChapter }
           <polyline points={mainChapters.map((c) => `${c.map?.x ?? 50},${c.map?.y ?? 50}`).join(' ')} fill="none" stroke="var(--path)" strokeWidth="0.5" strokeDasharray="1.2 1.2" className="map-route" />
         </svg>
         <div className="radar-sweep" aria-hidden="true" />
+        <div className={`map-pip ${walk.walking ? 'pip-walking' : ''}`} ref={walk.ref} style={at(walk.from)} aria-hidden="true">
+          <Robot size={40} mood={walk.walking ? 'alert' : 'happy'} />
+        </div>
+        <p className="sr-only" aria-live="polite">
+          {walk.walking ? t(lang, 'map.walking', { region: tx(cur, lang, walk.to, 'title') }) : ''}
+        </p>
+        {walk.walking && (
+          <div className="map-walking mono small" aria-hidden="true">
+            {t(lang, 'map.walking', { region: tx(cur, lang, walk.to, 'title') })}
+          </div>
+        )}
         <div className="map-coords" aria-hidden="true">
           LAT 07°14′N · LON 151°52′E · {done}/{cur.mandatory.length} SYS
         </div>
@@ -57,7 +72,7 @@ export default function MapScreen({ cur, save, lang, navigate, selectedChapter }
             <button
               key={c.id}
               type="button"
-              className={`map-node ${p.done ? 'node-done' : p.unlocked ? 'node-open' : 'node-locked'} ${sel === c.id ? 'node-selected' : ''}`}
+              className={`map-node ${p.done ? 'node-done' : p.unlocked ? 'node-open' : 'node-locked'} ${sel === c.id ? 'node-selected' : ''} ${walk.arrived === c.id ? 'node-arrived' : ''}`}
               style={{ left: `${c.map?.x ?? 50}%`, top: `${c.map?.y ?? 50}%` }}
               onClick={() => setSel(c.id)}
               aria-pressed={sel === c.id}
@@ -66,6 +81,7 @@ export default function MapScreen({ cur, save, lang, navigate, selectedChapter }
               <span className="node-letter">{p.unlocked ? c.letter : <Icon name="lock" size={13} />}</span>
               <span className="node-name">{tx(cur, lang, c, 'title')}</span>
               <span className="node-progress">{p.completed}/{p.total}</span>
+              {walk.arrived === c.id && <span className="node-new mono">{t(lang, 'map.newRegion')}</span>}
             </button>
           );
         })}
@@ -144,4 +160,63 @@ export default function MapScreen({ cur, save, lang, navigate, selectedChapter }
       </section>
     </main>
   );
+}
+
+/**
+ * PIP-7 stands on the furthest unlocked region of the main route. When regions
+ * were unlocked since the map was last shown, it walks there along the route
+ * (once: save.mapSeen remembers which unlocks were already shown).
+ */
+function usePipWalk({ cur, save, update, mainChapters, reducedMotion, sound, onArrive }) {
+  const unlocked = mainChapters.filter((c) => chapterProgress(cur, save, c.id).unlocked);
+  const frontier = unlocked[unlocked.length - 1] || mainChapters[0];
+  const seen = save.mapSeen;
+  const fresh = seen ? unlocked.filter((c) => !seen.includes(c.id)) : [];
+  // Start from the furthest region PIP-7 had already reached.
+  const seenOnRoute = seen ? mainChapters.filter((c) => seen.includes(c.id)) : [];
+  const start = fresh.length ? seenOnRoute[seenOnRoute.length - 1] || mainChapters[0] : frontier;
+  const ref = useRef(null);
+  const [walking, setWalking] = useState(false);
+  const [arrived, setArrived] = useState(null);
+  const [pos, setPos] = useState(start);
+
+  useEffect(() => {
+    const ids = unlocked.map((c) => c.id);
+    const markSeen = () =>
+      update((s) => {
+        s.mapSeen = [...new Set([...(s.mapSeen || []), ...ids])];
+      });
+    if (!seen) {
+      // First visit with this game version: nothing to replay.
+      markSeen();
+      return;
+    }
+    if (!fresh.length) return;
+    const dest = fresh[fresh.length - 1];
+    const path = mainChapters.slice(mainChapters.indexOf(start), mainChapters.indexOf(dest) + 1);
+    const finish = () => {
+      setWalking(false);
+      setPos(dest);
+      setArrived(dest.id);
+      onArrive(dest.id);
+      markSeen();
+    };
+    const el = ref.current;
+    if (reducedMotion || !el?.animate || path.length < 2) {
+      finish();
+      return;
+    }
+    setWalking(true);
+    playSound('unlock', sound);
+    // A short pause on the start node, then ~2 s per route segment.
+    const duration = 600 + 2000 * (path.length - 1);
+    const pause = 600 / duration;
+    const frames = path.map((c, i) => ({ left: `${c.map?.x ?? 50}%`, top: `${c.map?.y ?? 50}%`, offset: pause + ((1 - pause) * i) / (path.length - 1) }));
+    const anim = el.animate([{ ...frames[0], offset: 0 }, ...frames], { duration, easing: 'ease-in-out', fill: 'forwards' });
+    anim.onfinish = finish;
+    return () => anim.cancel();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return { ref, walking, arrived, from: walking ? start : pos, to: fresh[fresh.length - 1] || frontier };
 }

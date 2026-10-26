@@ -22,7 +22,9 @@ export function DigitalRain({ density = 1, opacity = 0.14 }) {
     let w = 0;
     let h = 0;
     const size = 14;
-    const color = getComputedStyle(document.documentElement).getPropertyValue('--rain').trim() || '#3dffa2';
+    const readColor = () => getComputedStyle(document.documentElement).getPropertyValue('--rain').trim() || '#3dffa2';
+    let color = readColor();
+    let colorAt = 0;
     const resize = () => {
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       w = canvas.clientWidth;
@@ -39,6 +41,11 @@ export function DigitalRain({ density = 1, opacity = 0.14 }) {
     const tick = (now) => {
       const dt = Math.min(50, now - last);
       last = now;
+      // Pick up theme switches without restarting the animation.
+      if (now - colorAt > 1000) {
+        color = readColor();
+        colorAt = now;
+      }
       ctx.clearRect(0, 0, w, h);
       ctx.font = `${size}px "JetBrains Mono", monospace`;
       for (const c of cols) {

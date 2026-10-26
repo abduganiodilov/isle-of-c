@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { t } from '../i18n/index.js';
-import { tx, missionStatus, missingPrerequisites, nextMission, campaignComplete } from '../engine/curriculum.js';
-import { completeStep, completeMission, completeRetry, recordHint, touchMission } from '../engine/progress.js';
+import { tx, missionStatus, missingPrerequisites, nextMission, campaignComplete, chapterProgress } from '../engine/curriculum.js';
+import { completeStep, completeMission, completeRetry, recordHint, touchMission, recordCompileError } from '../engine/progress.js';
 import { assessStep } from '../engine/assess.js';
 import { engine } from '../exec/engine.js';
 import CodeEditor from './CodeEditor.jsx';
@@ -176,7 +176,8 @@ export default function MissionScreen({ cur, mission, save, update, lang, settin
       setPhase('idle');
       setConsoleTab('diagnostics');
       pulse('shake');
-      playSound('fail', settings.sound);
+      playSound('compileError', settings.sound);
+      update((s) => recordCompileError(s, mission.id));
       return { compile: c };
     }
     setPhase('running');
@@ -198,6 +199,7 @@ export default function MissionScreen({ cur, mission, save, update, lang, settin
     if (c.diagnostics.some((d) => d.severity === 'warning')) setConsoleTab((tab) => tab);
     update((s) => {
       touchMission(s, mission.id).runs++;
+      s.stats.runs++;
     });
     return { compile: c, run: r };
   };
@@ -253,6 +255,8 @@ export default function MissionScreen({ cur, mission, save, update, lang, settin
     update((s) => {
       const m = touchMission(s, mission.id);
       if (!retry) m.attempts++;
+      s.stats.checks++;
+      if (!res.compile.ok) recordCompileError(s, retry ? null : mission.id);
       if (!res.passed) return;
       if (retry) {
         completeRetry(s, mission);
@@ -262,8 +266,10 @@ export default function MissionScreen({ cur, mission, save, update, lang, settin
       completeStep(s, mission.id, step.id, { passedAt: new Date().toISOString() });
       const allDone = steps.every((st) => st.id === step.id || s.missions[mission.id].steps[st.id]?.done);
       if (allDone) {
+        const openBefore = cur.chapters.filter((c) => !c.optional && chapterProgress(cur, s, c.id).unlocked).map((c) => c.id);
         const { first } = completeMission(s, mission);
-        outcome = { first, mastered: s.missions[mission.id].mastered, assisted: s.missions[mission.id].solutionRevealed };
+        const newRegion = cur.chapters.find((c) => !c.optional && !openBefore.includes(c.id) && chapterProgress(cur, s, c.id).unlocked);
+        outcome = { first, mastered: s.missions[mission.id].mastered, assisted: s.missions[mission.id].solutionRevealed, newRegion: newRegion?.id };
       } else outcome = { stepOnly: true };
     });
     if (res.passed) {
@@ -272,7 +278,7 @@ export default function MissionScreen({ cur, mission, save, update, lang, settin
       setResult({ ...(outcome || {}), retry });
     } else {
       pulse('shake');
-      playSound('fail', settings.sound);
+      playSound(res.compile.ok ? 'fail' : 'compileError', settings.sound);
     }
   };
 
@@ -642,7 +648,7 @@ export default function MissionScreen({ cur, mission, save, update, lang, settin
             navigate(nxt ? { screen: 'mission', id: nxt } : campaignComplete(cur, save) ? { screen: 'ending' } : { screen: 'map' });
           }}
           lastMission={!nextMission(cur, save, mission.id) && campaignComplete(cur, save)}
-          onMap={() => navigate({ screen: 'map', chapter: mission.chapter })}
+          onMap={() => navigate({ screen: 'map', chapter: result.newRegion || mission.chapter })}
           onNextStep={() => {
             setResult(null);
             goNextStep();
@@ -688,6 +694,14 @@ function ResultDialog({ cur, mission, codeStep, lang, result, onClose, onNext, o
         ) : (
           <p className="ok-text">
             <Icon name="star" /> {t(lang, 'result.mastered')}
+          </p>
+        )}
+        {result.newRegion && (
+          <p className="region-unlocked accent-text">
+            <Icon name="map" /> {t(lang, 'result.regionUnlocked', { region: tx(cur, lang, cur.chapterById.get(result.newRegion), 'title') })}{' '}
+            <button type="button" className="btn btn-small btn-accent" onClick={onMap}>
+              <Icon name="robot" /> {t(lang, 'result.watchTravel')}
+            </button>
           </p>
         )}
         <h3>{t(lang, 'result.learned')}</h3>
