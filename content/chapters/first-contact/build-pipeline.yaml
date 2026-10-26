@@ -1,0 +1,162 @@
+id: first-contact/build-pipeline
+version: 1
+kind: debug
+source:
+  - { lecture: L09, slides: [5, 6, 11] }
+topics: [L09.build-process, L09.compilers, L09.using-gcc]
+prerequisites: [first-contact/wake-up]
+estimatedMinutes: 12
+objectives:
+  - Describe the path from a .c source file to a running program (compile, object files, link, run).
+  - Name common C compilers and typical executable names.
+  - Read a compiler error message and use its line number to fix a mistake.
+  - Explain how the game runs C compared with gcc on your own computer.
+world:
+  scene: pipeline
+  label: BUILD FACTORY
+title: The Build Pipeline
+briefing: |
+  The island's build factory turns C **source code** into a **program** the
+  robot can run. A conveyor jammed: one source file no longer compiles. Learn
+  how the factory works, then repair the file.
+lesson: |
+  ### From source code to a running program
+  A computer cannot run C text directly. A **compiler** translates it:
+
+  1. **Write source code** in one or more files with the extension **`.c`**
+     (for example `aloha.c`).
+  2. **Compile** each `.c` file into an **object file** (`.o` on Linux/macOS,
+     `.obj` with MSVC). An object file contains machine code, but it is not a
+     complete program yet.
+  3. **Link** the object files together with the **libraries** they use (for
+     example the code that implements `printf`). The result is an
+     **executable** file.
+  4. **Run** the executable.
+
+  Usually one command does steps 2 and 3 for you.
+
+  ### Compilers
+  Widely used C compilers are **GCC**, **Clang/LLVM** and **MSVC** (Microsoft
+  Visual C++). The lecture course uses **GCC**, so make sure your code also
+  compiles with gcc. Code written to the C standard works with all of them.
+
+  ### Executable names
+  `gcc aloha.c` creates an executable called **`a.out`** on Linux/macOS or
+  **`a.exe`** on Windows. Windows executables end in `.exe`; on Linux and macOS
+  executables usually have no extension at all.
+
+  ### Errors: compile errors and link errors
+  If the compiler cannot understand your code it reports a **compile error**
+  with a position: `main.c:5:5: error: ...` means *file main.c, line 5,
+  column 5*. If every file compiles but something is missing when the pieces are
+  joined, the **linker** reports an error instead. Try this example: it
+  promises a function `calibrate` exists but never provides it, so linking
+  fails.
+
+  ```c example error
+  #include <stdio.h>
+
+  int calibrate(void);   /* a promise: "calibrate exists somewhere" */
+
+  int main(void)
+  {
+      printf("Calibrating...\n");
+      calibrate();       /* the linker cannot find it -> link error */
+      return 0;
+  }
+  ```
+
+  ### How the game runs your C
+  When you press **Run**, the game uses **Clang** (compiled to WebAssembly) to
+  compile *and link* your program **inside your browser**. The result is a
+  WebAssembly executable that runs in an isolated sandbox: it can read the
+  Input box and print output, nothing else. It does not run on a server.
+
+  > [!outside] **Outside the game** — with GCC installed, save the file as
+  > `aloha.c` and type:
+  >
+  > `gcc -std=c17 -Wall -Wextra aloha.c -o aloha`
+  >
+  > then run `./aloha` (Linux/macOS) or `aloha.exe` (Windows). Plain
+  > `gcc aloha.c` also works and produces `a.out` / `a.exe`. `-std=c17`
+  > selects the C standard, `-Wall -Wextra` turn on helpful warnings, and
+  > `-o aloha` names the executable.
+
+  > [!correction] Slide 5 says "objective files": the correct term is
+  > **object files**. Slide 11's `gcc yourfilename.c` is fine, but adding
+  > `-std=c17 -Wall -Wextra -o name` is a better habit.
+success: |
+  You know the build pipeline: **source (.c) → compile → object files → link
+  (with libraries) → executable → run**. You also read a real compiler error,
+  went to the line it named, and fixed it.
+steps:
+  - id: order
+    type: order
+    title: Rebuild the conveyor
+    prompt: Put the stages of building a C program in the correct order.
+    lines:
+      - Write source code in a .c file
+      - Compile each .c file into an object file
+      - Link object files and libraries into an executable
+      - Run the executable
+    explanation: |
+      Source code is compiled into object files, which the linker combines with
+      libraries into an executable. Only the executable can be run.
+  - id: names
+    type: quiz
+    title: Which file runs?
+    question: "You type `gcc aloha.c` on Windows without `-o`. Which file can you run afterwards?"
+    choices:
+      - aloha.c
+      - aloha.o
+      - a.exe
+      - stdio.h
+    correct: 2
+    explanation: |
+      Without `-o`, gcc names the executable `a.exe` on Windows (`a.out` on
+      Linux/macOS). `aloha.c` is source code, `.o` files are object files, and
+      `stdio.h` is a header.
+  - id: main
+    type: code
+    title: Repair the jammed file
+    prompt: |
+      Press **Run**. The compiler stops with an error. Read the message in the
+      **Diagnostics** tab, find the line it points to, and fix the mistake so
+      the program prints:
+
+      ```
+      Pipeline restored
+      ```
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          prinft("Pipeline restored\n");
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          printf("Pipeline restored\n");
+          return 0;
+      }
+    explanation: |
+      The function is called `printf` (print **f**ormatted). With the letters
+      swapped, the compiler finds no declaration of `prinft` and since C99 that
+      is an error. The diagnostic told you the exact line and column.
+    hints:
+      - "Compiler messages start with file:line:column. Look at the line number."
+      - "The error mentions an 'undeclared function'. Compare its name with the function you used in mission 1."
+      - "The printing function is spelled p-r-i-n-t-f: `printf(\"...\\n\");`"
+      - "Line 5 should begin with `printf(`, not `prinft(`."
+      - "Fix the spelling of printf; nothing else changes."
+    tests:
+      - id: output
+        note: The repaired program prints the restore message.
+        expect: { output: "Pipeline restored\n" }
+      - id: clean-exit
+        note: The program ends normally (returns 0).
+        expect: { exitCode: 0, lines: ["Pipeline restored"] }

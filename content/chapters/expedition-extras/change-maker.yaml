@@ -1,0 +1,84 @@
+id: expedition-extras/change-maker
+version: 1
+kind: mastery
+optional: true
+source:
+  - { lecture: L09, slides: [28, 30] }
+topics: [L09.arithmetic, L09.compound-assignment]
+prerequisites: [supply-depot/depot-ledger]
+estimatedMinutes: 15
+objectives:
+  - Use integer division and remainder repeatedly to break an amount into units.
+world:
+  scene: gauges
+  label: TOKEN DISPENSER
+  gauges:
+    - { label: "50s", pattern: "50: (\\d+)", max: 20 }
+    - { label: "20s", pattern: "20: (\\d+)", max: 5 }
+    - { label: "5s", pattern: "5: (\\d+)", max: 5 }
+    - { label: "1s", pattern: "1: (\\d+)", max: 5 }
+title: Token Dispenser
+briefing: |
+  The island canteen pays robots in tokens worth 50, 20, 5 and 1 credits.
+  Dispense any amount with as few tokens as possible.
+lesson: |
+  An optional mastery challenge using `/`, `%` and compound assignment.
+  Greedy works for these token values: take as many of the largest token as
+  fit, then continue with the remainder.
+success: |
+  Each step took `amount / value` tokens and kept `amount % value` for the next
+  token — division and remainder working together.
+steps:
+  - id: main
+    type: code
+    title: Dispense tokens
+    prompt: |
+      Read an amount (int, ≥ 0) and print how many tokens of each value are
+      needed. For input `178`:
+
+      ```
+      50: 3
+      20: 1
+      5: 1
+      1: 3
+      ```
+    stdin: "178\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int amount;
+
+          scanf("%d", &amount);
+          printf("50: %d\n", amount / 50);
+          amount %= 50;
+          printf("20: %d\n", amount / 20);
+          amount %= 20;
+          printf("5: %d\n", amount / 5);
+          amount %= 5;
+          printf("1: %d\n", amount);
+          return 0;
+      }
+    explanation: |
+      After each token value, `amount %= value` keeps only what is still to be
+      paid.
+    hints:
+      - "Start with the largest token."
+      - "Number of tokens = amount / value; what remains = amount % value."
+      - "`printf(\"50: %d\\n\", amount / 50); amount %= 50;`"
+      - "Repeat for 20 and 5; whatever remains is paid in 1s."
+      - "The full solution alternates / and %=."
+    tests:
+      - { id: example, stdin: "178\n", expect: { output: "50: 3\n20: 1\n5: 1\n1: 3\n" } }
+      - { id: zero, stdin: "0\n", expect: { output: "50: 0\n20: 0\n5: 0\n1: 0\n" } }
+      - { id: exact, stdin: "75\n", expect: { output: "50: 1\n20: 1\n5: 1\n1: 0\n" } }
+      - { id: small, stdin: "4\n", expect: { output: "50: 0\n20: 0\n5: 0\n1: 4\n" } }

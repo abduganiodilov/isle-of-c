@@ -1,0 +1,130 @@
+id: automation-works/digit-sum
+version: 1
+kind: guided
+source:
+  - { lecture: L10, slides: [5] }
+topics: [L10.digit-sum, L10.while]
+prerequisites: [automation-works/runaway-loop]
+estimatedMinutes: 15
+objectives:
+  - Extract the last digit of an integer with % 10 and remove it with / 10.
+  - Use a while loop that ends when the number reaches 0.
+world:
+  scene: gauges
+  label: CHECKSUM SCANNER
+  gauges:
+    - { label: Digit sum, pattern: "digits is (\\d+)", max: 60 }
+title: Digit Checksums
+briefing: |
+  Each crate carries an ID number. The scanner verifies it with a checksum: the
+  sum of its digits. Implement the lecture's digit-sum loop.
+lesson: |
+  ### Taking a number apart
+  For a positive integer `n`:
+
+  * `n % 10` is its **last digit** (123 % 10 = 3);
+  * `n / 10` **removes** the last digit (123 / 10 = 12, integer division).
+
+  Repeat until nothing is left (`n` becomes 0):
+
+  | n | n % 10 | dsum | n / 10 |
+  |---|---|---|---|
+  | 123 | 3 | 3 | 12 |
+  | 12 | 2 | 5 | 1 |
+  | 1 | 1 | 6 | 0 |
+
+  The lecture's program (`digitsum.c`):
+
+  ```c
+  int n, dsum = 0;
+  ...
+  while (n > 0)
+  {
+      dsum += n % 10;
+      n /= 10;
+  }
+  ```
+
+  > [!correction] The sample output on slide 5 ends with "Press any key to
+  > continue . . ." — that line comes from the Visual Studio console window,
+  > not from the program.
+success: |
+  `n % 10` gives the last digit and `n /= 10` removes it. Looping while
+  `n > 0` visits every digit exactly once — the loop ends because `n` shrinks
+  every time.
+steps:
+  - id: main
+    type: code
+    title: Compute the checksum
+    prompt: |
+      Complete the loop so the program prints the digit sum. For input `123`:
+
+      ```
+      This program sums the digits in an integer.
+      Enter a positive integer: The sum of the digits is 6
+      ```
+    stdin: "123\n"
+    starter: |
+      /* digitsum.c */
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int n, dsum = 0;
+
+          printf("This program sums the digits in an integer.\n");
+          printf("Enter a positive integer: ");
+          scanf("%d", &n);
+          while (n > 0)
+          {
+              /* add the last digit to dsum, then remove it from n */
+
+          }
+          printf("The sum of the digits is %d\n", dsum);
+          return 0;
+      }
+    solution: |
+      /* digitsum.c */
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int n, dsum = 0;
+
+          printf("This program sums the digits in an integer.\n");
+          printf("Enter a positive integer: ");
+          scanf("%d", &n);
+          while (n > 0)
+          {
+              dsum += n % 10;
+              n /= 10;
+          }
+          printf("The sum of the digits is %d\n", dsum);
+          return 0;
+      }
+    explanation: |
+      `dsum += n % 10;` adds the last digit; `n /= 10;` removes it. When the
+      last digit has been removed, n is 0 and the loop ends.
+    hints:
+      - "Two operations per round: take the last digit, then throw it away."
+      - "Which operator gives the remainder after dividing by 10? Which removes the last digit?"
+      - "`dsum += n % 10;`"
+      - "Add `n /= 10;` after it — without it the loop never ends."
+      - "The full solution is the lecture's digitsum.c."
+    tests:
+      - id: example
+        stdin: "123\n"
+        expect: { contains: ["The sum of the digits is 6"] }
+      - id: single
+        stdin: "9\n"
+        expect: { contains: ["The sum of the digits is 9"] }
+      - id: zeros
+        stdin: "1000\n"
+        note: Zeros in the middle and at the end.
+        expect: { contains: ["The sum of the digits is 1"] }
+      - id: long
+        stdin: "98765\n"
+        expect: { contains: ["The sum of the digits is 35"] }
+      - id: zero
+        stdin: "0\n"
+        expect: { contains: ["The sum of the digits is 0"] }

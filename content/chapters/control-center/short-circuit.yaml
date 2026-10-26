@@ -1,0 +1,125 @@
+id: control-center/short-circuit
+version: 1
+kind: debug
+source:
+  - { lecture: L09, slides: [41] }
+topics: [L09.logical]
+prerequisites: [control-center/logic-gates]
+estimatedMinutes: 12
+objectives:
+  - Explain short-circuit evaluation of && and ||.
+  - Order conditions so a guard prevents an unsafe operation such as division by zero.
+world:
+  scene: sorter
+  label: FLOW MONITOR
+  bins:
+    - { label: HIGH, match: "\\bHIGH\\b" }
+    - { label: NORMAL, match: "\\bNORMAL\\b" }
+title: Short Circuits
+briefing: |
+  The flow monitor crashes whenever a pipe reports zero samples. It divides by
+  the sample count before checking it. Use short-circuit evaluation to make it
+  safe.
+lesson: |
+  ### Short-circuit evaluation
+  `&&` and `||` evaluate their **left** operand first, and only evaluate the
+  right operand **if it can still change the result**:
+
+  * `a && b`: if `a` is false (0), the result is 0 and `b` is **not
+    evaluated**.
+  * `a || b`: if `a` is true, the result is 1 and `b` is **not evaluated**.
+
+  This makes **guards** possible:
+
+  ```c
+  if (count > 0 && total / count > 10)   /* division only happens when count > 0 */
+  ```
+
+  With the parts swapped, `total / count` would be computed first — and
+  dividing by zero is undefined behaviour. (In this game it stops your
+  program with a runtime error.)
+
+  > [!note] `&&` and `||` (and the comma operator, `?:`) are among the few
+  > operators where C guarantees the evaluation order. For most operators,
+  > like `+` or function arguments, the order is unspecified.
+success: |
+  `&&` stops as soon as the left side is false, and `||` stops as soon as the
+  left side is true. Putting the guard (`count > 0`) first means the division
+  only runs when it is safe.
+steps:
+  - id: main
+    type: code
+    title: Guard the division
+    prompt: |
+      The monitor reads a total flow and a sample count. If there are samples
+      **and** the average (total / count, integer division is fine) is above
+      10, print `HIGH`; otherwise print `NORMAL`. With 0 samples it must print
+      `NORMAL` instead of crashing. Run the tests to see the crash, then fix it.
+    stdin: "7 0\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int total, count;
+
+          scanf("%d %d", &total, &count);
+          if (total / count > 10 && count > 0) {
+              printf("HIGH\n");
+          } else {
+              printf("NORMAL\n");
+          }
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int total, count;
+
+          scanf("%d %d", &total, &count);
+          if (count > 0 && total / count > 10) {
+              printf("HIGH\n");
+          } else {
+              printf("NORMAL\n");
+          }
+          return 0;
+      }
+    explanation: |
+      With `count > 0` on the left, `&&` skips the division whenever count is
+      0. The order of the operands matters here.
+    hints:
+      - "The crash happens on the test with 0 samples. Which operation is illegal then?"
+      - "&& evaluates its left side first and skips the right side if the left is false."
+      - "Put the safety check on the left: `if (safe && risky)`."
+      - "`if (count > 0 && total / count > 10)`"
+      - "The full solution swaps the two conditions."
+    tests:
+      - id: high
+        stdin: "50 2\n"
+        expect: { lines: ["HIGH"], exactLineCount: true }
+      - id: normal
+        stdin: "10 5\n"
+        expect: { lines: ["NORMAL"], exactLineCount: true }
+      - id: no-samples
+        stdin: "7 0\n"
+        note: Zero samples must not crash.
+        expect: { lines: ["NORMAL"], exactLineCount: true }
+      - id: boundary
+        stdin: "22 2\n"
+        note: Average exactly 11 is above 10.
+        expect: { lines: ["HIGH"], exactLineCount: true }
+    wrong:
+      - code: |
+          #include <stdio.h>
+          int main(void)
+          {
+              int total, count;
+              scanf("%d %d", &total, &count);
+              if (total / count > 10 && count > 0) printf("HIGH\n");
+              else printf("NORMAL\n");
+              return 0;
+          }
+        why: divides before checking
+        expect: trap

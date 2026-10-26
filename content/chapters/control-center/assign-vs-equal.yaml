@@ -1,0 +1,99 @@
+id: control-center/assign-vs-equal
+version: 1
+kind: debug
+source:
+  - { lecture: L09, slides: [38] }
+topics: [L09.relational]
+prerequisites: [control-center/truth-values]
+estimatedMinutes: 10
+objectives:
+  - Tell = (assignment) and == (comparison) apart.
+  - Explain why if (code = 42) is always true and changes the variable.
+  - Use the compiler warning to locate this bug.
+world:
+  scene: sorter
+  label: SECURITY DOOR
+  bins:
+    - { label: GRANTED, match: "GRANTED" }
+    - { label: DENIED, match: "DENIED" }
+title: One Equals Sign Too Few
+briefing: |
+  The control room door opens for every code anyone types. Somebody wrote one
+  equals sign where two were needed.
+lesson: |
+  * `=` **assigns**: `code = 42` stores 42 in `code`, and the expression's
+    value is 42.
+  * `==` **compares**: `code == 42` is 1 if code equals 42, otherwise 0.
+
+  So `if (code = 42)` stores 42 and then tests 42 — which is non-zero, so
+  the condition is **always true**, whatever was typed. This is one of the
+  most common C mistakes.
+
+  The compiler notices: *using the result of an assignment as a condition
+  without parentheses*. Read warnings — they often point straight at bugs.
+
+  > [!tip] Some programmers write the constant first: `if (42 == code)`.
+  > If you accidentally type `42 = code`, it is an error instead of a bug.
+success: |
+  `=` assigns and `==` compares. An assignment inside a condition is almost
+  always a bug, and the compiler warns about it.
+steps:
+  - id: main
+    type: code
+    title: Fix the door
+    prompt: |
+      The door should print `ACCESS GRANTED` only for code 42 and
+      `ACCESS DENIED` for anything else. Look at the warning, then fix the bug.
+    stdin: "7\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int code;
+
+          scanf("%d", &code);
+          if (code = 42) {
+              printf("ACCESS GRANTED\n");
+          } else {
+              printf("ACCESS DENIED\n");
+          }
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int code;
+
+          scanf("%d", &code);
+          if (code == 42) {
+              printf("ACCESS GRANTED\n");
+          } else {
+              printf("ACCESS DENIED\n");
+          }
+          return 0;
+      }
+    explanation: |
+      With `==` the condition compares instead of assigning, so only 42 gives 1
+      (true).
+    hints:
+      - "Which operator compares two values, and which one stores a value?"
+      - "Look at the condition of the if statement and at the compiler warning about it."
+      - "Comparison is written with two equals signs: `a == b`."
+      - "`if (code == 42)`"
+      - "The full solution changes one character."
+    tests:
+      - id: right
+        stdin: "42\n"
+        expect: { lines: ["ACCESS GRANTED"], exactLineCount: true }
+      - id: wrong
+        stdin: "7\n"
+        expect: { lines: ["ACCESS DENIED"], exactLineCount: true }
+      - id: zero
+        stdin: "0\n"
+        expect: { lines: ["ACCESS DENIED"], exactLineCount: true }
+      - id: close
+        stdin: "43\n"
+        expect: { lines: ["ACCESS DENIED"], exactLineCount: true }

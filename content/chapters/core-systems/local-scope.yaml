@@ -1,0 +1,135 @@
+id: core-systems/local-scope
+version: 1
+kind: debug
+source:
+  - { lecture: L10, slides: [27, 28] }
+topics: [L10.local-variables]
+prerequisites: [core-systems/arguments-and-conversion]
+estimatedMinutes: 15
+objectives:
+  - Explain that parameters are initialised by the call, but other local variables are not.
+  - Explain that a function cannot use variables declared in another function.
+  - Pass the data a function needs as parameters.
+world:
+  scene: gauges
+  label: SAMPLE AVERAGER
+  gauges:
+    - { label: Average, pattern: "Average: (\\S+)", max: 100 }
+title: Local Variables
+briefing: |
+  An averaging module was split out of main in a hurry. It tries to use
+  main's variables and forgets to initialise its own. Repair the module.
+lesson: |
+  ### Local variables
+  Variables declared inside a function are **local** to it: they exist only
+  while the function runs, and only that function can use them.
+
+  * **Parameters** act like local variables that are **initialised
+    automatically** with the argument values when the function is called.
+  * Other local variables are **not initialised automatically**: until you
+    assign them, they hold garbage. The compiler warns: *variable 'sum' is
+    uninitialized when used here*.
+  * A function **cannot use variables defined in another function**. If it
+    needs a value, pass it as a parameter.
+
+  ```c
+  double distance(double x1, double y1, double x2, double y2)
+  {
+      double temp;                       /* local variable */
+      temp = (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
+      return sqrt(temp);
+  }
+  ```
+success: |
+  Each function has its own local variables. Parameters receive the argument
+  values; other locals must be initialised by you; and data from the caller
+  must arrive through parameters.
+steps:
+  - id: main
+    type: code
+    title: Repair the averager
+    prompt: |
+      `average3` should return the average of its three parameters. Fix the
+      compile error (it uses `count`, which belongs to `main`) and the
+      uninitialised variable, so that for input `4 5 9` the program prints
+      `Average: 6.00`. Keep `average3`'s parameters as they are.
+    stdin: "4 5 9\n"
+    starter: |
+      #include <stdio.h>
+
+      double average3(int a, int b, int c);
+
+      int main(void)
+      {
+          int r1, r2, r3;
+          int count = 3;
+
+          scanf("%d %d %d", &r1, &r2, &r3);
+          printf("Average: %.2f\n", average3(r1, r2, r3));
+          return 0;
+      }
+
+      double average3(int a, int b, int c)
+      {
+          int sum;
+
+          sum += a + b + c;
+          return (double) sum / count;
+      }
+    solution: |
+      #include <stdio.h>
+
+      double average3(int a, int b, int c);
+
+      int main(void)
+      {
+          int r1, r2, r3;
+
+          scanf("%d %d %d", &r1, &r2, &r3);
+          printf("Average: %.2f\n", average3(r1, r2, r3));
+          return 0;
+      }
+
+      double average3(int a, int b, int c)
+      {
+          int sum = 0;
+          int count = 3;
+
+          sum += a + b + c;
+          return (double) sum / count;
+      }
+    explanation: |
+      `count` was local to `main`, so `average3` could not see it; the function
+      now has its own local `count`. `sum` started with garbage; initialising it
+      to 0 makes `+=` correct.
+    harness: |
+      #include <stdio.h>
+      double average3(int a, int b, int c);
+      int main(void)
+      {
+          int a, b, c;
+          while (scanf("%d %d %d", &a, &b, &c) == 3) {
+              printf("%.4f\n", average3(a, b, c));
+          }
+          return 0;
+      }
+    hints:
+      - "There are two separate problems: a name that is not visible, and a value that was never set."
+      - "Give average3 its own count (or use the constant 3), and give sum a starting value."
+      - "`int sum = 0;` and `int count = 3;` inside average3."
+      - "Remove the unused count from main to avoid a warning."
+      - "The full solution moves count into average3 and initialises sum."
+    tests:
+      - id: program
+        stdin: "4 5 9\n"
+        expect: { output: "Average: 6.00\n" }
+      - id: fraction
+        stdin: "1 1 2\n"
+        expect: { output: "Average: 1.33\n" }
+      - id: direct
+        harness: true
+        stdin: "3 3 3\n0 0 1\n-6 0 0\n10 20 31\n"
+        note: Calls average3 several times in a row.
+        expect: { numbers: [3, 0.3333, -2, 20.3333], numbersMode: exact, tolerance: 0.0001 }
+    require:
+      noWarnings: [-Wuninitialized]

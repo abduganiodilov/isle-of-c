@@ -1,0 +1,103 @@
+id: supply-depot/feet-to-cm
+version: 1
+kind: challenge
+source:
+  - { lecture: L09, slides: [33] }
+topics: [L09.feet-to-cm, L09.type-conversion]
+prerequisites: [supply-depot/cm-to-feet]
+estimatedMinutes: 12
+objectives:
+  - Write the reverse conversion independently, from feet and inches to centimetres.
+  - Mix int and double values in one calculation correctly.
+world:
+  scene: gauges
+  label: CARGO GAUGE
+  gauges:
+    - { label: cm, pattern: "in = (\\S+) cm", max: 300 }
+title: Feet to Centimetres
+briefing: |
+  The crane's manual lists clearances in feet and inches. Convert them back to
+  centimetres so the depot's metric sensors can use them.
+lesson: |
+  This is the lecture's practice exercise (slide 33). Reverse the conversion:
+  total inches = feet × 12 + inches, and centimetres = total inches × 2.54.
+
+  Think about types: feet are whole numbers here (`int`), inches may have a
+  fraction (`double`).
+success: |
+  You wrote a full conversion program on your own, mixing an int (feet) and a
+  double (inches). The int was converted to double automatically in the
+  calculation.
+steps:
+  - id: main
+    type: code
+    title: Write the reverse converter
+    prompt: |
+      Read feet (an `int`) and inches (a `double`), then print the height in
+      centimetres. For input `5 10.5`:
+
+      ```
+      5 ft 10.5 in = 179.07 cm
+      ```
+
+      Use `%d` for the feet and `%g` for inches and centimetres.
+    stdin: "5 10.5\n"
+    starter: |
+      /* feet2cm.c - convert feet and inches to centimetres */
+      #include <stdio.h>
+
+      int main(void)
+      {
+
+          return 0;
+      }
+    solution: |
+      /* feet2cm.c - convert feet and inches to centimetres */
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int feet;
+          double inch, cm;
+
+          printf("Feet and inches? ");
+          scanf("%d %lf", &feet, &inch);
+          cm = (feet * 12 + inch) * 2.54;
+          printf("%d ft %g in = %g cm\n", feet, inch, cm);
+          return 0;
+      }
+    explanation: |
+      `feet * 12` is an int; adding the double `inch` converts it to double;
+      multiplying by 2.54 gives centimetres.
+    hints:
+      - "First convert everything to inches, then inches to centimetres."
+      - "total inches = feet * 12 + inches; centimetres = total inches * 2.54."
+      - "Read an int and a double in one call: `scanf(\"%d %lf\", &feet, &inch);`"
+      - "`cm = (feet * 12 + inch) * 2.54;` then `printf(\"%d ft %g in = %g cm\\n\", feet, inch, cm);`"
+      - "The full solution uses one int and two double variables."
+    tests:
+      - id: example
+        stdin: "5 10.5\n"
+        expect: { regex: { pattern: "(-?\\d+) ft (\\S+) in = (\\S+) cm", values: [5, 10.5, 179.07], tolerance: 0.01, describe: "5 ft 10.5 in = 179.07 cm" } }
+      - id: foot
+        stdin: "1 0\n"
+        expect: { regex: { pattern: "(-?\\d+) ft (\\S+) in = (\\S+) cm", values: [1, 0, 30.48], tolerance: 0.01, describe: "1 ft 0 in = 30.48 cm" } }
+      - id: inches-only
+        stdin: "0 7.25\n"
+        expect: { regex: { pattern: "(-?\\d+) ft (\\S+) in = (\\S+) cm", values: [0, 7.25, 18.415], tolerance: 0.01, describe: "0 ft 7.25 in = 18.415 cm" } }
+      - id: tall
+        stdin: "6 2\n"
+        expect: { regex: { pattern: "(-?\\d+) ft (\\S+) in = (\\S+) cm", values: [6, 2, 187.96], tolerance: 0.01, describe: "6 ft 2 in = 187.96 cm" } }
+    wrong:
+      - code: |
+          #include <stdio.h>
+          int main(void)
+          {
+              int feet;
+              double inch;
+              scanf("%d %lf", &feet, &inch);
+              printf("%d ft %g in = %g cm\n", feet, inch, feet * 12 + inch * 2.54);
+              return 0;
+          }
+        why: precedence - only the inches are multiplied by 2.54
+        expect: valueMismatch

@@ -1,0 +1,162 @@
+id: control-center/blocks-and-scope
+version: 1
+kind: debug
+source:
+  - { lecture: L09, slides: [35] }
+topics: [L09.blocks]
+prerequisites: [supply-depot/depot-ledger]
+estimatedMinutes: 12
+objectives:
+  - Group statements into a block with braces and declare variables inside it.
+  - Explain that a variable declared in a block exists only inside that block (its scope).
+  - Know that an empty block {} is allowed and that no semicolon follows a block.
+world:
+  scene: terminal
+  label: CONTROL CONSOLE
+  goal: Print the shift report
+title: Blocks and Scope
+briefing: |
+  The control center's console program fails to compile: a value calculated
+  inside a block is used outside it. Learn what blocks are and where a
+  variable can be seen.
+lesson: |
+  ### Blocks
+  Braces `{ }` group several statements into one **block** (also called a
+  *compound statement*). A block can appear anywhere a single statement can.
+  You have used one already: the body of `main`.
+
+  ```c
+  {
+      int a, b, c;
+      c = (a = 1) + (b = 2);   /* c is 3: a and b are different variables */
+  }
+  ```
+
+  * You can declare variables at the start of a block (or anywhere inside it,
+    since C99).
+  * An **empty block** `{}` is allowed; it does nothing.
+  * **No semicolon** is needed after the closing brace `}`.
+
+  ### Scope
+  A variable declared inside a block exists only from its declaration to the
+  end of **that** block. This region is its **scope**. Outside, the name is
+  unknown and the compiler reports *use of undeclared identifier*.
+
+  ```c example error
+  #include <stdio.h>
+
+  int main(void)
+  {
+      {
+          int inside = 5;
+          printf("%d\n", inside);   /* fine */
+      }
+      printf("%d\n", inside);       /* error: inside is out of scope */
+      return 0;
+  }
+  ```
+
+  > [!note] The slide's `c = (a=1) + (b=2);` is well defined because `a` and
+  > `b` are different variables, but assignments buried inside expressions
+  > are hard to read. Prefer one assignment per statement.
+success: |
+  A block groups statements and can hold its own declarations. A variable's
+  scope ends at the closing brace of the block that declares it, so a value
+  needed later must be declared in an outer block.
+steps:
+  - id: scope-predict
+    type: predict
+    title: Two variables, one name
+    prompt: |
+      An inner block may declare a *new* variable with the same name as an
+      outer one; inside the block, the inner one hides the outer one. What does
+      this program print?
+    code: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int level = 1;
+          {
+              int level = 2;
+              printf("%d ", level);
+          }
+          printf("%d\n", level);
+          return 0;
+      }
+    answer:
+      kind: choice
+      choices:
+        - "2 2"
+        - "1 1"
+        - "2 1"
+        - "Compile error"
+      correct: 2
+      actualOutput: "2 1\n"
+    explanation: |
+      The block declares a separate variable called `level`. It hides the outer
+      one only until the closing brace; afterwards the outer `level` (1) is
+      visible again. (Reusing names like this is legal but confusing.)
+  - id: main
+    type: code
+    title: Fix the console
+    prompt: |
+      Make the program compile and print, for input `6 4`:
+
+      ```
+      Shift total: 10
+      Report complete
+      ```
+
+      Keep the block that computes the total; change where `total` is declared.
+    stdin: "6 4\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int morning, evening;
+
+          scanf("%d %d", &morning, &evening);
+          {
+              int total = morning + evening;
+          }
+          printf("Shift total: %d\n", total);
+          printf("Report complete\n");
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int morning, evening;
+          int total;
+
+          scanf("%d %d", &morning, &evening);
+          {
+              total = morning + evening;
+          }
+          printf("Shift total: %d\n", total);
+          printf("Report complete\n");
+          return 0;
+      }
+    explanation: |
+      `total` must be declared in the outer block (the body of main) so that it
+      is still in scope at the printf. The inner block now only assigns to it.
+    hints:
+      - "Read the error: which name is undeclared, and on which line?"
+      - "A variable is visible only inside the block where it is declared. Declare total where both the block and the printf can see it."
+      - "Declare it near `int morning, evening;` and inside the block only write `total = ...;`"
+      - "Add `int total;` at the top of main and change the inner line to `total = morning + evening;`"
+      - "The full solution moves the declaration out of the inner block."
+    tests:
+      - id: example
+        stdin: "6 4\n"
+        expect: { output: "Shift total: 10\nReport complete\n" }
+      - id: zero
+        stdin: "0 0\n"
+        expect: { output: "Shift total: 0\nReport complete\n" }
+      - id: mixed
+        stdin: "12 -2\n"
+        expect: { output: "Shift total: 10\nReport complete\n" }

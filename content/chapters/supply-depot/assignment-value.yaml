@@ -1,0 +1,149 @@
+id: supply-depot/assignment-value
+version: 1
+kind: predict
+source:
+  - { lecture: L09, slides: [27] }
+topics: [L09.assignment]
+prerequisites: [supply-depot/expressions]
+estimatedMinutes: 12
+objectives:
+  - Explain that an assignment evaluates the right side, stores it, and has that stored value.
+  - Read a chained assignment a = b = 1 from right to left.
+  - Use chained assignment to reset several variables to one value.
+world:
+  scene: gauges
+  label: CRATE COUNTERS
+  gauges:
+    - { label: Dock A, pattern: "A=(-?\\d+)", max: 100 }
+    - { label: Dock B, pattern: "B=(-?\\d+)", max: 100 }
+    - { label: Dock C, pattern: "C=(-?\\d+)", max: 100 }
+title: Assignment Has a Value
+briefing: |
+  Three dock counters must all be reset to the same starting number at the
+  start of each shift. One line of C can do it.
+lesson: |
+  ### Assignment
+  `variable = expression;` evaluates the expression and **stores** the result
+  in the variable. `=` does not mean "is equal to" — it means "becomes".
+
+  ```c
+  total = total + 5;   /* take total, add 5, store the result back in total */
+  ```
+
+  ### An assignment is itself an expression
+  The assignment expression has a **value**: the value that was stored. So it
+  can be used inside a larger expression:
+
+  ```c example
+  #include <stdio.h>
+
+  int main(void)
+  {
+      int x;
+      printf("%d\n", x = 5);   /* stores 5 in x, and the expression's value is 5 */
+      printf("%d\n", x);
+      return 0;
+  }
+  ```
+
+  ### Chained assignment
+  Assignment groups from **right to left**, so
+
+  ```c
+  a = b = 1;      /* means: a = (b = 1); */
+  ```
+
+  first stores 1 in `b`; that assignment has the value 1, which is then stored
+  in `a`.
+
+  > [!correction] Slide 27 says the *statement* returns a value. Precisely, it
+  > is the assignment **expression** that has a value; the statement just
+  > evaluates it.
+
+  > [!note] Using assignment values inside bigger expressions can make code
+  > hard to read. Chained resets like `a = b = c = 0;` are a common, clear use.
+success: |
+  `=` stores a value, and the assignment expression has that stored value.
+  `a = b = c = n;` works right to left: `c = n` first, then `b`, then `a`.
+steps:
+  - id: chain-predict
+    type: predict
+    title: Right to left
+    prompt: Type exactly what this program prints.
+    code: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int a, b, c;
+          a = b = c = 7;
+          b = b + 1;
+          printf("%d %d %d\n", a, b, c);
+          return 0;
+      }
+    answer:
+      kind: output
+      output: "7 8 7\n"
+    explanation: |
+      `c = 7` stores 7 in c; its value 7 is stored in b; then in a. Afterwards
+      only b is changed to 8.
+  - id: main
+    type: code
+    title: Reset the docks
+    prompt: |
+      Read a starting count `n`, set all three dock counters to `n` with **one
+      chained assignment**, then add 2 to dock B only. For input `10`:
+
+      ```
+      A=10 B=12 C=10
+      ```
+    stdin: "10\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int n, dockA, dockB, dockC;
+
+          scanf("%d", &n);
+          /* one chained assignment: set dockA, dockB and dockC to n */
+
+          dockB = dockB + 2;
+          printf("A=%d B=%d C=%d\n", dockA, dockB, dockC);
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int n, dockA, dockB, dockC;
+
+          scanf("%d", &n);
+          dockA = dockB = dockC = n;
+
+          dockB = dockB + 2;
+          printf("A=%d B=%d C=%d\n", dockA, dockB, dockC);
+          return 0;
+      }
+    explanation: |
+      `dockA = dockB = dockC = n;` is evaluated as
+      `dockA = (dockB = (dockC = n));`, so all three receive n.
+    hints:
+      - "An assignment has a value, so its result can be assigned again."
+      - "Write one statement with three = signs, from the leftmost counter to n."
+      - "Pattern: `a = b = value;`"
+      - "`dockA = dockB = dockC = n;`"
+      - "The full solution adds that one line."
+    tests:
+      - id: ten
+        stdin: "10\n"
+        expect: { output: "A=10 B=12 C=10\n" }
+      - id: zero
+        stdin: "0\n"
+        expect: { output: "A=0 B=2 C=0\n" }
+      - id: negative
+        stdin: "-5\n"
+        expect: { output: "A=-5 B=-3 C=-5\n" }
+    require:
+      constructs: [chained=]

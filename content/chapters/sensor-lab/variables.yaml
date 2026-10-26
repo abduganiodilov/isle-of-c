@@ -1,0 +1,123 @@
+id: sensor-lab/variables
+version: 1
+kind: guided
+source:
+  - { lecture: L09, slides: [12, 26] }
+topics: [L09.add-two-numbers, L09.variables-naming]
+prerequisites: [first-contact/comms-tower]
+estimatedMinutes: 12
+objectives:
+  - Declare an int variable and give it an initial value.
+  - Print a variable's value with printf and %d.
+  - Use a variable inside an expression such as cellA + cellB.
+world:
+  scene: gauges
+  label: ENERGY CELLS
+  gauges:
+    - { label: Cell A, pattern: "Cell A:\\s*(-?\\d+)", max: 100 }
+    - { label: Cell B, pattern: "Cell B:\\s*(-?\\d+)", max: 100 }
+    - { label: Total, pattern: "Total energy:\\s*(-?\\d+)", max: 200 }
+title: Labelled Boxes
+briefing: |
+  The lab has two energy cells. PIP-7 needs to remember their charge levels
+  and report the total. To remember a value, a program uses a **variable**.
+lesson: |
+  ### Variables
+  A **variable** is a named box in memory that holds a value. In C every
+  variable has a **type**, a **name** and a **value**, and must be **declared**
+  before it is used:
+
+  ```c
+  int cellA;          /* declaration: a box named cellA that holds an int */
+  cellA = 40;         /* assignment: put 40 into the box */
+  int cellB = 25;     /* declaration with initialisation */
+  ```
+
+  `int` means *integer*: a whole number such as `-3`, `0` or `40`.
+
+  ### Printing a value
+  To print a value, put a **conversion specification** in the string and
+  give the value after a comma:
+
+  ```c example
+  #include <stdio.h>
+
+  int main(void)
+  {
+      int cellA = 40;
+      printf("Cell A: %d\n", cellA);
+      printf("Double: %d\n", cellA * 2);
+      return 0;
+  }
+  ```
+
+  `%d` means "print an `int` here, in decimal". printf replaces each `%d`
+  with the next value in the list, in order.
+
+  > [!note] A variable declared without a value contains garbage until you
+  > assign one. The compiler warns you (*variable is uninitialized*) when you
+  > use such a value.
+success: |
+  A variable has a type (`int`), a name (`cellB`) and a value (`25`). printf's
+  `%d` prints an int value, and expressions like `cellA + cellB` combine
+  variables.
+steps:
+  - id: main
+    type: code
+    title: Report both cells
+    prompt: |
+      Add a second variable `cellB` with the value `25`, print it, and print the
+      total using an expression (not by typing 65). Expected output:
+
+      ```
+      Cell A: 40
+      Cell B: 25
+      Total energy: 65
+      ```
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int cellA = 40;
+          /* declare cellB here, with the value 25 */
+
+          printf("Cell A: %d\n", cellA);
+          /* print Cell B */
+
+          /* print the total: use cellA + cellB */
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int cellA = 40;
+          int cellB = 25;
+
+          printf("Cell A: %d\n", cellA);
+          printf("Cell B: %d\n", cellB);
+          printf("Total energy: %d\n", cellA + cellB);
+          return 0;
+      }
+    explanation: |
+      `int cellB = 25;` declares and initialises the second variable. The total
+      is computed by the expression `cellA + cellB`, so if a cell value changes,
+      the total changes automatically.
+    hints:
+      - "A new variable needs a declaration: type, name and (here) an initial value."
+      - "Copy the pattern used for cellA: one declaration line, one printf line. Then one more printf for the total."
+      - "Syntax: `int name = value;` and `printf(\"Label: %d\\n\", expression);`"
+      - "`int cellB = 25;` … `printf(\"Total energy: %d\\n\", cellA + cellB);`"
+      - "The full solution declares cellB and prints three lines."
+    tests:
+      - id: report
+        note: All three readings.
+        expect: { output: "Cell A: 40\nCell B: 25\nTotal energy: 65\n" }
+      - id: expression
+        note: The total must be computed from the variables.
+        expect: { lines: ["Total energy: 65"] }
+    require:
+      constructs: [+]

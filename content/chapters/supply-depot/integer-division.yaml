@@ -1,0 +1,162 @@
+id: supply-depot/integer-division
+version: 1
+kind: guided
+source:
+  - { lecture: L09, slides: [28] }
+topics: [L09.arithmetic]
+prerequisites: [supply-depot/assignment-value]
+estimatedMinutes: 15
+objectives:
+  - Use the arithmetic operators + - * / % and unary minus.
+  - Predict integer division (the fraction is discarded) and the remainder operator %.
+  - Split a quantity into equal shares and a leftover.
+world:
+  scene: gauges
+  label: CRATE ALLOCATOR
+  gauges:
+    - { label: Per robot, pattern: "Each robot gets (-?\\d+)", max: 100 }
+    - { label: Left over, pattern: "Left in depot: (-?\\d+)", max: 20 }
+title: Fair Shares
+briefing: |
+  Robots line up at the depot for crates. Every robot must get the same whole
+  number of crates; whatever cannot be shared stays in the depot.
+lesson: |
+  ### Arithmetic operators
+  | Operator | Meaning | Example | Value |
+  |---|---|---|---|
+  | `+` `-` `*` | add, subtract, multiply | `7 * 3` | `21` |
+  | `/` | divide | `7.0 / 2` | `3.5` |
+  | `/` with two integers | **integer division**: the fraction is discarded | `7 / 2` | `3` |
+  | `%` | **remainder** (integers only) | `7 % 2` | `1` |
+  | unary `-` | negation | `-x` | |
+
+  When both operands of `/` are integers, the result is an integer: C cuts
+  off the fraction (it truncates toward zero). `%` gives what is left over, so
+  for positive numbers `a == (a / b) * b + a % b`.
+
+  ```c example
+  #include <stdio.h>
+
+  int main(void)
+  {
+      printf("%d %d\n", 17 / 5, 17 % 5);
+      printf("%d %d\n", -17 / 5, -17 % 5);
+      printf("%g\n", 17.0 / 5);
+      return 0;
+  }
+  ```
+
+  Since C99, `-17 / 5` is `-3` (truncation toward zero) and `-17 % 5` is `-2`.
+
+  > [!warning] Dividing an integer by zero is **undefined behaviour**. In this
+  > game the program is stopped with a runtime error; on a real computer it
+  > often crashes.
+
+  > [!correction] On slide 28 the symbol after "Negation:" is missing; it is
+  > the unary minus `-x`.
+success: |
+  With integers, `/` discards the fraction and `%` gives the remainder.
+  Together they split any amount into equal shares plus a leftover.
+steps:
+  - id: div-predict
+    type: predict
+    title: Whole numbers only
+    prompt: Type exactly what this program prints.
+    code: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int crates = 23;
+          printf("%d\n", crates / 4);
+          printf("%d\n", crates % 4);
+          printf("%d\n", -crates / 4);
+          return 0;
+      }
+    answer:
+      kind: output
+      output: "5\n3\n-5\n"
+    explanation: |
+      23 / 4 is 5.75, and integer division keeps only 5. The remainder is
+      23 − 5·4 = 3. −23 / 4 truncates toward zero, giving −5.
+  - id: main
+    type: code
+    title: Share the crates
+    prompt: |
+      Read the number of crates and the number of robots (both ints, robots is
+      at least 1). Print how many crates each robot gets and how many stay in
+      the depot. For input `17 5`:
+
+      ```
+      Each robot gets 3 crates
+      Left in depot: 2
+      ```
+    stdin: "17 5\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int crates, robots;
+
+          scanf("%d %d", &crates, &robots);
+          /* compute and print the share and the leftover */
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int crates, robots;
+          int share, leftover;
+
+          scanf("%d %d", &crates, &robots);
+          share = crates / robots;
+          leftover = crates % robots;
+          printf("Each robot gets %d crates\n", share);
+          printf("Left in depot: %d\n", leftover);
+          return 0;
+      }
+    explanation: |
+      `crates / robots` is integer division, so it gives the whole share.
+      `crates % robots` is exactly the part that could not be shared. One
+      `scanf("%d %d", ...)` can read two values at once.
+    hints:
+      - "Equal whole shares are a division; what remains is the remainder."
+      - "Use / for the share and % for the leftover. Both operands are ints, so the results are ints."
+      - "`share = crates / robots;` `leftover = crates % robots;`"
+      - "Print with `printf(\"Each robot gets %d crates\\n\", share);` and `printf(\"Left in depot: %d\\n\", leftover);`"
+      - "The full solution computes both values and prints two lines."
+    tests:
+      - id: example
+        stdin: "17 5\n"
+        expect: { output: "Each robot gets 3 crates\nLeft in depot: 2\n" }
+      - id: exact
+        stdin: "20 4\n"
+        note: Shares divide exactly.
+        expect: { output: "Each robot gets 5 crates\nLeft in depot: 0\n" }
+      - id: few
+        stdin: "3 5\n"
+        note: Fewer crates than robots.
+        expect: { output: "Each robot gets 0 crates\nLeft in depot: 3\n" }
+      - id: empty
+        stdin: "0 3\n"
+        expect: { output: "Each robot gets 0 crates\nLeft in depot: 0\n" }
+      - id: one-robot
+        stdin: "41 1\n"
+        expect: { output: "Each robot gets 41 crates\nLeft in depot: 0\n" }
+    wrong:
+      - code: |
+          #include <stdio.h>
+          int main(void)
+          {
+              int crates, robots;
+              scanf("%d %d", &crates, &robots);
+              printf("Each robot gets %d crates\n", crates / robots);
+              printf("Left in depot: %d\n", crates - robots);
+              return 0;
+          }
+        why: leftover is not crates - robots
+        expect: outputMismatch

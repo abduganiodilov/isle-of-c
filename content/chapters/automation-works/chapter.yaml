@@ -1,0 +1,30 @@
+id: automation-works
+version: 1
+letter: E
+title: Automation Works
+region: Valley — Automation Works
+lectures: [L10]
+intro: >
+  In the valley lies the island's factory. Conveyors, solar fields and
+  calibration benches all need the same actions repeated hundreds of times.
+  PIP-7 learns while, for and do-while loops, break and continue, and nested
+  loops.
+outro: >
+  The Automation Works hum again. PIP-7 can repeat actions a fixed number of
+  times, until a condition changes, or until a stop signal arrives — and it
+  knows how to stop runaway loops.
+map: { x: 70, y: 52 }
+missions:
+  - while-batches
+  - runaway-loop
+  - digit-sum
+  - for-anatomy
+  - off-by-one
+  - comma-products
+  - do-while-retry
+  - break-continue
+  - repair-row
+  - sweep-field
+  - times-table
+  - celsius-table
+  - factory-shift

@@ -1,0 +1,25 @@
+# Curriculum manifest. The campaign order is the order of `chapters`.
+# To add a lecture: add its file under lectures/, append its chapter ids here,
+# bump curriculumVersion. Never remove or rename ids (see docs/ADDING_A_LECTURE.md).
+title: Isle of C
+schemaVersion: 1
+curriculumVersion: 1
+cStandard: C17
+lectures: [L09, L10]
+chapters:
+  - first-contact
+  - sensor-lab
+  - supply-depot
+  - control-center
+  - automation-works
+  - core-systems
+  - island-core
+  - expedition-extras
+# Chapters whose missions are all optional and are not required for the ending.
+optionalChapters: [expedition-extras]
+retiredMissions: []
+ending:
+  # Shown when every mandatory mission currently in the campaign is complete.
+  # When a new lecture is appended, new mandatory missions appear and the
+  # expedition continues from the new region.
+  key: expedition-1

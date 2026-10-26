@@ -1,0 +1,161 @@
+id: control-center/control-room
+version: 1
+kind: chapter-challenge
+source:
+  - { lecture: L09, slides: [36, 38, 41, 43, 46] }
+topics: [L09.switch, L09.if-statement, L09.logical, L09.relational, L09.simple-for]
+prerequisites: [control-center/style-review]
+estimatedMinutes: 20
+objectives:
+  - Combine switch, else-if chains and logical operators in one program.
+  - Choose sensible boundaries and test them.
+world:
+  scene: sorter
+  label: CONTROL ROOM
+  bins:
+    - { label: OK, match: "\\bOK\\b" }
+    - { label: WARNING, match: "WARNING" }
+    - { label: DANGER, match: "DANGER" }
+    - { label: UNKNOWN, match: "UNKNOWN" }
+title: "Chapter Challenge: Control Room"
+briefing: |
+  Every sensor on the island reports a type letter and a value. The control
+  room must decide, for each report, whether everything is OK, a warning is
+  needed, or there is danger.
+lesson: |
+  Use what you learned in this chapter: `switch` on the sensor type,
+  `if / else if` for the ranges, and `&&` / `||` where they make the rules
+  shorter. Read characters as codes: `scanf(" %c", &type)` reads one
+  character (the space before `%c` skips spaces and line breaks).
+
+  > [!note] `%c` in scanf reads *any* character, including a space or a
+  > newline. The space in `" %c"` tells scanf to skip whitespace first.
+success: |
+  Your control room combines a `switch` over sensor types with range checks.
+  The island's Control Center is fully online, and the automation works beyond
+  it are now reachable.
+steps:
+  - id: main
+    type: code
+    title: Classify sensor reports
+    prompt: |
+      Read a sensor type character and an integer value, e.g. `T 85`. Print one
+      word according to these rules:
+
+      | Type | OK | WARNING | DANGER |
+      |---|---|---|---|
+      | `T` temperature | 0 to 60 | 61 to 80 | below 0 or above 80 |
+      | `P` pressure | 90 to 110 | 80–89 or 111–120 | below 80 or above 120 |
+      | `W` water level | at most 70 | 71 to 90 | above 90 |
+
+      Any other type letter prints `UNKNOWN SENSOR`. Example: `T 85` → `DANGER`.
+    stdin: "T 85\n"
+    starter: |
+      /* Control room */
+      #include <stdio.h>
+
+      int main(void)
+      {
+          char type;
+          int value;
+
+          scanf(" %c %d", &type, &value);
+
+          return 0;
+      }
+    solution: |
+      /* Control room: classify one sensor report */
+      #include <stdio.h>
+
+      int main(void)
+      {
+          char type;
+          int value;
+
+          scanf(" %c %d", &type, &value);
+
+          switch (type) {
+          case 'T':
+              if (value < 0 || value > 80) {
+                  printf("DANGER\n");
+              } else if (value > 60) {
+                  printf("WARNING\n");
+              } else {
+                  printf("OK\n");
+              }
+              break;
+          case 'P':
+              if (value < 80 || value > 120) {
+                  printf("DANGER\n");
+              } else if (value >= 90 && value <= 110) {
+                  printf("OK\n");
+              } else {
+                  printf("WARNING\n");
+              }
+              break;
+          case 'W':
+              if (value > 90) {
+                  printf("DANGER\n");
+              } else if (value > 70) {
+                  printf("WARNING\n");
+              } else {
+                  printf("OK\n");
+              }
+              break;
+          default:
+              printf("UNKNOWN SENSOR\n");
+              break;
+          }
+          return 0;
+      }
+    explanation: |
+      The switch picks the rule set for the sensor type. Inside each case the
+      most severe condition is checked first, so later branches only see values
+      that are already known to be in range.
+    hints:
+      - "First decide which table row applies (by type), then which column (by value)."
+      - "Use switch (type) with case 'T', case 'P', case 'W' and default. Inside each case, an else-if chain from DANGER down to OK."
+      - "Character cases are written with single quotes: `case 'T':`. Ranges: `value < 0 || value > 80`."
+      - "For T: `if (value < 0 || value > 80) DANGER; else if (value > 60) WARNING; else OK;`"
+      - "The full solution has three cases with else-if chains and a default."
+    tests:
+      - id: t-danger
+        stdin: "T 85\n"
+        expect: { lines: ["DANGER"], exactLineCount: true }
+      - id: t-ok
+        stdin: "T 60\n"
+        expect: { lines: ["OK"], exactLineCount: true }
+      - id: t-warn
+        stdin: "T 61\n"
+        expect: { lines: ["WARNING"], exactLineCount: true }
+      - id: t-cold
+        stdin: "T -1\n"
+        expect: { lines: ["DANGER"], exactLineCount: true }
+      - id: p-ok
+        stdin: "P 100\n"
+        expect: { lines: ["OK"], exactLineCount: true }
+      - id: p-low-warn
+        stdin: "P 85\n"
+        expect: { lines: ["WARNING"], exactLineCount: true }
+      - id: p-high-warn
+        stdin: "P 120\n"
+        expect: { lines: ["WARNING"], exactLineCount: true }
+      - id: p-danger
+        stdin: "P 79\n"
+        expect: { lines: ["DANGER"], exactLineCount: true }
+      - id: w-ok
+        stdin: "W 70\n"
+        expect: { lines: ["OK"], exactLineCount: true }
+      - id: w-warn
+        stdin: "W 90\n"
+        expect: { lines: ["WARNING"], exactLineCount: true }
+      - id: w-danger
+        stdin: "W 91\n"
+        expect: { lines: ["DANGER"], exactLineCount: true }
+      - id: unknown
+        stdin: "X 10\n"
+        expect: { lines: ["UNKNOWN SENSOR"], exactLineCount: true }
+      - id: newline
+        stdin: "\nT\n20\n"
+        note: Type and value on separate lines.
+        expect: { lines: ["OK"], exactLineCount: true }

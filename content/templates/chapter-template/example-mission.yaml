@@ -1,0 +1,101 @@
+# Mission id = <chapter-id>/<file name>. Never rename or renumber it once published;
+# bump `version` instead when you change the content.
+id: template-arrays/example-mission
+version: 1
+kind: guided                # guided | lesson | predict | debug | challenge | chapter-challenge | mastery | capstone
+source:
+  - { lecture: L11, slides: [4, 5] }          # printed slide numbers
+topics: [L11.example-topic]                     # ids from content/lectures/L11.yaml
+prerequisites: [island-core/restore-core]       # earlier mission ids
+estimatedMinutes: 10
+objectives:
+  - One learning goal per line, phrased as something the player can do.
+world:
+  scene: terminal           # terminal | gauges | sorter | table | grid | frames | pipeline | core
+  label: ARCHIVE TERMINAL
+  goal: What the world needs from the program
+title: Example Mission
+briefing: |
+  Story context and the concrete objective in the game world.
+lesson: |
+  ### One small idea
+  Explain one idea in simple language, then show a short working example:
+
+  ```c example
+  #include <stdio.h>
+
+  int main(void)
+  {
+      printf("Example\n");
+      return 0;
+  }
+  ```
+success: |
+  A short explanation of what the player learned and why the program works.
+steps:
+  - id: predict
+    type: predict
+    title: Predict first
+    prompt: What does this program print?
+    code: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          printf("%d\n", 6 * 7);
+          return 0;
+      }
+    answer:
+      kind: choice
+      choices: ["42", "67", "6 * 7"]
+      correct: 0
+      actualOutput: "42\n"    # verified against the real program by npm run verify
+    explanation: |
+      Why the program prints what it prints.
+  - id: main
+    type: code
+    title: Write the code
+    prompt: |
+      Exact task, with an example of input and expected output.
+    stdin: "5\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int n;
+
+          scanf("%d", &n);
+          /* print n * 2 */
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int n;
+
+          scanf("%d", &n);
+          printf("%d\n", n * 2);
+          return 0;
+      }
+    explanation: |
+      Why the reference solution works (shown after success and with hint 5).
+    hints:                  # exactly five: concept, strategy, syntax, partial, full
+      - "Concept clue."
+      - "Suggested strategy."
+      - "Relevant syntax example."
+      - "Partial solution."
+      - "Lead-in to the full solution."
+    tests:                  # behaviour tests; several, including edge cases
+      - { id: example, stdin: "5\n", expect: { output: "10\n" } }
+      - { id: zero, stdin: "0\n", note: Edge case., expect: { output: "0\n" } }
+      - { id: negative, stdin: "-4\n", expect: { output: "-8\n" } }
+    wrong:                  # representative wrong solutions that must fail
+      - code: |
+          #include <stdio.h>
+          int main(void) { int n; scanf("%d", &n); printf("%d\n", n + 2); return 0; }
+        why: adds instead of multiplying
+        expect: outputMismatch

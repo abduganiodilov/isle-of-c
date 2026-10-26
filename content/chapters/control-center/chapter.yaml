@@ -1,0 +1,29 @@
+id: control-center
+version: 1
+letter: D
+title: Control Center
+region: Crossroads — Control Center
+lectures: [L09]
+intro: >
+  At the island's crossroads stands the control center. Its programs must make
+  decisions: which route is safe, which mode a machine should run in, when an
+  alarm must sound. PIP-7 learns if, else, logical operators and switch.
+outro: >
+  The control center routes robots, classifies sensor values and selects
+  machine modes. PIP-7 can make decisions and even repeat a simple action.
+map: { x: 48, y: 40 }
+missions:
+  - blocks-and-scope
+  - route-robot
+  - truth-values
+  - assign-vs-equal
+  - signum
+  - absolute-value
+  - logic-gates
+  - short-circuit
+  - conditional-operator
+  - machine-modes
+  - card-ranks
+  - first-loop
+  - style-review
+  - control-room

@@ -1,0 +1,151 @@
+id: automation-works/sweep-field
+version: 1
+kind: challenge
+source:
+  - { lecture: L10, slides: [7, 13] }
+topics: [L10.times-table, L10.for-syntax]
+prerequisites: [automation-works/repair-row]
+estimatedMinutes: 25
+objectives:
+  - Use nested for loops to visit every cell of a grid.
+  - Count events inside nested loops.
+  - Plan a movement pattern (row by row) before coding it.
+world:
+  scene: grid
+  label: SOLAR FIELD
+  grid: { width: 5, height: 4, start: [0, 0], damage: [[1, 0, 1], [4, 1, 2], [0, 2, 1], [2, 3, 1]] }
+title: Sweep the Solar Field
+briefing: |
+  Behind the factory lies a whole field of solar panels: several rows, several
+  columns. PIP-7 must sweep the field row by row, repair every damaged panel,
+  and report how many repairs it made.
+lesson: |
+  ### Nested loops
+  A loop inside another loop is a **nested loop**. The inner loop runs
+  completely for **each** iteration of the outer loop:
+
+  ```c example
+  #include <stdio.h>
+
+  int main(void)
+  {
+      int row, col;
+      for (row = 0; row < 3; row++) {
+          for (col = 0; col < 4; col++) {
+              printf("(%d,%d) ", col, row);
+          }
+          printf("\n");
+      }
+      return 0;
+  }
+  ```
+
+  3 rows × 4 columns = 12 inner iterations. Use different loop variables for
+  the two loops!
+
+  ### Planning a sweep
+  A common pattern is the "lawn-mower" or **snake** path: sweep the first
+  row eastward, step south, sweep the next row westward, and so on. Inside a
+  row of width `w` the robot needs `w - 1` moves; between rows one move
+  south. Other paths are fine too, as long as the robot never bumps into the
+  edge and every damaged panel is repaired.
+success: |
+  Two nested loops visited every panel exactly once: the outer loop chose the
+  row, the inner loop walked along it. A counter inside the inner loop totalled
+  the repairs.
+steps:
+  - id: main
+    type: code
+    title: Sweep and report
+    prompt: |
+      The input gives the field's width and height. Sweep the whole field
+      starting from the top-left corner, repair every damaged panel (scan
+      first), never bump into the edge, and finally print:
+
+      ```
+      Repaired: <number of panels you repaired>
+      ```
+    stdin: "5 4\n"
+    starter: |
+      #include <stdio.h>
+      #include <island.h>   /* game API (not standard C) */
+
+      int main(void)
+      {
+          int width, height;
+          int row, col;
+          int repaired = 0;
+          char direction = 'E';
+
+          scanf("%d %d", &width, &height);
+
+          /* outer loop over rows, inner loop over columns */
+
+          printf("Repaired: %d\n", repaired);
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+      #include <island.h>   /* game API (not standard C) */
+
+      int main(void)
+      {
+          int width, height;
+          int row, col;
+          int repaired = 0;
+          char direction = 'E';
+
+          scanf("%d %d", &width, &height);
+
+          for (row = 0; row < height; row++) {
+              for (col = 0; col < width; col++) {
+                  if (robot_scan() > 0) {
+                      robot_repair();
+                      repaired++;
+                  }
+                  if (col < width - 1) {
+                      robot_move(direction);
+                  }
+              }
+              direction = (direction == 'E') ? 'W' : 'E';
+              if (row < height - 1) {
+                  robot_move('S');
+              }
+          }
+
+          printf("Repaired: %d\n", repaired);
+          return 0;
+      }
+    explanation: |
+      The inner loop handles one row: scan/repair, then move (except after the
+      last column). After each row the direction flips and the robot steps
+      south (except after the last row). That is the snake path, with exactly
+      width × height − 1 moves.
+    hints:
+      - "The robot must visit each panel once: think rows (outer) and columns (inner)."
+      - "In the inner loop: check the current tile, then move to the next one unless it is the last column. After each row: turn around and step south unless it is the last row."
+      - "Flip direction with `direction = (direction == 'E') ? 'W' : 'E';` Guard moves with `if (col < width - 1)`."
+      - "Inner loop body: `if (robot_scan() > 0) { robot_repair(); repaired++; } if (col < width - 1) robot_move(direction);`"
+      - "The full solution uses the snake path."
+    tests:
+      - id: default-field
+        stdin: "5 4\n"
+        world: { width: 5, height: 4, start: [0, 0], damage: [[1, 0, 1], [4, 1, 2], [0, 2, 1], [2, 3, 1]] }
+        expect: { contains: ["Repaired: 4"], world: { allRepaired: true, noBlocked: true, noWastedRepairs: true } }
+      - id: square
+        stdin: "3 3\n"
+        world: { width: 3, height: 3, start: [0, 0], damage: [[2, 2, 1], [0, 1, 1]] }
+        expect: { contains: ["Repaired: 2"], world: { allRepaired: true, noBlocked: true, noWastedRepairs: true } }
+      - id: tall
+        stdin: "1 5\n"
+        note: A single column.
+        world: { width: 1, height: 5, start: [0, 0], damage: [[0, 4, 1], [0, 0, 1]] }
+        expect: { contains: ["Repaired: 2"], world: { allRepaired: true, noBlocked: true, noWastedRepairs: true } }
+      - id: wide
+        stdin: "7 2\n"
+        world: { width: 7, height: 2, start: [0, 0], damage: [[6, 1, 1], [3, 0, 2], [0, 1, 1]] }
+        expect: { contains: ["Repaired: 3"], world: { allRepaired: true, noBlocked: true, noWastedRepairs: true } }
+      - id: clean
+        stdin: "4 3\n"
+        world: { width: 4, height: 3, start: [0, 0], damage: [] }
+        expect: { contains: ["Repaired: 0"], world: { allRepaired: true, noBlocked: true } }

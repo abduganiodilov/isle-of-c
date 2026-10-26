@@ -1,0 +1,103 @@
+id: automation-works/celsius-table
+version: 1
+kind: challenge
+source:
+  - { lecture: L10, slides: [14] }
+topics: [L10.celsius-table]
+prerequisites: [automation-works/times-table]
+estimatedMinutes: 12
+objectives:
+  - Write a loop with a step other than 1 and a negative start value.
+  - Combine a loop with a floating-point formula and formatted output.
+world:
+  scene: table
+  label: THERMAL BENCH
+  goal: Print the Celsius-Fahrenheit reference table
+title: Celsius-Fahrenheit Table
+briefing: |
+  The thermal bench uses an imported thermometer that shows Fahrenheit. Print a
+  reference table so the engineers can compare readings.
+lesson: |
+  This is the lecture's practice exercise (slide 14): print the
+  Celsius-Fahrenheit table for −20, −10, 0, 10, 20, 30 and 40 °C.
+
+  The formula is F = C × 9 / 5 + 32. Watch out for integer division: `9 / 5`
+  is 1 in integer arithmetic! Use `9.0 / 5` or `1.8`.
+
+  `%6.1f` prints a double right-aligned in a 6-character field with one
+  decimal.
+success: |
+  A for loop can step by any amount: `c += 10` here. Using a double constant
+  (`9.0`) avoided the integer-division trap in the formula.
+steps:
+  - id: main
+    type: code
+    title: Print the table
+    prompt: |
+      Print exactly this table (the C column with `%4d`, the F column with
+      `%6.1f`):
+
+      ```
+         C      F
+       -20   -4.0
+       -10   14.0
+         0   32.0
+        10   50.0
+        20   68.0
+        30   86.0
+        40  104.0
+      ```
+
+      The header line is `   C      F`. Use a loop for the rows.
+    starter: |
+      /* Celsius-Fahrenheit table */
+      #include <stdio.h>
+
+      int main(void)
+      {
+
+          return 0;
+      }
+    solution: |
+      /* Celsius-Fahrenheit table */
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int celsius;
+
+          printf("   C      F\n");
+          for (celsius = -20; celsius <= 40; celsius += 10) {
+              printf("%4d %6.1f\n", celsius, celsius * 9.0 / 5 + 32);
+          }
+          return 0;
+      }
+    explanation: |
+      The loop starts at −20 and adds 10 each time until 40. `celsius * 9.0`
+      makes the whole formula floating-point.
+    hints:
+      - "Seven rows with a regular step: a loop, not seven printf calls."
+      - "Start at -20, continue while at most 40, step by 10. Print C and the formula's result on each row."
+      - "`for (c = -20; c <= 40; c += 10)` and `printf(\"%4d %6.1f\\n\", c, c * 9.0 / 5 + 32);`"
+      - "Print the header `printf(\"   C      F\\n\");` once, before the loop."
+      - "The full solution has a header line and one loop."
+    tests:
+      - id: table
+        expect: { output: "   C      F\n -20   -4.0\n -10   14.0\n   0   32.0\n  10   50.0\n  20   68.0\n  30   86.0\n  40  104.0\n" }
+      - id: values
+        note: All numbers in order (spacing ignored).
+        expect: { numbers: [-20, -4, -10, 14, 0, 32, 10, 50, 20, 68, 30, 86, 40, 104], numbersMode: exact, tolerance: 0.01 }
+    require:
+      constructs: [for]
+    wrong:
+      - code: |
+          #include <stdio.h>
+          int main(void)
+          {
+              int c;
+              printf("   C      F\n");
+              for (c = -20; c <= 40; c += 10) printf("%4d %6.1f\n", c, c * (9 / 5) + 32.0);
+              return 0;
+          }
+        why: 9 / 5 is integer division (1)
+        expect: outputMismatch

@@ -1,0 +1,180 @@
+id: core-systems/arguments-and-conversion
+version: 1
+kind: guided
+source:
+  - { lecture: L10, slides: [25, 26] }
+topics: [L10.parameter-passing, L10.distance-function]
+prerequisites: [core-systems/max-function]
+estimatedMinutes: 18
+objectives:
+  - Distinguish arguments (values in the call) from parameters (variables in the definition).
+  - Predict how argument values are converted to the parameter types.
+  - Pass constants, variables and expressions as arguments.
+world:
+  scene: gauges
+  label: RANGEFINDER
+  gauges:
+    - { label: Distance, pattern: "Distance: (\\S+)", max: 30 }
+title: Arguments and Parameters
+briefing: |
+  The rangefinder measures the distance between PIP-7 and a beacon. Robot
+  positions are whole grid cells (ints), beacon positions are precise
+  (doubles). One `distance` function must handle both.
+lesson: |
+  ### Arguments and parameters
+  * **Parameters** are the variables listed in the function's definition:
+    `double distance(double x1, double y1, double x2, double y2)`.
+  * **Arguments** are the values written in a call: `distance(1, i, x1, sqrt(y1) + 2)`.
+
+  When the function is called, the arguments are matched with the parameters
+  **by position** (first to first, second to second, …), and each argument's
+  value is **converted to the parameter's type** — just like in an
+  assignment.
+
+  ```c example
+  #include <stdio.h>
+  #include <math.h>
+
+  double distance(double x1, double y1, double x2, double y2);
+
+  int main(void)
+  {
+      double x1 = 12.0, y1 = 25.0;
+      int i = 2;
+      double separation = distance(1, i, x1, sqrt(y1) + 2);
+      printf("%g\n", separation);
+      return 0;
+  }
+
+  double distance(double x1, double y1, double x2, double y2)
+  {
+      return sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+  }
+  ```
+
+  In this call, inside `distance`: `x1` = 1.0 (the int constant 1 converted),
+  `y1` = 2.0 (the int `i` converted), `x2` = 12.0, `y2` = 7.0
+  (`sqrt(25.0) + 2`). The names `x1` and `y1` in `main` are unrelated to the
+  parameters of the same name.
+
+  > [!correction] Slide 30 writes "y1 = 2" for the parameter; inside
+  > `distance` it is the double 2.0, because the int argument is converted.
+success: |
+  Arguments are matched to parameters by position and converted to the
+  parameter types. Any expression can be an argument — a constant, a variable
+  or even another function call.
+steps:
+  - id: param-predict
+    type: predict
+    title: What does the function receive?
+    prompt: Type exactly what this program prints.
+    code: |
+      #include <stdio.h>
+
+      void show(double a, int b)
+      {
+          printf("a=%g b=%d\n", a, b);
+      }
+
+      int main(void)
+      {
+          int n = 7;
+          show(n, 3.9);
+          show(n / 2, n * 2);
+          return 0;
+      }
+    answer:
+      kind: output
+      output: "a=7 b=3\na=3 b=14\n"
+    explanation: |
+      The int 7 becomes the double 7.0; the double 3.9 converted to int drops
+      the fraction (3). `n / 2` is integer division (3) before it is converted
+      to 3.0. (The compiler warns about the lossy 3.9 → 3 conversion.)
+  - id: main
+    type: code
+    title: Implement the rangefinder
+    prompt: |
+      Write `double distance(double x1, double y1, double x2, double y2)` that
+      returns the straight-line distance √((x1−x2)² + (y1−y2)²). In `main`,
+      read the robot's cell (two **ints**) and the beacon's position (two
+      **doubles**), and print the distance with `%.3f`. For input `1 2 4.0 6.0`:
+
+      ```
+      Distance: 5.000
+      ```
+    stdin: "1 2 4.0 6.0\n"
+    starter: |
+      #include <stdio.h>
+      #include <math.h>
+
+      double distance(double x1, double y1, double x2, double y2);
+
+      int main(void)
+      {
+          int robotX, robotY;
+          double beaconX, beaconY;
+
+          scanf("%d %d %lf %lf", &robotX, &robotY, &beaconX, &beaconY);
+          /* call distance with the ints and the doubles */
+
+          return 0;
+      }
+
+      /* definition of distance */
+    solution: |
+      #include <stdio.h>
+      #include <math.h>
+
+      double distance(double x1, double y1, double x2, double y2);
+
+      int main(void)
+      {
+          int robotX, robotY;
+          double beaconX, beaconY;
+
+          scanf("%d %d %lf %lf", &robotX, &robotY, &beaconX, &beaconY);
+          printf("Distance: %.3f\n", distance(robotX, robotY, beaconX, beaconY));
+          return 0;
+      }
+
+      double distance(double x1, double y1, double x2, double y2)
+      {
+          return sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+      }
+    explanation: |
+      The int robot coordinates are converted to double automatically when they
+      are passed. The function only sees four doubles.
+    harness: |
+      #include <stdio.h>
+      double distance(double x1, double y1, double x2, double y2);
+      int main(void)
+      {
+          double a, b, c, d;
+          while (scanf("%lf %lf %lf %lf", &a, &b, &c, &d) == 4) {
+              printf("%.4f\n", distance(a, b, c, d));
+          }
+          return 0;
+      }
+    hints:
+      - "The formula uses differences of coordinates, squared, summed, and a square root."
+      - "Write the definition below main, then call it inside printf with the four variables."
+      - "`return sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));`"
+      - "`printf(\"Distance: %.3f\\n\", distance(robotX, robotY, beaconX, beaconY));`"
+      - "The full solution is the lecture's distance function."
+    tests:
+      - id: program
+        stdin: "1 2 4.0 6.0\n"
+        expect: { output: "Distance: 5.000\n" }
+      - id: same
+        stdin: "3 3 3 3\n"
+        expect: { output: "Distance: 0.000\n" }
+      - id: program-frac
+        stdin: "0 0 1.5 2\n"
+        expect: { output: "Distance: 2.500\n" }
+      - id: direct
+        harness: true
+        stdin: "1 2 12 7\n0 0 -3 -4\n2.5 1 2.5 -1\n"
+        note: The lecture's call distance(1, 2, 12, 7) and others.
+        expect: { numbers: [12.0830, 5.0, 2.0], numbersMode: exact, tolerance: 0.0001 }
+    require:
+      functions: [distance]

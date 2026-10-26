@@ -1,0 +1,82 @@
+id: sensor-lab/lab-report
+version: 1
+kind: chapter-challenge
+source:
+  - { lecture: L09, slides: [12, 16, 20, 21] }
+topics: [L09.scanf-address, L09.char-type, L09.printf-float, L09.scanf-float]
+prerequisites: [sensor-lab/combine-resources]
+estimatedMinutes: 15
+objectives:
+  - Read values of different types in one program (int and double).
+  - Print an int as a number and as a character, and a double in two formats.
+world:
+  scene: terminal
+  label: LAB REPORT PRINTER
+  goal: Print a complete station report
+title: "Chapter Challenge: Lab Report"
+briefing: |
+  Each weather station sends three values: its number, a sensor type code and
+  a temperature. Turn them into a readable report for the lab's printer.
+lesson: |
+  Everything needed was taught in this chapter: `int` and `double` variables,
+  `scanf` with `%d` and `%lf`, and printf with `%d`, `%c`, `%g` and `%e`.
+success: |
+  Your program read an int, a character code and a double, and printed each
+  with the right conversion. The Sensor Lab is fully online.
+steps:
+  - id: main
+    type: code
+    title: Print the station report
+    prompt: |
+      Input: a station number (int), a sensor type **code** (int, an ASCII code)
+      and a temperature (double). For input `7 84 21.5` print:
+
+      ```
+      Station 7
+      Sensor type: T
+      Reading: 21.5 (2.150000e+01)
+      ```
+
+      The reading appears twice: with `%g` and in parentheses with `%e`.
+    stdin: "7 84 21.5\n"
+    starter: |
+      /* Lab report */
+    solution: |
+      /* Lab report */
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int station, typeCode;
+          double temperature;
+
+          scanf("%d", &station);
+          scanf("%d", &typeCode);
+          scanf("%lf", &temperature);
+
+          printf("Station %d\n", station);
+          printf("Sensor type: %c\n", typeCode);
+          printf("Reading: %g (%e)\n", temperature, temperature);
+          return 0;
+      }
+    explanation: |
+      Each value gets a variable of a fitting type and a matching scanf
+      conversion. The type code is printed with `%c` to show the character, and
+      the same temperature value is printed twice with two conversions.
+    hints:
+      - "Three inputs → three variables. Which ones are whole numbers and which is a real number?"
+      - "Read all three values first, then print the three lines."
+      - "`scanf(\"%d\", &station);` … `scanf(\"%lf\", &temperature);` … `printf(\"Reading: %g (%e)\\n\", temperature, temperature);`"
+      - "Use %c for the type code: `printf(\"Sensor type: %c\\n\", typeCode);`"
+      - "The full solution declares two ints and one double."
+    tests:
+      - id: example
+        stdin: "7 84 21.5\n"
+        expect: { output: "Station 7\nSensor type: T\nReading: 21.5 (2.150000e+01)\n" }
+      - id: pressure
+        stdin: "12 80 1013.25\n"
+        expect: { output: "Station 12\nSensor type: P\nReading: 1013.25 (1.013250e+03)\n" }
+      - id: freezing
+        stdin: "3\n72\n-4.75\n"
+        note: Values on separate lines and a negative reading.
+        expect: { output: "Station 3\nSensor type: H\nReading: -4.75 (-4.750000e+00)\n" }

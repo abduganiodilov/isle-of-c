@@ -1,0 +1,141 @@
+id: core-systems/digit-root
+version: 1
+kind: challenge
+source:
+  - { lecture: L10, slides: [33] }
+  - { lecture: L10, slides: [5] }
+topics: [L10.digit-root, L10.digit-sum]
+prerequisites: [core-systems/robot-utilities]
+estimatedMinutes: 20
+objectives:
+  - Turn a loop you wrote earlier into a reusable function.
+  - Call one function repeatedly from another until a result converges.
+world:
+  scene: gauges
+  label: CORE CHECKSUM
+  gauges:
+    - { label: Digit root, pattern: "digit root (\\d+)", max: 9 }
+title: Converging Checksums
+briefing: |
+  The core verifies its module IDs with a stronger checksum: sum the digits,
+  then sum the digits of the result, and so on, until a single digit remains.
+  This is the lecture's last practice exercise.
+lesson: |
+  Slide 33: *keep doing digit sum until it converges — write a function to do
+  this.*
+
+  Example: 98765 → 9+8+7+6+5 = 35 → 3+5 = 8. The final single digit is
+  called the **digital root**.
+
+  Plan it top-down:
+
+  1. `int digit_sum(int n)` — the loop from *Digit Checksums*, packaged as a
+     function that **returns** the sum.
+  2. `int digit_root(int n)` — while `n` has more than one digit (`n >= 10`),
+     replace `n` by `digit_sum(n)`; then return `n`.
+
+  Because of call by value, `digit_sum` may freely change its own parameter
+  `n` while taking it apart — the caller's variable is not affected.
+success: |
+  `digit_sum` is a reusable black box, and `digit_root` calls it in a loop
+  until the value converges to one digit. Two small functions solved a problem
+  that would be awkward as one long main.
+steps:
+  - id: main
+    type: code
+    title: Write digit_sum and digit_root
+    prompt: |
+      Write both functions. `main` reads a non-negative ID and prints, for input
+      `98765`:
+
+      ```
+      98765: digit sum 35, digit root 8
+      ```
+
+      The tests also call both functions directly.
+    stdin: "98765\n"
+    starter: |
+      #include <stdio.h>
+
+      int digit_sum(int n);
+      int digit_root(int n);
+
+      int main(void)
+      {
+          int id;
+
+          scanf("%d", &id);
+          printf("%d: digit sum %d, digit root %d\n", id, digit_sum(id), digit_root(id));
+          return 0;
+      }
+
+      /* write digit_sum and digit_root here */
+    solution: |
+      #include <stdio.h>
+
+      int digit_sum(int n);
+      int digit_root(int n);
+
+      int main(void)
+      {
+          int id;
+
+          scanf("%d", &id);
+          printf("%d: digit sum %d, digit root %d\n", id, digit_sum(id), digit_root(id));
+          return 0;
+      }
+
+      int digit_sum(int n)
+      {
+          int sum = 0;
+          while (n > 0) {
+              sum += n % 10;
+              n /= 10;
+          }
+          return sum;
+      }
+
+      int digit_root(int n)
+      {
+          while (n >= 10) {
+              n = digit_sum(n);
+          }
+          return n;
+      }
+    explanation: |
+      `digit_sum` takes its copy of n apart digit by digit. `digit_root` keeps
+      applying it while the value still has two or more digits. Both functions
+      change only their own parameter copies.
+    harness: |
+      #include <stdio.h>
+      int digit_sum(int n);
+      int digit_root(int n);
+      int main(void)
+      {
+          int n;
+          while (scanf("%d", &n) == 1) {
+              printf("%d %d\n", digit_sum(n), digit_root(n));
+          }
+          return 0;
+      }
+    hints:
+      - "Reuse the digit-sum loop from chapter E; then repeat it while the result is still too big."
+      - "digit_sum returns the sum; digit_root loops while n >= 10, replacing n by digit_sum(n)."
+      - "`int digit_sum(int n) { int sum = 0; while (n > 0) { sum += n % 10; n /= 10; } return sum; }`"
+      - "`int digit_root(int n) { while (n >= 10) n = digit_sum(n); return n; }`"
+      - "The full solution has two short functions."
+    tests:
+      - id: program
+        stdin: "98765\n"
+        expect: { output: "98765: digit sum 35, digit root 8\n" }
+      - id: program-small
+        stdin: "7\n"
+        expect: { output: "7: digit sum 7, digit root 7\n" }
+      - id: direct
+        harness: true
+        stdin: "0\n9\n10\n99\n123456789\n2147483647\n"
+        note: Edge cases, including the largest 32-bit int.
+        expect: { output: "0 0\n9 9\n1 1\n18 9\n45 9\n46 1\n" }
+    require:
+      functions: [digit_sum, digit_root]
+      calls: [digit_sum]

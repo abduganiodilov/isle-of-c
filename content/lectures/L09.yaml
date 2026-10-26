@@ -1,0 +1,111 @@
+# Lecture 9 — source of truth for coverage. Each topic is one instructional
+# element of the slides. Slide numbers are those printed on the slides
+# (for this PDF: PDF page = slide - 1).
+id: L09
+title: "Start with C: data types, expressions, if and switch, simple for loop"
+file: Lecture09_text_only.pdf
+slideCount: 48
+pageOffset: -1
+topics:
+  - { id: L09.outline, slides: [2, 3, 14, 23, 34], title: "Lecture outline and section dividers", coverage: meta }
+  - { id: L09.what-is-c, slides: [4], title: "What C is: Dennis Ritchie, ANSI C (C89), C99, C11, C17; systems programming, Linux kernel, embedded systems" }
+  - { id: L09.build-process, slides: [5], title: "Writing .c source files, compiling to object files, linking an executable (.exe on Windows), running it" }
+  - { id: L09.compilers, slides: [6], title: "Compilers: GCC, Clang/LLVM, MSVC; the course uses GCC" }
+  - { id: L09.hello-program, slides: [7], title: "First program (aloha.c): comment, library inclusion, main function" }
+  - { id: L09.libraries, slides: [8], title: "Libraries, header files, stdio, #include <name.h>" }
+  - { id: L09.main-function, slides: [9], title: "main: entry point, exactly one per program, braces enclose the body, return 0" }
+  - { id: L09.printf-basics, slides: [10], title: "printf: strings in double quotes, statements end with semicolons (comparison with MATLAB fprintf)" }
+  - { id: L09.using-gcc, slides: [11], title: "Using gcc: gcc file.c produces a.out (Linux) or a.exe (Windows)" }
+  - { id: L09.add-two-numbers, slides: [12], title: "add2.c: variable declaration, prompts, reading two integers, printing the sum" }
+  - { id: L09.scanf-address, slides: [13], title: "scanf reads input; & gives the address where the value is stored" }
+  - { id: L09.basic-types, slides: [15], title: "Basic types: char, int, unsigned, float, double; prefer double; sizes depend on the platform" }
+  - { id: L09.char-type, slides: [16], title: "Characters, character constants 'a', character codes, ASCII" }
+  - { id: L09.ascii-table, slides: [17], title: "ASCII codes 0-127 (Dec/Hex/Char table)" }
+  - { id: L09.integer-types, slides: [18], title: "short, int, long; minimum ranges guaranteed by the standard; int usually 32 bits" }
+  - { id: L09.floating-point, slides: [19], title: "Floating-point representation: significant digits x base^exponent, approximation" }
+  - { id: L09.printf-float, slides: [20], title: "printf %f, %e, %g and uppercase %E / %G" }
+  - { id: L09.scanf-float, slides: [21], title: "scanf %f for float, %lf for double; %e and %g read like %f" }
+  - { id: L09.add-two-doubles, slides: [22], title: "add2f.c: adding two floating-point numbers" }
+  - { id: L09.expression-terms, slides: [24], title: "Expressions: terms (constant, variable, function call, parenthesised expression) and operators" }
+  - { id: L09.constants, slides: [25], title: "Constants such as 2.9979e8" }
+  - { id: L09.variables-naming, slides: [26], title: "Variables have type, name and value; naming rules; case sensitivity; keywords; declare before use" }
+  - { id: L09.assignment, slides: [27], title: "Assignment: value of an assignment expression, chained a = b = 1" }
+  - { id: L09.arithmetic, slides: [28], title: "Arithmetic operators, negation, integer division, remainder, operator order and parentheses" }
+  - { id: L09.increment, slides: [29], title: "Increment/decrement: prefix ++x versus postfix x++" }
+  - { id: L09.compound-assignment, slides: [30], title: "Shorthand assignment += -= *= /=" }
+  - { id: L09.type-conversion, slides: [31], title: "Automatic (implicit) and explicit type conversion" }
+  - { id: L09.cm-to-feet, slides: [32], title: "cm2feet.c: centimetres to feet and inches" }
+  - { id: L09.feet-to-cm, slides: [33], title: "Practice: feet and inches to centimetres" }
+  - { id: L09.blocks, slides: [35], title: "Blocks: grouping statements, declarations inside blocks, empty blocks, no semicolon after }" }
+  - { id: L09.if-statement, slides: [36], title: "if, if/else, and building else-if chains" }
+  - { id: L09.true-false, slides: [37], title: "Truth values: zero is false, non-zero is true; boolean types" }
+  - { id: L09.relational, slides: [38], title: "Relational and equality operators (result 0 or 1); = versus ==" }
+  - { id: L09.signum, slides: [39], title: "Example: the signum function" }
+  - { id: L09.absolute-value, slides: [40], title: "Practice: absolute value" }
+  - { id: L09.logical, slides: [41], title: "Logical operators ! && ||; & and | are bitwise operators (unlike MATLAB)" }
+  - { id: L09.conditional-operator, slides: [42], title: "Conditional operator (condition) ? expr1 : expr2" }
+  - { id: L09.switch, slides: [43], title: "switch, case, default, break; difference from MATLAB" }
+  - { id: L09.card-rank, slides: [44], title: "Example: card rank with switch" }
+  - { id: L09.fall-through, slides: [45], title: "Example: switch without break (fall-through)" }
+  - { id: L09.simple-for, slides: [46], title: "A simple for loop" }
+  - { id: L09.style-example, slides: [47], title: "Style example: cramped code and the expression (++i)+(i++)+(++i)" }
+  - { id: L09.style-guidelines, slides: [48], title: "Programming style: comments, indentation, meaningful names, conventions, idioms, avoid complexity" }
+
+# Corrections and clarifications shown in the game with a "Correction" label.
+corrections:
+  - id: main-void
+    slides: [7, 9]
+    missions: [first-contact/anatomy]
+    text: "The slides write int main(). In C17 an empty parameter list in a definition means 'no parameters', but it is an old-style declaration with no prototype. int main(void) states 'main takes no arguments' explicitly and is one of the two forms the standard lists, so the game uses it."
+  - id: smart-quotes
+    slides: [21, 44, 45, 46, 47]
+    missions: [first-contact/beacon-debug, sensor-lab/float-scanf]
+    text: "Several slide examples contain typographic quotes (“ ” instead of \"). C only accepts the plain ASCII double quote; copying those lines into a compiler gives errors. All code in the game uses straight quotes."
+  - id: typos
+    slides: [5, 16, 22]
+    missions: [first-contact/build-pipeline]
+    text: "Typos repaired: 'objective files' means object files (slide 5); 'floating-poing' means floating-point (slide 22); ASCII stands for American Standard Code for Information Interchange (slide 16)."
+  - id: char-bits
+    slides: [15]
+    missions: [sensor-lab/type-sizes]
+    text: "char is not guaranteed to be exactly 8 bits; the standard requires at least 8 (CHAR_BIT in <limits.h>). On practically every current system it is 8."
+  - id: int-ranges
+    slides: [18]
+    missions: [sensor-lab/type-sizes]
+    text: "The standard guarantees minimum ranges: short and int at least -32767..32767 (16 bits), long at least -2147483647..2147483647 (32 bits), long long (C99) at least 64 bits. Actual sizes are implementation-defined: long is 64 bits on Linux/macOS x86-64 but 32 bits on Windows and in this game's WebAssembly compiler. Use sizeof to check."
+  - id: bool-type
+    slides: [37]
+    missions: [control-center/truth-values]
+    text: "'There is no boolean type in C' was true only of C89. C99 added the type _Bool and the header <stdbool.h> (bool, true, false); C23 makes bool, true and false keywords. Conditions still treat zero as false and non-zero as true."
+  - id: no-elseif
+    slides: [36]
+    missions: [control-center/signum]
+    text: "C has no single 'elseif' keyword. 'else if' is simply an else whose statement is another if, which is why chains of else if work."
+  - id: ub-increments
+    slides: [47]
+    missions: [supply-depot/forbidden-expression]
+    text: "(++i)+(i++)+(++i) modifies i several times without sequencing. That is undefined behaviour: there is no correct answer, compilers may print anything, and the game never asks you to predict a value for it."
+  - id: assignment-value
+    slides: [27]
+    missions: [supply-depot/assignment-value]
+    text: "Strictly, it is the assignment expression (not the statement) that has a value: the value stored in the left operand."
+  - id: switch-order
+    slides: [43]
+    missions: [control-center/machine-modes]
+    text: "switch does not test the cases one after another like MATLAB; it jumps straight to the matching case label. The controlling expression must have integer type (char, int, long ...) and case labels must be integer constants."
+  - id: conversion-warning
+    slides: [31]
+    missions: [supply-depot/type-conversion]
+    text: "1 + 1.5 converts 1 to double silently (usual arithmetic conversions) without a warning. Warnings appear for possibly lossy conversions, such as double to int, when you enable -Wconversion."
+  - id: negation-glyph
+    slides: [28]
+    missions: [supply-depot/integer-division]
+    text: "The slide's 'Negation:' line lost its symbol; it is the unary minus -x. 'Use your common sense for operator order' is replaced in the game by the actual precedence table."
+  - id: gcc-flags
+    slides: [11]
+    missions: [first-contact/build-pipeline]
+    text: "gcc file.c works, but prefer gcc -std=c17 -Wall -Wextra file.c -o name: it picks the standard explicitly, turns on helpful warnings and names the executable."
+  - id: wording
+    slides: [4, 8]
+    missions: [first-contact/wake-up]
+    text: "Wording clarified: C is usually described as a 'relatively low-level high-level language'. stdio is part of the C standard library defined by the ISO C standard (originally ANSI C)."

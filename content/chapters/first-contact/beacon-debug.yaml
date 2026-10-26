@@ -1,0 +1,90 @@
+id: first-contact/beacon-debug
+version: 1
+kind: debug
+source:
+  - { lecture: L09, slides: [7, 9, 10, 21, 44] }
+topics: [L09.printf-basics, L09.main-function]
+prerequisites: [first-contact/newlines]
+estimatedMinutes: 12
+objectives:
+  - Fix several compile errors one at a time, starting with the first message.
+  - Recognise typographic (“smart”) quotes copied from documents and replace them.
+  - Remember that C is case sensitive and every statement needs a semicolon.
+world:
+  scene: terminal
+  label: BEACON CONTROL
+  goal: Restart the beacon
+title: Debug the Beacon
+briefing: |
+  The emergency beacon's program was copied from a water-damaged manual. The
+  copy contains several mistakes that stop it from compiling. Fix them all.
+lesson: |
+  ### Reading several errors
+  One mistake can confuse the compiler and cause several messages. Fix the
+  **first** error, run again, and repeat.
+
+  ### Mistakes that appear when copying code from slides or documents
+  * **Smart quotes.** Word processors and slide programs often turn `"` into
+    typographic quotes `“ ”`. C only understands the plain ASCII double quote
+    `"`. The compiler reports something like *unexpected character <U+201C>*.
+  * **Case sensitivity.** C treats upper- and lower-case letters as different:
+    `Printf` is not `printf`, and `Main` is not `main`.
+  * **Missing semicolons.** Each statement ends with `;`. The compiler usually
+    reports the error at the *next* token, so look at the end of the previous
+    line too.
+
+  > [!correction] Several lecture slides (for example the `scanf` and `switch`
+  > examples) contain smart quotes such as `“%d\n”`. Always type plain `"` in
+  > real code.
+success: |
+  You fixed errors one at a time, starting from the first message: smart quotes
+  became plain `"`, the capital letter was corrected (C is case sensitive), and
+  the missing semicolon was added.
+steps:
+  - id: main
+    type: code
+    title: Repair the beacon program
+    prompt: |
+      Fix every mistake so the program compiles and prints:
+
+      ```
+      BEACON ACTIVE
+      Signal: strong
+      ```
+
+      There are three different kinds of mistakes in the starter code.
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          printf(“BEACON ACTIVE\n”);
+          Printf("Signal: strong\n")
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          printf("BEACON ACTIVE\n");
+          printf("Signal: strong\n");
+          return 0;
+      }
+    explanation: |
+      Line 5 used typographic quotes `“ ”`, which C does not accept — they must
+      be plain `"`. Line 6 used `Printf` (C is case sensitive, so it must be
+      `printf`) and was missing the semicolon at the end.
+    hints:
+      - "Fix the first error message first, then run again: later errors may disappear."
+      - "Compare each character of the two printf lines with a printf line you know works: quotes, spelling, line ending."
+      - "Correct line: `printf(\"BEACON ACTIVE\\n\");` — straight quotes, lower-case p, semicolon."
+      - "Line 5: replace “ and ” with \". Line 6: change Printf to printf and add ; at the end."
+      - "The full solution has two correct printf statements."
+    tests:
+      - id: beacon
+        note: Both lines print.
+        expect: { output: "BEACON ACTIVE\nSignal: strong\n" }
+      - id: exit
+        note: The program finishes normally.
+        expect: { exitCode: 0, lines: ["Signal: strong"] }

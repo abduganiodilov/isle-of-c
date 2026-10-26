@@ -1,0 +1,183 @@
+id: sensor-lab/type-sizes
+version: 1
+kind: lesson
+source:
+  - { lecture: L09, slides: [15, 18] }
+topics: [L09.basic-types, L09.integer-types]
+prerequisites: [sensor-lab/char-codes]
+estimatedMinutes: 18
+objectives:
+  - List C's basic integer types (char, short, int, long, long long) and their unsigned versions.
+  - State the minimum ranges the C standard guarantees and explain why actual sizes vary.
+  - Use sizeof to find a type's size in bytes and print it with %zu.
+world:
+  scene: table
+  label: STORAGE BAY
+  goal: Measure every storage box
+title: How Big Is a Box?
+briefing: |
+  The storage bay holds boxes of different sizes for different kinds of data.
+  The labels fell off. Measure each type of box with `sizeof`.
+lesson: |
+  ### Integer types
+  C has several integer types. Larger types can hold larger numbers:
+
+  | Type | Guaranteed by the C standard (at least) | Typical today |
+  |---|---|---|
+  | `char` | 8 bits | 8 bits |
+  | `short` | 16 bits: −32 767 … 32 767 | 16 bits |
+  | `int` | 16 bits: −32 767 … 32 767 | 32 bits: about ±2.1 billion |
+  | `long` | 32 bits: −2 147 483 647 … 2 147 483 647 | 32 or 64 bits |
+  | `long long` (C99) | 64 bits | 64 bits |
+
+  The **exact sizes depend on the implementation** (the compiler and the
+  platform). The standard only promises minimums and that each type is at
+  least as large as the one above it. For example, `long` is 64 bits with
+  gcc on Linux or macOS (x86-64), but 32 bits on Windows and in this game's
+  WebAssembly compiler.
+
+  ### unsigned
+  Adding `unsigned` (for example `unsigned int`, `unsigned char`) makes a type
+  that holds only zero and positive values, giving roughly twice the positive
+  range. Unsigned arithmetic **wraps around**: one more than the largest value
+  is 0.
+
+  ### sizeof
+  `sizeof(type)` gives the size of a type **in bytes** (1 byte = `CHAR_BIT`
+  bits, practically always 8). The result has type `size_t`; print it with
+  `%zu`.
+
+  ```c example
+  #include <stdio.h>
+  #include <limits.h>
+
+  int main(void)
+  {
+      printf("int uses %zu bytes\n", sizeof(int));
+      printf("int range: %d to %d\n", INT_MIN, INT_MAX);
+      printf("long long uses %zu bytes\n", sizeof(long long));
+      return 0;
+  }
+  ```
+
+  `<limits.h>` defines the actual limits of your implementation, such as
+  `INT_MAX` and `CHAR_BIT`.
+
+  > [!correction] Slide 15 says `char` is 8 bits. The standard requires *at
+  > least* 8 bits (`CHAR_BIT`); it is 8 on practically all current systems.
+  > Slide 18's minimums are right; this lesson adds `long long` and `sizeof`
+  > so you can check your own platform.
+success: |
+  Type sizes are implementation-defined: the standard guarantees minimum
+  ranges, and `sizeof` tells you the real size in bytes on the machine you are
+  using. In this game: `short` 2, `int` 4, `long` 4, `long long` 8 bytes.
+steps:
+  - id: long-predict
+    type: predict
+    title: How big is long here?
+    prompt: |
+      This game compiles to 32-bit WebAssembly. What does this program print?
+      (Think about the lesson's table, then run it to find out.)
+    code: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          printf("%zu\n", sizeof(long));
+          return 0;
+      }
+    answer:
+      kind: choice
+      choices:
+        - "2"
+        - "4"
+        - "8"
+        - "It is the same on every computer"
+      correct: 1
+      actualOutput: "4\n"
+    explanation: |
+      Here `long` is 4 bytes (32 bits). With gcc on 64-bit Linux it would print
+      8. Neither is wrong: the standard only requires `long` to be at least 32
+      bits. That is why portable code uses `sizeof` instead of assuming a size.
+  - id: wrap-predict
+    type: predict
+    title: Wrap-around
+    prompt: What does this program print?
+    code: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          unsigned char level = 255;
+          level = level + 1;
+          printf("%d\n", level);
+          return 0;
+      }
+    answer:
+      kind: choice
+      choices:
+        - "256"
+        - "0"
+        - "-1"
+        - "255"
+      correct: 1
+      actualOutput: "0\n"
+    explanation: |
+      An 8-bit `unsigned char` holds 0…255. Storing 256 wraps around to 0.
+      (Wrap-around is guaranteed for unsigned types. Overflowing a *signed*
+      type such as `int` is undefined behaviour instead — never rely on it.)
+  - id: main
+    type: code
+    title: Measure the boxes
+    prompt: |
+      Print the size in bytes of five types, using `sizeof` and `%zu`, in
+      exactly this format (the numbers come from `sizeof`, not typed by you):
+
+      ```
+      char: 1
+      short: 2
+      int: 4
+      long: 4
+      long long: 8
+      ```
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          printf("char: %zu\n", sizeof(char));
+          /* print short, int, long and long long the same way */
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          printf("char: %zu\n", sizeof(char));
+          printf("short: %zu\n", sizeof(short));
+          printf("int: %zu\n", sizeof(int));
+          printf("long: %zu\n", sizeof(long));
+          printf("long long: %zu\n", sizeof(long long));
+          return 0;
+      }
+    explanation: |
+      `sizeof(type)` is evaluated by the compiler for the platform it compiles
+      for. The expected numbers in the tests are this game's sizes; with gcc on
+      64-bit Linux, `long` would print 8.
+    hints:
+      - "The size of a type is measured with sizeof, and its result is printed with %zu."
+      - "Copy the char line four times and change the label and the type."
+      - "`printf(\"int: %zu\\n\", sizeof(int));`"
+      - "The last line is `printf(\"long long: %zu\\n\", sizeof(long long));`"
+      - "The full solution prints five sizeof results."
+    tests:
+      - id: sizes
+        note: Sizes on this game's compiler (wasm32).
+        expect: { output: "char: 1\nshort: 2\nint: 4\nlong: 4\nlong long: 8\n" }
+      - id: lines
+        expect: { lines: ["char: 1", "long long: 8"] }
+    require:
+      constructs: [sizeof]
+      minCalls: { sizeof: 5 }

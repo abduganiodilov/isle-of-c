@@ -1,0 +1,159 @@
+id: sensor-lab/char-codes
+version: 1
+kind: guided
+source:
+  - { lecture: L09, slides: [15, 16, 17] }
+topics: [L09.char-type, L09.ascii-table, L09.basic-types]
+prerequisites: [sensor-lab/read-input]
+estimatedMinutes: 15
+objectives:
+  - Write character constants such as 'A' and store them in char variables.
+  - Explain that characters are stored as numeric codes (ASCII 0-127).
+  - Print a value as a character with %c and as a number with %d.
+world:
+  scene: terminal
+  label: DOOR KEYPAD
+  goal: Decode the keypad symbols
+title: Character Codes
+briefing: |
+  The lab door's keypad sends numbers instead of letters. Each number is a
+  **character code**. Decode the codes so PIP-7 can read the door messages.
+lesson: |
+  ### Characters
+  Characters are the symbols you can type or display: letters, digits,
+  punctuation, the space bar, the Return key... They are the building blocks
+  of all text.
+
+  * A **character constant** is written in **single quotes**: `'a'`, `'7'`,
+    `'?'`. (Double quotes `"a"` make a *string*, which is different.)
+  * The type **`char`** stores one character.
+
+  ### Characters are numbers
+  Inside the computer every character is stored as a number, its **character
+  code**. The common table is **ASCII** (American Standard Code for
+  Information Interchange), which defines codes 0–127. For example `'A'` is
+  65, `'a'` is 97, `'0'` is 48 and a space is 32. Codes 0–31 and 127 are
+  invisible control characters such as newline (10).
+
+  Open **Notebook → ASCII table** for the full table.
+
+  ```c example
+  #include <stdio.h>
+
+  int main(void)
+  {
+      char letter = 'A';
+      printf("%c has code %d\n", letter, letter);
+      printf("Code 98 is %c\n", 98);
+      printf("Next letter: %c\n", letter + 1);
+      return 0;
+  }
+  ```
+
+  `%c` prints a value as a character, `%d` prints the same value as a number.
+  Because characters are numbers, `letter + 1` is the next code (`'B'`).
+
+  > [!note] Codes above 127 are not ASCII; their meaning depends on the
+  > character encoding, so this game sticks to 0–127.
+success: |
+  A `char` holds a small integer: the character's code. `'A'` and `65` are the
+  same value; `%c` shows it as a symbol and `%d` as a number.
+steps:
+  - id: code-predict
+    type: predict
+    title: Number or letter?
+    prompt: What does this program print?
+    code: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          printf("%d %c\n", 'C', 'C' + 2);
+          return 0;
+      }
+    answer:
+      kind: choice
+      choices:
+        - "C E"
+        - "67 E"
+        - "67 69"
+        - "C 69"
+      correct: 1
+      actualOutput: "67 E\n"
+    explanation: |
+      `'C'` is code 67, so `%d` prints 67. `'C' + 2` is 69, and `%c` prints the
+      character with code 69, which is `E`.
+  - id: main
+    type: code
+    title: Decode the keypad
+    prompt: |
+      Read one integer code from the input and print the character it stands
+      for and the character after it. For input `72` the output must be:
+
+      ```
+      Symbol: H
+      Next: I
+      ```
+    stdin: "72\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int code;
+
+          scanf("%d", &code);
+          /* print the symbol for code, then the next symbol */
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int code;
+
+          scanf("%d", &code);
+          printf("Symbol: %c\n", code);
+          printf("Next: %c\n", code + 1);
+          return 0;
+      }
+    explanation: |
+      `%c` prints an int value as the character with that code. `code + 1` is
+      the next code in the table, so it prints the next character.
+    hints:
+      - "A character is printed from its code — the conversion for characters is not %d."
+      - "Print code with the character conversion, then print code + 1 the same way."
+      - "`printf(\"Symbol: %c\\n\", code);`"
+      - "Second line: `printf(\"Next: %c\\n\", code + 1);`"
+      - "The full solution prints two lines with %c."
+    tests:
+      - id: h
+        stdin: "72\n"
+        expect: { output: "Symbol: H\nNext: I\n" }
+      - id: lowercase
+        stdin: "97\n"
+        note: Lower-case letters have their own codes.
+        expect: { output: "Symbol: a\nNext: b\n" }
+      - id: digit
+        stdin: "48\n"
+        note: The digit '0' has code 48, not 0.
+        expect: { output: "Symbol: 0\nNext: 1\n" }
+      - id: z
+        stdin: "90\n"
+        note: After Z comes [ in ASCII.
+        expect: { output: "Symbol: Z\nNext: [\n" }
+    wrong:
+      - code: |
+          #include <stdio.h>
+          int main(void)
+          {
+              int code;
+              scanf("%d", &code);
+              printf("Symbol: %d\n", code);
+              printf("Next: %d\n", code + 1);
+              return 0;
+          }
+        why: prints numbers instead of characters
+        expect: outputMismatch

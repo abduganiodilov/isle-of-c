@@ -1,0 +1,23 @@
+id: sensor-lab
+version: 1
+letter: B
+title: Sensor Lab
+region: Hillside — Sensor Laboratory
+lectures: [L09]
+intro: >
+  Above the beach stands the island's sensor laboratory. Its instruments still
+  record energy, temperature and character codes, but nobody reads them.
+  PIP-7 must learn to store values in variables and read input.
+outro: >
+  The lab's instruments report again. PIP-7 can read numbers and characters,
+  store them in variables of the right type, and print them in several formats.
+map: { x: 30, y: 46 }
+missions:
+  - variables
+  - read-input
+  - char-codes
+  - type-sizes
+  - floating-point
+  - float-scanf
+  - combine-resources
+  - lab-report

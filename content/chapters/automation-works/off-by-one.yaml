@@ -1,0 +1,105 @@
+id: automation-works/off-by-one
+version: 1
+kind: debug
+source:
+  - { lecture: L10, slides: [7, 8] }
+topics: [L10.for-syntax]
+prerequisites: [automation-works/for-anatomy]
+estimatedMinutes: 12
+objectives:
+  - Recognise off-by-one errors in loop bounds.
+  - Choose between < and <= and the right start value for an inclusive range.
+  - Test loops with the smallest inputs (0 and 1).
+world:
+  scene: table
+  label: CALIBRATION RULER
+  goal: Engrave marks 1 to n
+title: Off by One
+briefing: |
+  The calibration bench engraves marks 1, 2, …, n on a ruler and reports their
+  total. The current program engraves one mark too few. Find the boundary bug.
+lesson: |
+  ### Off-by-one errors
+  The most common loop bug is running **one time too many or too few**:
+
+  | Loop | Values of i | Count |
+  |---|---|---|
+  | `for (i = 0; i < n; i++)` | 0 … n−1 | n |
+  | `for (i = 1; i <= n; i++)` | 1 … n | n |
+  | `for (i = 1; i < n; i++)` | 1 … n−1 | **n−1** |
+  | `for (i = 0; i <= n; i++)` | 0 … n | **n+1** |
+
+  Check the first and last values by hand, and always test small inputs such
+  as 0 and 1 — that's where off-by-one bugs show up.
+success: |
+  For an inclusive range 1…n, start at 1 and use `<=`. Checking the first and
+  last iteration by hand (and testing n = 0 and n = 1) catches off-by-one
+  errors.
+steps:
+  - id: main
+    type: code
+    title: Fix the ruler
+    prompt: |
+      For input `n`, the program must print `mark 1` to `mark n` and then the
+      sum of the marks. For input `4`:
+
+      ```
+      mark 1
+      mark 2
+      mark 3
+      mark 4
+      sum = 10
+      ```
+    stdin: "4\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int n, i, sum = 0;
+
+          scanf("%d", &n);
+          for (i = 1; i < n; i++) {
+              printf("mark %d\n", i);
+              sum += i;
+          }
+          printf("sum = %d\n", sum);
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int n, i, sum = 0;
+
+          scanf("%d", &n);
+          for (i = 1; i <= n; i++) {
+              printf("mark %d\n", i);
+              sum += i;
+          }
+          printf("sum = %d\n", sum);
+          return 0;
+      }
+    explanation: |
+      `i < n` stops before n. The range 1…n includes n, so the test must be
+      `i <= n`.
+    hints:
+      - "Compare the expected and actual output: which mark is missing?"
+      - "Check the last value of i for which the condition is still true."
+      - "To include n itself, use <= in the test."
+      - "`for (i = 1; i <= n; i++)`"
+      - "The full solution changes one character."
+    tests:
+      - id: four
+        stdin: "4\n"
+        expect: { output: "mark 1\nmark 2\nmark 3\nmark 4\nsum = 10\n" }
+      - id: one
+        stdin: "1\n"
+        expect: { output: "mark 1\nsum = 1\n" }
+      - id: zero
+        stdin: "0\n"
+        expect: { output: "sum = 0\n" }
+      - id: ten
+        stdin: "10\n"
+        expect: { numbers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 55], numbersMode: exact }

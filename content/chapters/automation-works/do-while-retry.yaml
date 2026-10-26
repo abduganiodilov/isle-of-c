@@ -1,0 +1,158 @@
+id: automation-works/do-while-retry
+version: 1
+kind: guided
+source:
+  - { lecture: L10, slides: [10] }
+topics: [L10.do-while]
+prerequisites: [automation-works/comma-products]
+estimatedMinutes: 15
+objectives:
+  - Write a do-while loop whose body runs at least once.
+  - Validate input by repeating until an acceptable value arrives.
+  - Use the value returned by scanf to stop safely when input runs out.
+world:
+  scene: sorter
+  label: VALVE SELECTOR
+  bins:
+    - { label: Accepted, match: "Accepted" }
+    - { label: No input, match: "No valid input" }
+title: Ask Until It Fits
+briefing: |
+  The valve selector accepts valve numbers 1 to 9. Operators make typos, so the
+  selector must keep asking until it gets a valid number — but it must also
+  stop if the operator walks away.
+lesson: |
+  ### do ... while
+  ```c
+  do {
+      statements;
+  } while (condition);     /* note the semicolon */
+  ```
+
+  The body runs **first**, then the condition is tested. So the body always
+  runs **at least once** — ideal for "ask, then check" situations.
+
+  ```c example
+  #include <stdio.h>
+
+  int main(void)
+  {
+      int i = 0;
+      do {
+          printf("i=%d\n", i);
+          i++;
+      } while (i < 3);
+      return 0;
+  }
+  ```
+
+  > [!correction] Slide 10 calls do-while "seldom used, can be replaced by
+  > other loops". True, but when the body must run at least once (like
+  > reading input until it is valid), do-while expresses that most directly.
+
+  ### When the input runs out
+  `scanf` **returns the number of values it successfully read**. If the
+  input ends (end of file) or contains something that is not a number, it
+  returns less than you asked for — and the variable keeps its old value. A
+  loop that ignores this can run forever. Check it:
+
+  ```c
+  if (scanf("%d", &value) != 1) {
+      /* no number could be read: stop */
+  }
+  ```
+
+  (In a real terminal you signal end of input with Ctrl+D on Linux/macOS or
+  Ctrl+Z then Enter on Windows. In the game, input ends where the Input box
+  ends.)
+success: |
+  `do { ... } while (condition);` always runs its body once, which suits input
+  validation. Checking `scanf(...) == 1` makes the loop stop safely when the
+  input ends.
+steps:
+  - id: main
+    type: code
+    title: Validate the valve number
+    prompt: |
+      Read numbers until one is between 1 and 9 inclusive. Print
+      `Rejected: <x>` for each invalid number and `Accepted: <x>` for the valid
+      one, then stop. If the input ends before a valid number arrives, print
+      `No valid input`. For input `12 0 7 3`:
+
+      ```
+      Rejected: 12
+      Rejected: 0
+      Accepted: 7
+      ```
+    stdin: "12 0 7 3\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int valve;
+          int valid = 0;
+
+          do {
+              if (scanf("%d", &valve) != 1) {
+                  printf("No valid input\n");
+                  return 0;      /* input ended: stop the program */
+              }
+              /* set valid to 1 if valve is between 1 and 9, then print
+                 Rejected: or Accepted: */
+
+          } while (!valid);
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int valve;
+          int valid = 0;
+
+          do {
+              if (scanf("%d", &valve) != 1) {
+                  printf("No valid input\n");
+                  return 0;      /* input ended: stop the program */
+              }
+              valid = valve >= 1 && valve <= 9;
+              if (valid) {
+                  printf("Accepted: %d\n", valve);
+              } else {
+                  printf("Rejected: %d\n", valve);
+              }
+          } while (!valid);
+          return 0;
+      }
+    explanation: |
+      The body reads first and checks afterwards, so do-while fits. `valid`
+      holds 1 or 0 from the comparison; `while (!valid)` repeats only while the
+      number was invalid. The scanf check ends the program if input runs out.
+    hints:
+      - "The loop repeats while the last number was not valid."
+      - "Compute valid from the range check, then print one of the two messages."
+      - "`valid = valve >= 1 && valve <= 9;`"
+      - "Then `if (valid) printf(\"Accepted: %d\\n\", valve); else printf(\"Rejected: %d\\n\", valve);`"
+      - "The full solution adds the check and the two messages."
+    tests:
+      - id: example
+        stdin: "12 0 7 3\n"
+        expect: { output: "Rejected: 12\nRejected: 0\nAccepted: 7\n" }
+      - id: first
+        stdin: "5\n"
+        note: The first value is already valid.
+        expect: { output: "Accepted: 5\n" }
+      - id: bounds
+        stdin: "10 9\n"
+        expect: { output: "Rejected: 10\nAccepted: 9\n" }
+      - id: lower
+        stdin: "-1 1\n"
+        expect: { output: "Rejected: -1\nAccepted: 1\n" }
+      - id: runs-out
+        stdin: "0 42\n"
+        note: Input ends without a valid value - must stop, not loop forever.
+        expect: { output: "Rejected: 0\nRejected: 42\nNo valid input\n" }
+    require:
+      constructs: [do, while]

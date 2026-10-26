@@ -1,0 +1,473 @@
+# Reference notebook. Each entry unlocks when its mission is completed
+# (or immediately if unlockedBy is empty). Bodies are Markdown.
+entries:
+  - id: game-howto
+    title: How to play
+    tags: [game, controls]
+    unlockedBy: []
+    summary: Controls, keyboard shortcuts and how your code is run.
+    body: |
+      * **Run** (Ctrl+Enter): compile and run your program with the text in the
+        **Input** box as its input.
+      * **Check** (Ctrl+Shift+Enter): run all of the mission's tests.
+      * **Stop** (Esc): end a running program immediately.
+      * **Reset**: restore the mission's starter code (your draft is lost).
+      * **Hint**: hints come in five levels — concept, strategy, syntax,
+        partial solution, full solution. Revealing the full solution marks the
+        mission as *assisted*; you can earn *mastery* later with a retry.
+      * The **world view** reacts to what your program really did: its
+        output, its tests, or its island API calls.
+      * Drafts and progress are saved automatically in this browser.
+
+  - id: compile-outside
+    title: Compiling C outside the game
+    tags: [gcc, compile, link, executable]
+    unlockedBy: [first-contact/build-pipeline]
+    summary: gcc commands, a.out / a.exe, and how the game's compiler differs.
+    body: |
+      ```
+      gcc -std=c17 -Wall -Wextra program.c -o program      (add -lm for math.h on Linux)
+      ./program            Linux / macOS
+      program.exe          Windows
+      ```
+
+      Plain `gcc program.c` creates `a.out` (Linux/macOS) or `a.exe` (Windows).
+
+      Pipeline: **source (.c) → compile → object file (.o / .obj) → link with
+      libraries → executable → run.**
+
+      **In the game:** Clang 22 (compiled to WebAssembly) compiles and links
+      your program inside your browser with `-std=c17 -Wall -Wextra
+      -Wimplicit-fallthrough -O0`, plus runtime checks for undefined behaviour
+      (`-fsanitize=undefined`, trapping). The program runs in an isolated
+      sandbox with a 3-second time limit and a 64 KB output limit. Type sizes
+      are those of 32-bit WebAssembly: `int` 4 bytes, `long` 4 bytes,
+      `long long` 8 bytes, pointers 4 bytes. Input comes from the Input box,
+      not from a live keyboard.
+
+  - id: program-skeleton
+    title: Program skeleton
+    tags: [main, include, return, comment]
+    unlockedBy: [first-contact/anatomy]
+    summary: The parts every C program has.
+    body: |
+      ```c
+      /* comment: notes for humans */
+      #include <stdio.h>        /* header of the standard I/O library */
+
+      int main(void)            /* entry point: exactly one per program */
+      {
+          printf("Hello\n");    /* statement: ends with ; */
+          return 0;             /* report success */
+      }
+      ```
+
+      `int main(void)` — main returns an int and takes no arguments.
+
+  - id: escapes
+    title: Strings and escape sequences
+    tags: [printf, string, newline, escape]
+    unlockedBy: [first-contact/newlines]
+    summary: "\\n, \\t, \\\", \\\\ and %%"
+    body: |
+      | Write | Prints |
+      |---|---|
+      | `\n` | new line |
+      | `\t` | tab |
+      | `\"` | `"` |
+      | `\\` | `\` |
+      | `%%` (inside printf format) | `%` |
+
+      printf never adds a newline by itself. Use plain ASCII quotes `"`, never
+      typographic `“ ”`.
+
+  - id: common-errors
+    title: Reading compiler messages
+    tags: [error, warning, debug]
+    unlockedBy: [first-contact/beacon-debug]
+    summary: file:line:column, fix the first error first.
+    body: |
+      `main.c:6:5: error: expected ';' after expression` → file `main.c`,
+      line 6, column 5.
+
+      * Fix the **first** error, then compile again.
+      * *expected ';'* — look at the end of the previous line.
+      * *use of undeclared identifier* — typo, missing declaration, or the
+        variable is out of scope.
+      * *call to undeclared function* — typo in the name, missing `#include`
+        or missing prototype.
+      * *unexpected character <U+201C>* — typographic quotes; use `"`.
+      * *undefined symbol* (linker) — a function was declared but never
+        defined.
+      * Treat **warnings** as bugs until proven otherwise.
+
+  - id: variables
+    title: Variables and declarations
+    tags: [variable, int, declaration, initialisation, naming]
+    unlockedBy: [sensor-lab/variables]
+    summary: Declaring, initialising and naming variables.
+    body: |
+      ```c
+      int count;              /* declaration */
+      int total = 0;          /* declaration with initialisation */
+      int a, b, c;            /* several at once */
+      count = 5;              /* assignment */
+      ```
+
+      Names: start with a letter or `_`; then letters, digits, `_`; case
+      sensitive; not a keyword. Uninitialised local variables contain
+      garbage.
+
+  - id: scanf-basics
+    title: Reading input with scanf
+    tags: [scanf, input, address, ampersand]
+    unlockedBy: [sensor-lab/read-input]
+    summary: scanf needs the address (&) of each variable.
+    body: |
+      ```c
+      scanf("%d", &n);                 /* one int */
+      scanf("%d %d", &a, &b);          /* two ints */
+      scanf("%lf", &x);                /* double */
+      scanf(" %c", &ch);               /* one char, skipping whitespace first */
+      if (scanf("%d", &n) != 1) { /* nothing could be read */ }
+      ```
+
+      `&n` is the address of `n`; scanf stores the value there. scanf
+      returns the number of values it read.
+
+  - id: ascii
+    title: ASCII table
+    tags: [ascii, char, character, code]
+    unlockedBy: [sensor-lab/char-codes]
+    table: ascii
+    summary: Codes 0-127 with decimal, hexadecimal and character.
+    body: |
+      `'A'` = 65, `'a'` = 97, `'0'` = 48, space = 32, newline = 10.
+      `%c` prints a code as a character, `%d` as a number. Codes 0–31 and
+      127 are control characters.
+
+  - id: types
+    title: Types and sizes
+    tags: [char, short, int, long, unsigned, float, double, sizeof, limits]
+    unlockedBy: [sensor-lab/type-sizes]
+    summary: Minimum ranges, typical sizes, and sizeof.
+    body: |
+      | Type | Standard minimum | This game (wasm32) | Linux x86-64 |
+      |---|---|---|---|
+      | `char` | 8 bits | 1 byte | 1 byte |
+      | `short` | 16 bits | 2 | 2 |
+      | `int` | 16 bits | 4 | 4 |
+      | `long` | 32 bits | 4 | 8 |
+      | `long long` | 64 bits | 8 | 8 |
+      | `float` | ~6 digits | 4 | 4 |
+      | `double` | ~10 digits (in practice 15–16) | 8 | 8 |
+
+      `sizeof(type)` → size in bytes, print with `%zu`. `<limits.h>`:
+      `INT_MAX`, `INT_MIN`, `CHAR_BIT`, … `unsigned` types hold only
+      non-negative values and wrap around; signed overflow is undefined.
+
+  - id: printf-formats
+    title: printf conversions
+    tags: [printf, format, "%d", "%f", "%e", "%g", "%c"]
+    unlockedBy: [sensor-lab/floating-point]
+    summary: "%d %c %f %e %g %E %G %zu, widths and precision."
+    body: |
+      | Conversion | For | Example output |
+      |---|---|---|
+      | `%d` | int (also char as number) | `42` |
+      | `%c` | character | `A` |
+      | `%f` | double/float, fixed | `1234.500000` |
+      | `%e` / `%E` | scientific | `1.234500e+03` / `1.234500E+03` |
+      | `%g` / `%G` | shorter of %f/%e | `1234.5` |
+      | `%zu` | sizeof result (size_t) | `4` |
+      | `%%` | percent sign | `%` |
+
+      Width and precision: `%4d` (width 4, right-aligned), `%.2f`
+      (2 decimals), `%6.1f` (width 6, 1 decimal).
+
+  - id: scanf-formats
+    title: scanf conversions
+    tags: [scanf, "%lf", float, double]
+    unlockedBy: [sensor-lab/float-scanf]
+    summary: "%d int, %f float, %lf double — scanf is strict."
+    body: |
+      | Variable | scanf |
+      |---|---|
+      | `int` | `%d` |
+      | `float` | `%f` (`%e`, `%g` are identical) |
+      | `double` | `%lf` |
+      | `char` | `" %c"` |
+
+      printf converts float to double automatically; scanf does not, because
+      it writes through the address.
+
+  - id: floating
+    title: Floating-point numbers
+    tags: [float, double, approximation, scientific]
+    unlockedBy: [sensor-lab/floating-point]
+    summary: Approximate values; compare with a tolerance.
+    body: |
+      Stored as significand × 2^exponent. Most decimal fractions (0.1) are
+      approximations: `0.1 + 0.2` prints as `0.30000000000000004` with
+      `%.17g`. Write constants as `2.9979e8` (= 2.9979 × 10⁸). Prefer
+      `double`. Don't compare floating-point results with `==`; check whether
+      the difference is small.
+
+  - id: operators
+    title: Operators and precedence
+    tags: [operator, precedence, arithmetic, division, remainder]
+    unlockedBy: [supply-depot/precedence]
+    summary: Precedence table and integer division.
+    body: |
+      | Level (high → low) | Operators | Grouping |
+      |---|---|---|
+      | postfix | `x++` `x--` `f()` | → |
+      | unary | `++x` `--x` `-x` `!x` `(type)x` `sizeof` | ← |
+      | multiplicative | `*` `/` `%` | → |
+      | additive | `+` `-` | → |
+      | relational | `<` `<=` `>` `>=` | → |
+      | equality | `==` `!=` | → |
+      | logical and | `&&` | → |
+      | logical or | `\|\|` | → |
+      | conditional | `?:` | ← |
+      | assignment | `=` `+=` `-=` `*=` `/=` `%=` | ← |
+      | comma | `,` | → |
+
+      `int / int` discards the fraction (truncates toward zero); `%` is the
+      remainder. When in doubt, use parentheses.
+
+  - id: assignment
+    title: Assignment, ++ and compound operators
+    tags: [assignment, increment, decrement, "+=", chained]
+    unlockedBy: [supply-depot/increment]
+    summary: a = b = 0, x++ vs ++x, x += y.
+    body: |
+      * `a = b = 0;` → `a = (b = 0);` (right to left)
+      * `y = x++;` → y gets old x; `y = ++x;` → y gets new x
+      * `x += y` is `x = x + y` (also `-=` `*=` `/=` `%=`)
+      * Never modify a variable twice in one expression (`i = i++ + 1;` is
+        undefined behaviour).
+
+  - id: undefined-behaviour
+    title: Undefined behaviour
+    tags: [undefined, ub, overflow, unsequenced]
+    unlockedBy: [supply-depot/forbidden-expression]
+    summary: Code the C standard gives no meaning to.
+    body: |
+      Examples: dividing an integer by zero, signed integer overflow,
+      modifying a variable twice in one expression (`(++i)+(i++)`), using an
+      uninitialised variable's value, reading past the end of memory. The
+      result can be anything — and may differ between compilers. The game
+      stops many of these at run time with a runtime-check error; a normal
+      compiler without `-fsanitize=undefined` usually does not.
+
+  - id: conversions
+    title: Type conversions and casts
+    tags: [conversion, cast, implicit, explicit, double, int]
+    unlockedBy: [supply-depot/type-conversion]
+    summary: Mixed expressions, truncation and (double) casts.
+    body: |
+      * `1 + 1.5` → the int is converted to double → `2.5`.
+      * `int n = 3.99;` stores `3` (fraction discarded).
+      * `7 / 2` is `3` even if stored in a double; use `7.0 / 2` or
+        `(double) 7 / 2` for `3.5`.
+      * Arguments are converted to the parameter types of a function.
+
+  - id: blocks-scope
+    title: Blocks and scope
+    tags: [block, scope, braces]
+    unlockedBy: [control-center/blocks-and-scope]
+    summary: A variable lives until the end of its block.
+    body: |
+      `{ ... }` groups statements. A variable declared in a block is visible
+      only from its declaration to the closing brace. Empty block `{}` is
+      allowed; no `;` after `}`. Local variables of a function are visible
+      only in that function.
+
+  - id: conditions
+    title: if, else if, else
+    tags: [if, else, condition, relational, bool]
+    unlockedBy: [control-center/route-robot]
+    summary: Decisions, truth values and bool.
+    body: |
+      ```c
+      if (x > 0) {
+          ...
+      } else if (x == 0) {
+          ...
+      } else {
+          ...
+      }
+      ```
+
+      0 is false, any other value true. Comparisons give 1 or 0.
+      `<stdbool.h>` (C99) provides `bool`, `true`, `false`; C23 makes them
+      keywords. `=` assigns, `==` compares.
+
+  - id: logic
+    title: Logical operators
+    tags: ["&&", "||", "!", short-circuit, bitwise]
+    unlockedBy: [control-center/logic-gates]
+    summary: "&&, ||, ! and short-circuit evaluation."
+    body: |
+      * `a && b` — both true; `b` is not evaluated if `a` is false.
+      * `a || b` — at least one true; `b` is not evaluated if `a` is true.
+      * `!a` — not.
+      * `&` and `|` are **bitwise** operators, not logical ones.
+      * Guard pattern: `if (count > 0 && total / count > 10)`.
+
+  - id: conditional-op
+    title: "Conditional operator ?:"
+    tags: ["?:", ternary, max, min]
+    unlockedBy: [control-center/conditional-operator]
+    summary: Choose a value in one expression.
+    body: |
+      `max = (a > b) ? a : b;` — the value of `a` if the condition is true,
+      otherwise `b`. Use it for value choices, `if` for actions.
+
+  - id: switch
+    title: switch
+    tags: [switch, case, default, break, fall-through]
+    unlockedBy: [control-center/machine-modes]
+    summary: Jump to a matching integer case.
+    body: |
+      ```c
+      switch (mode) {
+      case 1:
+          ...
+          break;
+      case 2:
+      case 3:              /* stacked labels share code */
+          ...
+          break;
+      default:
+          ...
+          break;
+      }
+      ```
+
+      Integer (or char) expression and constant labels only. Without `break`
+      execution falls through into the next case.
+
+  - id: style
+    title: Programming style
+    tags: [style, comments, indentation, naming]
+    unlockedBy: [control-center/style-review]
+    summary: Write code for people.
+    body: |
+      Comments explain intent; indentation shows structure; names say what
+      a value means; one statement per line; standard idioms; no unnecessary
+      tricks.
+
+  - id: while-loops
+    title: while and do-while
+    tags: [while, do, loop, infinite, sentinel]
+    unlockedBy: [automation-works/while-batches]
+    summary: Loop while a condition holds.
+    body: |
+      ```c
+      while (condition) { ... }          /* tests first, may run 0 times */
+      do { ... } while (condition);      /* runs at least once */
+      while (1) { ... if (done) break; } /* deliberate endless loop */
+      ```
+
+      Every loop needs progress toward its end. Digits: `n % 10` is the last
+      digit, `n /= 10` removes it.
+
+  - id: for-loops
+    title: for loops
+    tags: [for, loop, init, test, step, nested, comma]
+    unlockedBy: [automation-works/for-anatomy]
+    summary: for (init; test; step), variants and nesting.
+    body: |
+      ```c
+      for (i = 0; i < n; i++)      /* n times: 0 .. n-1 */
+      for (i = 1; i <= n; i++)     /* n times: 1 .. n */
+      for (t = n; t >= 1; t--)     /* counting down */
+      for (i = 1, p = 1; i <= n; i++) p *= i;   /* comma operator */
+      for (;;)                     /* endless, like while (1) */
+      ```
+
+      init once → test before each pass → body → step after each pass.
+      Nested loops: the inner loop runs completely for every outer
+      iteration.
+
+  - id: break-continue
+    title: break and continue
+    tags: [break, continue, loop]
+    unlockedBy: [automation-works/break-continue]
+    summary: Leave a loop, or skip to its next iteration.
+    body: |
+      `break` leaves the innermost loop (or switch). `continue` skips the rest
+      of the current iteration (a `for` loop still runs its step).
+
+  - id: island-api
+    title: Island API (game only)
+    tags: [island, robot, game, api]
+    unlockedBy: [automation-works/repair-row]
+    summary: robot_move, robot_scan, robot_repair, robot_x, robot_y.
+    body: |
+      **Not standard C.** These functions exist only in this game. Include
+      them with `#include <island.h>`.
+
+      | Function | Effect |
+      |---|---|
+      | `int robot_move(char dir)` | `'N'` `'S'` `'E'` `'W'`; returns 1 if moved, 0 if blocked |
+      | `int robot_scan(void)` | damage of the current tile (0 = fine) |
+      | `void robot_repair(void)` | repair the current tile |
+      | `int robot_x(void)` / `int robot_y(void)` | current column / row (x grows east, y grows south) |
+
+      Each call is executed by the game while your program runs and recorded;
+      the world view replays the recorded calls in order (at most 5000).
+      Running out of time or calling an unknown function stops the program.
+
+  - id: functions
+    title: Writing functions
+    tags: [function, prototype, return, parameter, argument, void]
+    unlockedBy: [core-systems/times2]
+    summary: Prototype, call, definition, return.
+    body: |
+      ```c
+      int times2(int x);            /* prototype */
+
+      int main(void)
+      {
+          int y = times2(21);       /* call: argument 21 */
+          ...
+      }
+
+      int times2(int x)             /* definition: parameter x */
+      {
+          return 2 * x;
+      }
+
+      void sayHi(void)              /* no result, no parameters */
+      {
+          printf("Hi!\n");
+      }
+      ```
+
+      Declare before use. Arguments are matched to parameters by position and
+      converted to their types.
+
+  - id: math-library
+    title: math.h
+    tags: [math, sqrt, sin, cos, fabs, pow, library]
+    unlockedBy: [core-systems/library-black-boxes]
+    summary: sqrt, sin, cos and friends.
+    body: |
+      `#include <math.h>` — `sqrt(x)`, `sin(rad)`, `cos(rad)`, `fabs(x)`,
+      `pow(x, y)`. They take and return `double`. Angles are in radians:
+      `rad = deg * pi / 180`. With gcc on Linux, link with `-lm`.
+
+  - id: call-by-value
+    title: Call by value and local variables
+    tags: [call by value, copy, local, scope, parameter]
+    unlockedBy: [core-systems/call-by-value]
+    summary: Functions get copies; return results.
+    body: |
+      Parameters are local copies, initialised with the argument values.
+      Other locals start uninitialised. Changing a parameter never changes
+      the caller's variable — return the new value and assign it:
+      `fuel = refuel(fuel, 25);`. A function cannot see another function's
+      local variables.

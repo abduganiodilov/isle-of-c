@@ -1,0 +1,168 @@
+id: control-center/truth-values
+version: 1
+kind: lesson
+source:
+  - { lecture: L09, slides: [37, 38] }
+topics: [L09.true-false, L09.relational]
+prerequisites: [control-center/route-robot]
+estimatedMinutes: 15
+objectives:
+  - Explain that C treats zero as false and any non-zero value as true.
+  - Use the fact that relational and equality operators produce 1 or 0.
+  - Describe bool in C99 (<stdbool.h>) and C23.
+world:
+  scene: gauges
+  label: STATUS LAMPS
+  gauges:
+    - { label: hot, pattern: "hot: (\\d+)", max: 1 }
+    - { label: freezing, pattern: "freezing: (\\d+)", max: 1 }
+    - { label: on target, pattern: "on target: (\\d+)", max: 1 }
+title: True, False, 1 and 0
+briefing: |
+  The status lamps on the control panel are either on (1) or off (0). They are
+  wired directly to comparisons — no if statements needed.
+lesson: |
+  ### Conditions are numbers
+  In C a condition is just a value:
+
+  * **zero** means **false**;
+  * **any non-zero value** means **true**.
+
+  ```c
+  a = 1; if (a) b = a;    /* runs: 1 is true  */
+  a = 0; if (a) b = a;    /* skipped: 0 is false */
+  ```
+
+  ### Comparisons produce 1 or 0
+  Relational (`<`, `<=`, `>`, `>=`) and equality (`==`, `!=`) operators
+  produce the `int` value **1** when true and **0** when false, so you can
+  print or store them:
+
+  ```c example
+  #include <stdio.h>
+
+  int main(void)
+  {
+      int a = 5;
+      printf("%d %d %d\n", a > 3, a == 3, a != 3);
+      return 0;
+  }
+  ```
+
+  ### What about a boolean type?
+  > [!correction] Slide 37 says "there is no boolean type in C". That was true
+  > of C89 only. **C99** added the type `_Bool` and the header
+  > `<stdbool.h>`, which provides `bool`, `true` (1) and `false` (0). **C23**
+  > makes `bool`, `true` and `false` keywords, so no header is needed there.
+  > The game uses C17, so include `<stdbool.h>`.
+
+  ```c example
+  #include <stdio.h>
+  #include <stdbool.h>
+
+  int main(void)
+  {
+      bool doorOpen = false;
+      bool alarm = 3 > 2;          /* true */
+      printf("%d %d\n", doorOpen, alarm);
+      return 0;
+  }
+  ```
+
+  Converting any non-zero value to `bool` gives `true` (1).
+success: |
+  In C, conditions are numbers: 0 is false and anything else is true.
+  Comparisons evaluate to 1 or 0. Since C99 you can use `bool` from
+  `<stdbool.h>`, and C23 makes it a keyword.
+steps:
+  - id: truthy-predict
+    type: predict
+    title: Which branches run?
+    prompt: Type exactly what this program prints.
+    code: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int a = -3;
+          if (a) printf("A\n");
+          if (a + 3) printf("B\n");
+          if (a < 0) printf("C\n");
+          printf("%d\n", a == -3);
+          return 0;
+      }
+    answer:
+      kind: output
+      output: "A\nC\n1\n"
+    explanation: |
+      −3 is non-zero, so `if (a)` is true. `a + 3` is 0, which is false. `a < 0`
+      is true. `a == -3` evaluates to 1.
+  - id: main
+    type: code
+    title: Wire the status lamps
+    prompt: |
+      Read a temperature (an int). Print three lamp values, each **1 or 0**,
+      using comparisons directly (no `if` needed):
+
+      * `hot` — temperature greater than 30
+      * `freezing` — temperature at most 0
+      * `on target` — temperature exactly 21
+
+      For input `21`:
+
+      ```
+      hot: 0
+      freezing: 0
+      on target: 1
+      ```
+    stdin: "21\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int temperature;
+
+          scanf("%d", &temperature);
+          printf("hot: %d\n", temperature > 30);
+          /* freezing and on target */
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int temperature;
+
+          scanf("%d", &temperature);
+          printf("hot: %d\n", temperature > 30);
+          printf("freezing: %d\n", temperature <= 0);
+          printf("on target: %d\n", temperature == 21);
+          return 0;
+      }
+    explanation: |
+      Each comparison is an expression whose value is 1 or 0, so printf's `%d`
+      can print it directly.
+    hints:
+      - "A comparison already has the value 1 or 0 — you can print it."
+      - "Two more printf lines, each printing one comparison."
+      - "At most 0 is `<= 0`; exactly 21 is `== 21`."
+      - "`printf(\"freezing: %d\\n\", temperature <= 0);`"
+      - "The full solution prints three comparisons."
+    tests:
+      - id: target
+        stdin: "21\n"
+        expect: { output: "hot: 0\nfreezing: 0\non target: 1\n" }
+      - id: hot
+        stdin: "35\n"
+        expect: { output: "hot: 1\nfreezing: 0\non target: 0\n" }
+      - id: zero
+        stdin: "0\n"
+        note: 0 counts as freezing.
+        expect: { output: "hot: 0\nfreezing: 1\non target: 0\n" }
+      - id: boundary
+        stdin: "30\n"
+        note: 30 is not greater than 30.
+        expect: { output: "hot: 0\nfreezing: 0\non target: 0\n" }

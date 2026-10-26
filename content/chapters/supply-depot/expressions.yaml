@@ -1,0 +1,138 @@
+id: supply-depot/expressions
+version: 1
+kind: guided
+source:
+  - { lecture: L09, slides: [24, 25, 26] }
+topics: [L09.expression-terms, L09.constants, L09.variables-naming]
+prerequisites: [sensor-lab/lab-report]
+estimatedMinutes: 15
+objectives:
+  - Identify the four kinds of terms in an expression - constants, variables, function calls and parenthesised expressions.
+  - Apply C's naming rules and remember that names are case sensitive.
+  - Compute a result from input using a constant written in scientific notation.
+world:
+  scene: gauges
+  label: SIGNAL TIMER
+  gauges:
+    - { label: Delay (µs), pattern: "Delay:\\s*(\\S+) s", scale: 1000000, max: 100 }
+title: Building Expressions
+briefing: |
+  The depot talks to supply drones by radio. Radio signals travel at the speed
+  of light, and PIP-7 must compute how long a signal takes to reach a drone.
+lesson: |
+  ### Expressions
+  An **expression** describes a computation, such as `n1 + n2`. It is made of
+  **terms** joined by **operators**. A term is one of:
+
+  | Term | Example |
+  |---|---|
+  | a **constant** — an explicit value | `42`, `-7`, `2.5`, `2.9979e8`, `'A'` |
+  | a **variable** | `distance` |
+  | a **function call** that returns a value | `sqrt(2.0)` (functions come in chapter F) |
+  | an **expression in parentheses** | `(a + b)` |
+
+  `2.9979e8` is a `double` constant meaning 2.9979 × 10⁸.
+
+  ### Naming variables
+  * A name starts with a **letter or underscore** `_`.
+  * The rest may contain letters, digits and underscores — **no spaces** or
+    other symbols.
+  * C is **case sensitive**: `energy`, `Energy` and `ENERGY` are three
+    different names.
+  * A name cannot be a **keyword** such as `int`, `return`, `if`, `while`.
+  * Every variable must be **declared** before it is used.
+
+  ```c example
+  #include <stdio.h>
+
+  int main(void)
+  {
+      int energy = 10;
+      int Energy = 99;     /* a different variable! */
+      double speed_of_light = 2.9979e8;
+
+      printf("%d %d\n", energy, Energy);
+      printf("%g\n", speed_of_light);
+      return 0;
+  }
+  ```
+success: |
+  Expressions combine constants, variables, function calls and parenthesised
+  sub-expressions with operators. Names follow strict rules and are case
+  sensitive.
+steps:
+  - id: names
+    type: quiz
+    title: Valid names
+    question: Which of these are valid C variable names? (Select all that apply.)
+    multiple: true
+    choices:
+      - "`fuel_level`"
+      - "`2nd_drone`"
+      - "`_count`"
+      - "`drone speed`"
+      - "`return`"
+      - "`Drone7`"
+    correct: [0, 2, 5]
+    explanation: |
+      `fuel_level`, `_count` and `Drone7` follow the rules. `2nd_drone` starts
+      with a digit, `drone speed` contains a space, and `return` is a keyword.
+  - id: main
+    type: code
+    title: Signal delay
+    prompt: |
+      Read a distance in metres (a `double`) and print how long a radio signal
+      needs to travel it, in seconds, using `%e`. The speed of light is
+      `2.9979e8` m/s, and time = distance / speed. For input `1000`:
+
+      ```
+      Delay: 3.335668e-06 s
+      ```
+    stdin: "1000\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          double distance;
+          double c = 2.9979e8;   /* speed of light in m/s */
+
+          scanf("%lf", &distance);
+          /* compute the delay and print it with %e */
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          double distance;
+          double c = 2.9979e8;   /* speed of light in m/s */
+          double delay;
+
+          scanf("%lf", &distance);
+          delay = distance / c;
+          printf("Delay: %e s\n", delay);
+          return 0;
+      }
+    explanation: |
+      `distance / c` is an expression with two variable terms. Storing it in a
+      well-named variable (`delay`) makes the printf easy to read.
+    hints:
+      - "time = distance / speed. Both values are already in variables."
+      - "Compute the expression, store it in a new double variable, then print it."
+      - "Division is `/`. Print a double in scientific style with `%e`."
+      - "`double delay = distance / c;` then `printf(\"Delay: %e s\\n\", delay);`"
+      - "The full solution adds a variable for the delay."
+    tests:
+      - id: km
+        stdin: "1000\n"
+        expect: { regex: { pattern: "Delay:\\s*(\\S+) s", values: [3.335668e-06], tolerance: 1e-11, describe: "Delay: 3.335668e-06 s" } }
+      - id: moon
+        stdin: "3.844e8\n"
+        note: Distance to the Moon.
+        expect: { regex: { pattern: "Delay:\\s*(\\S+) s", values: [1.282231], tolerance: 0.00001, describe: "Delay: 1.282231e+00 s" } }
+      - id: zero
+        stdin: "0\n"
+        expect: { regex: { pattern: "Delay:\\s*(\\S+) s", values: [0], tolerance: 1e-12, describe: "Delay: 0.000000e+00 s" } }

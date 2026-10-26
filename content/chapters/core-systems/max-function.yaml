@@ -1,0 +1,131 @@
+id: core-systems/max-function
+version: 1
+kind: challenge
+source:
+  - { lecture: L10, slides: [24] }
+topics: [L10.max-function]
+prerequisites: [core-systems/times2]
+estimatedMinutes: 15
+objectives:
+  - Design a function's interface - choose its inputs, output and types.
+  - Write a two-parameter function max() independently and call it.
+world:
+  scene: gauges
+  label: LOAD BALANCER
+  gauges:
+    - { label: max, pattern: "max = (-?\\d+)", max: 100 }
+title: The max() Module
+briefing: |
+  The load balancer always routes power from the stronger of two generators.
+  Build a reusable `max` module that any subsystem can call.
+lesson: |
+  This is the lecture's practice (slide 24): *write a function that finds the
+  maximum of two integer arguments. You need to identify and design the inputs
+  and outputs.*
+
+  Before coding, decide the **interface**:
+
+  * inputs: two integers → two `int` parameters;
+  * output: the larger one → return type `int`;
+  * a good name: `max`.
+
+  > [!note] The tests call your `max` function directly with many pairs, in
+  > addition to running your `main`.
+success: |
+  You designed an interface (two int parameters, an int result) and
+  implemented it. Any part of a program can now reuse `max`.
+steps:
+  - id: main
+    type: code
+    title: Write max()
+    prompt: |
+      Write a function `int max(int a, int b)` that returns the larger of its
+      two arguments (either one if they are equal). In `main`, read two ints
+      and print `max = <result>` using your function. For input `7 12`:
+      `max = 12`.
+    stdin: "7 12\n"
+    starter: |
+      #include <stdio.h>
+
+      /* prototype */
+
+      int main(void)
+      {
+
+          return 0;
+      }
+
+      /* definition */
+    solution: |
+      #include <stdio.h>
+
+      int max(int a, int b);
+
+      int main(void)
+      {
+          int first, second;
+
+          scanf("%d %d", &first, &second);
+          printf("max = %d\n", max(first, second));
+          return 0;
+      }
+
+      int max(int a, int b)
+      {
+          if (a > b) {
+              return a;
+          }
+          return b;
+      }
+    explanation: |
+      `max` returns `a` if it is bigger, otherwise `b` — which also covers
+      equal values. A function may contain several return statements; the
+      first one reached ends the function.
+    harness: |
+      #include <stdio.h>
+      int max(int a, int b);
+      int main(void)
+      {
+          int a, b;
+          while (scanf("%d %d", &a, &b) == 2) {
+              printf("max(%d, %d) = %d\n", a, b, max(a, b));
+          }
+          return 0;
+      }
+    hints:
+      - "Two ints in, one int out. The body is a decision."
+      - "Prototype above main; definition below; in main read two numbers and print the call's result."
+      - "`int max(int a, int b) { return (a > b) ? a : b; }`"
+      - "In main: `printf(\"max = %d\\n\", max(first, second));`"
+      - "The full solution uses if with two return statements."
+    tests:
+      - id: program
+        stdin: "7 12\n"
+        expect: { output: "max = 12\n" }
+      - id: program-first
+        stdin: "12 7\n"
+        expect: { output: "max = 12\n" }
+      - id: direct
+        harness: true
+        stdin: "1 2\n2 1\n5 5\n-3 -8\n-8 -3\n0 -1\n2147483647 0\n"
+        note: Many pairs, including equal and negative values.
+        expect: { output: "max(1, 2) = 2\nmax(2, 1) = 2\nmax(5, 5) = 5\nmax(-3, -8) = -3\nmax(-8, -3) = -3\nmax(0, -1) = 0\nmax(2147483647, 0) = 2147483647\n" }
+    require:
+      functions: [max]
+    wrong:
+      - code: |
+          #include <stdio.h>
+          int max(int a, int b);
+          int main(void)
+          {
+              int x, y;
+              scanf("%d %d", &x, &y);
+              printf("max = %d\n", max(x, y));
+              return 0;
+          }
+          int max(int a, int b)
+          {
+              if (a > 0) return a;
+              return b;
+          }
+        why: compares with 0 instead of b

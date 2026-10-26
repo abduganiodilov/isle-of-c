@@ -1,0 +1,144 @@
+id: first-contact/anatomy
+version: 1
+kind: guided
+source:
+  - { lecture: L09, slides: [7, 8, 9, 10] }
+topics: [L09.hello-program, L09.libraries, L09.main-function, L09.printf-basics]
+prerequisites: [first-contact/build-pipeline]
+estimatedMinutes: 15
+objectives:
+  - Explain comments, #include <stdio.h>, int main(void), braces, statements, semicolons and return 0.
+  - Know that a library is reusable code and a header (.h) tells the compiler what it contains.
+  - Complete a program by writing the missing include line and return statement.
+world:
+  scene: terminal
+  label: COMMS TERMINAL
+  goal: Print the three-line startup report
+title: Anatomy of a Program
+briefing: |
+  The comms terminal needs a full startup report, but its program is missing
+  pieces. Before repairing it, learn what every line of a C program means.
+lesson: |
+  Here is the lecture's first program (with one modern improvement):
+
+  ```c example
+  /*
+   * File: aloha.c
+   * -------------
+   * Print the message "Aloha" on the screen
+   */
+
+  #include <stdio.h>
+
+  int main(void)
+  {
+      printf("Aloha!\n");
+      return 0;
+  }
+  ```
+
+  | Part | Meaning |
+  |---|---|
+  | `/* ... */` | A **comment**: notes for humans. The compiler ignores it. `// ...` comments run to the end of the line. |
+  | `#include <stdio.h>` | **Library inclusion.** A *library* is a collection of tools written by other programmers. `stdio.h` is the **header** of the standard input/output library; it tells the compiler that `printf` exists and how to call it. Standard headers use `#include <name.h>`. |
+  | `int main(void)` | The **main function**. Every C program has exactly one `main`; running the program means running `main`. `int` says main gives back a whole number; `void` says it takes no inputs. |
+  | `{ ... }` | **Braces** enclose the function body: the statements that belong to `main`. |
+  | `printf("Aloha!\n");` | A **statement**. Each simple statement ends with a **semicolon** `;`. Text in double quotes `" "` is a **string**. |
+  | `return 0;` | Ends `main` and reports "success" (0) to the system that started the program. |
+
+  If you know MATLAB: `printf` is similar to MATLAB's `fprintf`, but C needs
+  the semicolon at the end of every statement and strings always use double
+  quotes.
+
+  > [!correction] The slides write `int main()`. In C17, `int main(void)` is
+  > the clearer, recommended form: it states that main takes **no arguments**,
+  > and it is one of the two forms the C standard lists for `main` (the other
+  > takes command-line arguments). `int main()` is an old-style declaration
+  > without a prototype; it still works, but `(void)` is precise.
+
+  Statements run **from top to bottom**, one after another.
+success: |
+  You can name every part of a C program: comments, `#include <stdio.h>`,
+  `int main(void)`, the braces of the body, statements ending in `;`, and
+  `return 0;`. From now on you can write this boilerplate yourself.
+steps:
+  - id: comment-predict
+    type: predict
+    title: What does the comment do?
+    prompt: What does this program print?
+    code: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          printf("Tower ready\n");
+          /* printf("Tower broken\n"); */
+          return 0;
+      }
+    answer:
+      kind: choice
+      choices:
+        - "Tower ready"
+        - "Tower broken"
+        - "Tower ready, then Tower broken"
+        - "Nothing: the program has an error"
+      correct: 0
+      actualOutput: "Tower ready\n"
+    explanation: |
+      The second printf is inside `/* ... */`, so it is a comment. The compiler
+      ignores it, and only `Tower ready` is printed.
+  - id: main
+    type: code
+    title: Complete the startup report
+    prompt: |
+      The program below is missing two lines that every program needs (look for
+      the `TODO` comments). Add them so the terminal prints exactly:
+
+      ```
+      COMMS ONLINE
+      Island relay found
+      Waiting for orders
+      ```
+    starter: |
+      /* Startup report for the comms terminal */
+      /* TODO 1: include the standard input/output header here */
+
+      int main(void)
+      {
+          printf("COMMS ONLINE\n");
+          printf("Island relay found\n");
+          printf("Waiting for orders\n");
+          /* TODO 2: end main and report success */
+      }
+    solution: |
+      /* Startup report for the comms terminal */
+      #include <stdio.h>
+
+      int main(void)
+      {
+          printf("COMMS ONLINE\n");
+          printf("Island relay found\n");
+          printf("Waiting for orders\n");
+          return 0;
+      }
+    explanation: |
+      `#include <stdio.h>` declares `printf`, so the compiler knows how to call
+      it. `return 0;` ends main and reports success. (C17 actually lets `main`
+      reach its closing brace and returns 0 for you, but writing it is clearer
+      and matches what every other function needs.)
+    hints:
+      - "Without the right header, the compiler does not know what printf is."
+      - "Look at the aloha.c example in the lesson: which line comes before int main(void)? Which line comes last inside the braces?"
+      - "Header line syntax: `#include <stdio.h>`. Ending main: `return 0;`"
+      - "Replace TODO 1 with `#include <stdio.h>` and put `return 0;` just before the closing brace."
+      - "The full solution adds exactly those two lines."
+    tests:
+      - id: report
+        note: All three lines in order.
+        expect: { output: "COMMS ONLINE\nIsland relay found\nWaiting for orders\n" }
+      - id: header
+        note: printf must be declared by including stdio.h.
+        expect: { lines: ["COMMS ONLINE"] }
+    require:
+      includes: [stdio.h]
+      constructs: [return]

@@ -1,0 +1,105 @@
+id: control-center/conditional-operator
+version: 1
+kind: guided
+source:
+  - { lecture: L09, slides: [42] }
+topics: [L09.conditional-operator]
+prerequisites: [control-center/short-circuit]
+estimatedMinutes: 10
+objectives:
+  - "Use the conditional operator (condition) ? expr1 : expr2 to choose a value."
+  - Rewrite a simple if/else assignment as a conditional expression.
+world:
+  scene: gauges
+  label: PEAK DETECTOR
+  gauges:
+    - { label: max, pattern: "max = (-?\\d+)", max: 100 }
+    - { label: min, pattern: "min = (-?\\d+)", max: 100 }
+title: Choose a Value
+briefing: |
+  The peak detector compares two readings and records the larger and the
+  smaller one. A compact operator chooses a value in a single expression.
+lesson: |
+  ### The conditional operator ?:
+  ```c
+  (condition) ? expression1 : expression2
+  ```
+
+  If the condition is true, the result is `expression1`; otherwise it is
+  `expression2`. Only the chosen expression is evaluated. These two pieces of
+  code do the same thing:
+
+  ```c
+  if (x > y) max = x;
+  else max = y;
+
+  max = (x > y) ? x : y;
+  ```
+
+  Use `?:` for **choosing a value**; use `if` for choosing between
+  **actions**. Nested `?:` quickly becomes unreadable.
+success: |
+  `(condition) ? a : b` is an expression that has the value `a` or `b`. It is
+  ideal for short value choices like max and min.
+steps:
+  - id: main
+    type: code
+    title: Peak detector
+    prompt: |
+      Read two ints and print the larger and the smaller one, computing each
+      with the **conditional operator**. For input `7 12`:
+
+      ```
+      max = 12, min = 7
+      ```
+    stdin: "7 12\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int a, b, max, min;
+
+          scanf("%d %d", &a, &b);
+          max = 0;   /* use ?: here */
+          min = 0;   /* and here */
+          printf("max = %d, min = %d\n", max, min);
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int a, b, max, min;
+
+          scanf("%d %d", &a, &b);
+          max = (a > b) ? a : b;
+          min = (a < b) ? a : b;
+          printf("max = %d, min = %d\n", max, min);
+          return 0;
+      }
+    explanation: |
+      Each line chooses one of the two values. When a equals b both choices are
+      the same, so it does not matter which one is picked.
+    hints:
+      - "The conditional operator picks one of two values depending on a condition."
+      - "max: if a is bigger pick a, else pick b. min: the opposite comparison."
+      - "`result = (condition) ? valueIfTrue : valueIfFalse;`"
+      - "`max = (a > b) ? a : b;`"
+      - "The full solution uses ?: twice."
+    tests:
+      - id: example
+        stdin: "7 12\n"
+        expect: { output: "max = 12, min = 7\n" }
+      - id: reversed
+        stdin: "12 7\n"
+        expect: { output: "max = 12, min = 7\n" }
+      - id: equal
+        stdin: "5 5\n"
+        expect: { output: "max = 5, min = 5\n" }
+      - id: negative
+        stdin: "-3 -8\n"
+        expect: { output: "max = -3, min = -8\n" }
+    require:
+      constructs: ["?:"]

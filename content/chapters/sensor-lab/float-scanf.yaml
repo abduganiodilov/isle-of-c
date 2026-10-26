@@ -1,0 +1,110 @@
+id: sensor-lab/float-scanf
+version: 1
+kind: debug
+source:
+  - { lecture: L09, slides: [21] }
+topics: [L09.scanf-float]
+prerequisites: [sensor-lab/floating-point]
+estimatedMinutes: 15
+objectives:
+  - "Choose the correct scanf conversion: %f for float, %lf for double."
+  - "Know that %e and %g read exactly like %f in scanf."
+  - Use compiler warnings about format mismatches to find bugs.
+world:
+  scene: gauges
+  label: POWER MONITOR
+  gauges:
+    - { label: Power, pattern: "Power:\\s*(\\S+)", max: 1000 }
+title: Sensor Drift
+briefing: |
+  The power monitor multiplies a voltage by a current, but its readings drift
+  to nonsense. The scanf formats don't match the variable types. Fix them.
+lesson: |
+  ### scanf formats are stricter than printf formats
+  printf receives *values*; a `float` is automatically converted to `double`
+  on the way, so `%f` prints both. **scanf receives addresses**: it must know
+  exactly how big the box is that it writes into.
+
+  | Variable type | scanf conversion |
+  |---|---|
+  | `float` | `%f` (or `%e`, `%g` — identical for scanf) |
+  | `double` | `%lf` (or `%le`, `%lg`) |
+  | `int` | `%d` |
+
+  Using `%f` with a `double` (or `%lf` with a `float`) writes the wrong number
+  of bytes, and the variable ends up holding garbage. The compiler warns:
+  *format specifies type 'double \*' but the argument has type 'float \*'*.
+  Treat warnings like this as errors.
+
+  > [!correction] Slide 21's example is printed as `scanf(“%f”, &value);` with
+  > typographic quotes. In real code: `scanf("%f", &value);` — and it is only
+  > correct if `value` is a `float`.
+
+  > [!note] For printf, `%lf` is also allowed (since C99) and means the same
+  > as `%f`. Many programmers still write `%f` in printf and `%lf` in scanf.
+success: |
+  scanf needs `%f` for `float` and `%lf` for `double` because it writes into
+  the variable through its address. The compiler's format warnings point
+  straight at mismatches like this.
+steps:
+  - id: main
+    type: code
+    title: Repair the power monitor
+    prompt: |
+      Run the program with the given input and look at the **Diagnostics**
+      tab. Fix the program so that, for input `12.5 2`, it prints:
+
+      ```
+      Power: 25 W
+      ```
+
+      Keep `voltage` a `float` and `current` a `double`.
+    stdin: "12.5 2\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          float voltage;
+          double current;
+
+          scanf("%lf", &voltage);
+          scanf("%f", &current);
+          printf("Power: %g W\n", voltage * current);
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          float voltage;
+          double current;
+
+          scanf("%f", &voltage);
+          scanf("%lf", &current);
+          printf("Power: %g W\n", voltage * current);
+          return 0;
+      }
+    explanation: |
+      `voltage` is a float, so it is read with `%f`; `current` is a double, so
+      it is read with `%lf`. Then both readings are stored correctly and the
+      product is right.
+    hints:
+      - "Read the two warnings in the Diagnostics tab: they say which argument type does not match which format."
+      - "Match each scanf conversion to the type of the variable it reads into."
+      - "float → `%f`; double → `%lf`."
+      - "Swap the two formats: `scanf(\"%f\", &voltage);` and `scanf(\"%lf\", &current);`"
+      - "The full solution only changes the two format strings."
+    tests:
+      - id: example
+        stdin: "12.5 2\n"
+        expect: { regex: { pattern: "Power:\\s*(\\S+) W", values: [25], tolerance: 0.001, describe: "Power: 25 W" } }
+      - id: fractional
+        stdin: "3.3 0.5\n"
+        expect: { regex: { pattern: "Power:\\s*(\\S+) W", values: [1.65], tolerance: 0.001, describe: "Power: 1.65 W" } }
+      - id: zero
+        stdin: "230 0\n"
+        expect: { regex: { pattern: "Power:\\s*(\\S+) W", values: [0], tolerance: 0.001, describe: "Power: 0 W" } }
+    require:
+      noWarnings: [-Wformat]

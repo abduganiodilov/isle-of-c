@@ -1,0 +1,25 @@
+id: core-systems
+version: 1
+letter: F
+title: Core Systems
+region: Mountain — Core Systems Hall
+lectures: [L10]
+intro: >
+  Deep in the mountain lies the island's core: dozens of subsystems built from
+  small reusable modules. PIP-7 learns to write its own functions — black boxes
+  with clear inputs and outputs — and to assemble them into larger systems.
+outro: >
+  PIP-7 can now design programs top-down, write functions with parameters and
+  return values, and understands that C passes arguments by value.
+map: { x: 80, y: 26 }
+missions:
+  - library-black-boxes
+  - times2
+  - max-function
+  - arguments-and-conversion
+  - local-scope
+  - call-by-value
+  - void-functions
+  - robot-utilities
+  - digit-root
+  - modular-control

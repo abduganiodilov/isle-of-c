@@ -1,0 +1,170 @@
+id: core-systems/modular-control
+version: 1
+kind: chapter-challenge
+source:
+  - { lecture: L10, slides: [17, 18, 19, 21, 25, 29, 31] }
+topics: [L10.decomposition, L10.function-anatomy, L10.prototypes, L10.parameter-passing]
+prerequisites: [core-systems/digit-root]
+estimatedMinutes: 25
+objectives:
+  - Implement a set of functions from their interfaces (prototypes and descriptions).
+  - Combine returning functions and void functions in one modular program.
+world:
+  scene: terminal
+  label: CORE CONTROLLER
+  goal: Bring the modular controller online
+title: "Chapter Challenge: Modular Controller"
+briefing: |
+  The core controller is designed as modules: the architects wrote the
+  interfaces and `main`, but every module body is missing. Implement them
+  from their specifications.
+lesson: |
+  Working from interfaces is how larger programs are built: someone designs
+  the black boxes (name, parameters, result, purpose), and someone else
+  implements them. The test harness calls each of your functions directly, so
+  each one must work on its own — not only in this particular main.
+success: |
+  You implemented four modules from their specifications, and the harness
+  tested each one independently. Next: the island's core itself.
+steps:
+  - id: main
+    type: code
+    title: Implement the modules
+    prompt: |
+      Implement the four functions below (keep `main` unchanged):
+
+      | Function | Specification |
+      |---|---|
+      | `int clamp(int value, int low, int high)` | returns `low` if value < low, `high` if value > high, otherwise value |
+      | `double percent(int part, int whole)` | returns part / whole × 100 as a double; returns 0 if whole is 0 |
+      | `int is_even(int n)` | returns 1 if n is even, 0 otherwise |
+      | `void print_bar(int length)` | prints `length` `#` characters and a newline (nothing but the newline if length ≤ 0) |
+
+      For input `130 40 200` main prints:
+
+      ```
+      setting: 100
+      load: 20.0%
+      even: 1
+      ##########
+      ```
+    stdin: "130 40 200\n"
+    starter: |
+      #include <stdio.h>
+
+      int clamp(int value, int low, int high);
+      double percent(int part, int whole);
+      int is_even(int n);
+      void print_bar(int length);
+
+      int main(void)
+      {
+          int request, part, whole;
+          int setting;
+
+          scanf("%d %d %d", &request, &part, &whole);
+          setting = clamp(request, 0, 100);
+          printf("setting: %d\n", setting);
+          printf("load: %.1f%%\n", percent(part, whole));
+          printf("even: %d\n", is_even(setting));
+          print_bar(setting / 10);
+          return 0;
+      }
+
+      /* implement the four functions here */
+    solution: |
+      #include <stdio.h>
+
+      int clamp(int value, int low, int high);
+      double percent(int part, int whole);
+      int is_even(int n);
+      void print_bar(int length);
+
+      int main(void)
+      {
+          int request, part, whole;
+          int setting;
+
+          scanf("%d %d %d", &request, &part, &whole);
+          setting = clamp(request, 0, 100);
+          printf("setting: %d\n", setting);
+          printf("load: %.1f%%\n", percent(part, whole));
+          printf("even: %d\n", is_even(setting));
+          print_bar(setting / 10);
+          return 0;
+      }
+
+      int clamp(int value, int low, int high)
+      {
+          if (value < low) {
+              return low;
+          } else if (value > high) {
+              return high;
+          }
+          return value;
+      }
+
+      double percent(int part, int whole)
+      {
+          if (whole == 0) {
+              return 0;
+          }
+          return (double) part / whole * 100;
+      }
+
+      int is_even(int n)
+      {
+          return n % 2 == 0;
+      }
+
+      void print_bar(int length)
+      {
+          int i;
+          for (i = 0; i < length; i++) {
+              printf("#");
+          }
+          printf("\n");
+      }
+    explanation: |
+      Each function follows its specification exactly, including the special
+      cases (division by zero in `percent`, non-positive lengths in
+      `print_bar`). `is_even` returns the comparison's 1/0 value directly.
+    harness: |
+      #include <stdio.h>
+      int clamp(int value, int low, int high);
+      double percent(int part, int whole);
+      int is_even(int n);
+      void print_bar(int length);
+      int main(void)
+      {
+          printf("%d %d %d %d\n", clamp(-5, 0, 10), clamp(15, 0, 10), clamp(7, 0, 10), clamp(10, 0, 10));
+          printf("%.2f %.2f %.2f\n", percent(1, 3), percent(5, 0), percent(10, 10));
+          printf("%d %d %d %d\n", is_even(0), is_even(7), is_even(-4), is_even(-3));
+          print_bar(3);
+          print_bar(0);
+          print_bar(-2);
+          printf("end\n");
+          return 0;
+      }
+    hints:
+      - "Implement and test one function at a time; the harness test shows which one is wrong."
+      - "clamp is an else-if chain; percent needs a cast and a zero check; is_even uses %; print_bar is a for loop."
+      - "`return n % 2 == 0;` returns 1 or 0. `return (double) part / whole * 100;`"
+      - "print_bar: `for (i = 0; i < length; i++) printf(\"#\"); printf(\"\\n\");`"
+      - "The full solution implements all four functions."
+    tests:
+      - id: program
+        stdin: "130 40 200\n"
+        expect: { output: "setting: 100\nload: 20.0%\neven: 1\n##########\n" }
+      - id: program-low
+        stdin: "-20 3 0\n"
+        expect: { output: "setting: 0\nload: 0.0%\neven: 1\n\n" }
+      - id: program-odd
+        stdin: "37 1 4\n"
+        expect: { output: "setting: 37\nload: 25.0%\neven: 0\n###\n" }
+      - id: modules
+        harness: true
+        note: Each module is called directly with edge cases.
+        expect: { output: "0 10 7 10\n33.33 0.00 100.00\n1 0 1 0\n###\n\n\nend\n" }
+    require:
+      functions: [clamp, percent, is_even, print_bar]

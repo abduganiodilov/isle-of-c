@@ -1,0 +1,164 @@
+id: control-center/machine-modes
+version: 1
+kind: guided
+source:
+  - { lecture: L09, slides: [43, 44] }
+topics: [L09.switch, L09.card-rank]
+prerequisites: [control-center/conditional-operator]
+estimatedMinutes: 15
+objectives:
+  - Write a switch statement with case labels, break and default.
+  - Explain how switch jumps to the matching case label.
+  - Know that switch works on integer values (including char), not on doubles or strings.
+world:
+  scene: sorter
+  label: PUMP STATION
+  bins:
+    - { label: IDLE, match: "\\bIDLE\\b" }
+    - { label: PUMPING, match: "\\bPUMPING\\b" }
+    - { label: HEATING, match: "\\bHEATING\\b" }
+    - { label: COOLING, match: "\\bCOOLING\\b" }
+    - { label: UNKNOWN, match: "UNKNOWN" }
+title: Machine Modes
+briefing: |
+  The pump station's machines are controlled by mode numbers. Translate each
+  number into the mode name — a perfect job for `switch`.
+lesson: |
+  ### switch
+  ```c
+  switch (expression) {
+  case value1:
+      statements;
+      break;
+  case value2:
+      statements;
+      break;
+  default:
+      statements;
+      break;
+  }
+  ```
+
+  * The expression is evaluated once and C **jumps** to the `case` label with
+    the same value; if none matches, it jumps to `default` (if present).
+  * Execution continues from there **until a `break`** (or the end of the
+    switch).
+  * Case labels must be **integer constants** (`3`, `'A'`), and the switch
+    expression must have an integer type. `switch` on a `double` or on a
+    string is not allowed (MATLAB allows strings — C does not).
+
+  The lecture's card-rank example (with straight quotes):
+
+  ```c example stdin=11
+  #include <stdio.h>
+
+  int main(void)
+  {
+      int n;
+      printf("What is the rank of the card (1-13)? ");
+      scanf("%d", &n);
+      switch (n)
+      {
+      case 1: printf("Ace\n"); break;
+      case 11: printf("Jack\n"); break;
+      default: printf("%d\n", n); break;
+      }
+      return 0;
+  }
+  ```
+
+  > [!correction] Slide 43 says switch "compares ... to each case in order".
+  > Conceptually it jumps directly to the matching label; the order of the
+  > cases does not change the result (as long as each ends with `break`).
+  > Slide 44 also contains a typographic quote `“` in `"%d\n“` — fixed above.
+success: |
+  `switch` jumps to the matching `case`, runs until `break`, and uses `default`
+  for everything else. It works with integer and character values.
+steps:
+  - id: main
+    type: code
+    title: Name the modes
+    prompt: |
+      Read a mode number and print its name using a `switch`:
+
+      | Mode | Print |
+      |---|---|
+      | 1 | `IDLE` |
+      | 2 | `PUMPING` |
+      | 3 | `HEATING` |
+      | 4 | `COOLING` |
+      | anything else | `UNKNOWN MODE` |
+    stdin: "2\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int mode;
+
+          scanf("%d", &mode);
+          switch (mode) {
+          case 1:
+              printf("IDLE\n");
+              break;
+          /* cases 2, 3, 4 and default */
+          }
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int mode;
+
+          scanf("%d", &mode);
+          switch (mode) {
+          case 1:
+              printf("IDLE\n");
+              break;
+          case 2:
+              printf("PUMPING\n");
+              break;
+          case 3:
+              printf("HEATING\n");
+              break;
+          case 4:
+              printf("COOLING\n");
+              break;
+          default:
+              printf("UNKNOWN MODE\n");
+              break;
+          }
+          return 0;
+      }
+    explanation: |
+      Each case prints one name and leaves the switch with `break`. `default`
+      handles every value not listed, including 0, negative numbers and 5.
+    hints:
+      - "Each mode number gets its own case label; values without a case go to default."
+      - "Copy the case 1 block for 2, 3 and 4, then add a default block."
+      - "`case 2: printf(\"PUMPING\\n\"); break;` and `default: printf(\"UNKNOWN MODE\\n\"); break;`"
+      - "Remember the break after each printf, otherwise execution falls into the next case."
+      - "The full solution has four cases and a default."
+    tests:
+      - id: idle
+        stdin: "1\n"
+        expect: { lines: ["IDLE"], exactLineCount: true }
+      - id: pumping
+        stdin: "2\n"
+        expect: { lines: ["PUMPING"], exactLineCount: true }
+      - id: heating
+        stdin: "3\n"
+        expect: { lines: ["HEATING"], exactLineCount: true }
+      - id: cooling
+        stdin: "4\n"
+        expect: { lines: ["COOLING"], exactLineCount: true }
+      - id: zero
+        stdin: "0\n"
+        expect: { lines: ["UNKNOWN MODE"], exactLineCount: true }
+      - id: big
+        stdin: "5\n"
+        expect: { lines: ["UNKNOWN MODE"], exactLineCount: true }
+    require:
+      constructs: [switch, case, default, break]

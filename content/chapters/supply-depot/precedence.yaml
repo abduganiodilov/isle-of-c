@@ -1,0 +1,138 @@
+id: supply-depot/precedence
+version: 1
+kind: debug
+source:
+  - { lecture: L09, slides: [24, 28] }
+topics: [L09.arithmetic, L09.expression-terms]
+prerequisites: [supply-depot/integer-division]
+estimatedMinutes: 15
+objectives:
+  - Apply operator precedence - * / % before + -, left to right within a level.
+  - Use parentheses to force the intended order of evaluation.
+  - Find and fix a precedence bug from test evidence.
+world:
+  scene: gauges
+  label: BATTERY BANK
+  gauges:
+    - { label: Remaining %, pattern: "Remaining: (-?\\d+)%", max: 100 }
+title: Order of Operations
+briefing: |
+  The battery bank reports the percentage of charge remaining, but it shows
+  impossible numbers. The formula ignores the order in which C evaluates
+  operators.
+lesson: |
+  ### Precedence
+  C evaluates operators with higher **precedence** first:
+
+  | Precedence (high → low) | Operators | Grouping |
+  |---|---|---|
+  | 1 | `( )` parentheses | innermost first |
+  | 2 | unary `-`, `+`, `!`, `++`, `--`, casts | right to left |
+  | 3 | `*` `/` `%` | left to right |
+  | 4 | `+` `-` | left to right |
+  | … | comparisons, `&&`, `||`, `?:` | (later chapters) |
+  | lowest | `=` `+=` `-=` … | right to left |
+
+  So `2 + 3 * 4` is `14`, while `(2 + 3) * 4` is `20`. Operators of the same
+  level group **left to right**: `7 / 2 * 2` is `(7 / 2) * 2` = `6`.
+
+  **If you are not sure, use parentheses.** They cost nothing and make the
+  intention clear to readers.
+
+  ```c example
+  #include <stdio.h>
+
+  int main(void)
+  {
+      printf("%d\n", 2 + 3 * 4);
+      printf("%d\n", (2 + 3) * 4);
+      printf("%d\n", 7 / 2 * 2);
+      printf("%d\n", -2 * -3);
+      return 0;
+  }
+  ```
+success: |
+  `*`, `/` and `%` bind tighter than `+` and `-`; within one level C works left
+  to right. Parentheses make the intended order explicit.
+steps:
+  - id: order-predict
+    type: predict
+    title: Which comes first?
+    prompt: Type exactly what this program prints.
+    code: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int a = 10, b = 4;
+          printf("%d\n", a + b / 2);
+          printf("%d\n", (a + b) / 2);
+          printf("%d\n", a - b - 2);
+          printf("%d\n", a % b * 3);
+          return 0;
+      }
+    answer:
+      kind: output
+      output: "12\n7\n4\n6\n"
+    explanation: |
+      `b / 2` happens before `+` (12). Parentheses force the sum first (7).
+      `a - b - 2` groups left to right: (10 − 4) − 2 = 4. `%` and `*` share a
+      level: (10 % 4) · 3 = 6.
+  - id: main
+    type: code
+    title: Fix the battery formula
+    prompt: |
+      The program reads the battery **capacity** and the amount **used** and
+      should print the percentage remaining (integer arithmetic is fine). For
+      input `200 50` it must print `Remaining: 75%`. Run the tests, look at the
+      wrong values, and fix the formula.
+    stdin: "200 50\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int capacity, used, percent;
+
+          scanf("%d %d", &capacity, &used);
+          percent = capacity - used * 100 / capacity;
+          printf("Remaining: %d%%\n", percent);
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int capacity, used, percent;
+
+          scanf("%d %d", &capacity, &used);
+          percent = (capacity - used) * 100 / capacity;
+          printf("Remaining: %d%%\n", percent);
+          return 0;
+      }
+    explanation: |
+      Without parentheses C computed `capacity - ((used * 100) / capacity)`.
+      The remaining charge is `capacity - used`, which must be computed first,
+      then scaled by 100 and divided by the capacity. (`%%` in printf prints one
+      percent sign.)
+    hints:
+      - "Write the formula on paper: remaining percentage = (what is left) × 100 ÷ capacity."
+      - "Which operation in the current line runs first? Is that what you want?"
+      - "Parentheses force an order: `(a - b) * c / d`."
+      - "`percent = (capacity - used) * 100 / capacity;`"
+      - "The full solution only adds one pair of parentheses."
+    tests:
+      - id: example
+        stdin: "200 50\n"
+        expect: { output: "Remaining: 75%\n" }
+      - id: full
+        stdin: "80 0\n"
+        expect: { output: "Remaining: 100%\n" }
+      - id: empty
+        stdin: "80 80\n"
+        expect: { output: "Remaining: 0%\n" }
+      - id: rounding
+        stdin: "300 100\n"
+        note: Integer division drops the fraction (66.67 -> 66).
+        expect: { output: "Remaining: 66%\n" }

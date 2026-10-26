@@ -1,0 +1,167 @@
+id: sensor-lab/floating-point
+version: 1
+kind: guided
+source:
+  - { lecture: L09, slides: [15, 19, 20, 25] }
+topics: [L09.floating-point, L09.printf-float, L09.basic-types]
+prerequisites: [sensor-lab/type-sizes]
+estimatedMinutes: 18
+objectives:
+  - Explain that float and double store real numbers approximately, like scientific notation.
+  - Read a double with scanf("%lf") and print it with %f, %e, %g and the uppercase %E / %G.
+  - Prefer double unless storage is very limited.
+world:
+  scene: gauges
+  label: ENERGY DISPLAY
+  gauges:
+    - { label: Reading, pattern: "general:\\s*(\\S+)", max: 1000000 }
+title: Floating Points
+briefing: |
+  The lab's energy display can show a reading in three styles, but its program
+  only knows whole numbers. Real measurements have fractions — use
+  floating-point types.
+lesson: |
+  ### float and double
+  Real numbers such as `21.5` or `2.9979e8` are stored in **floating-point**
+  types:
+
+  * `float` — single precision (usually 32 bits, about 7 significant digits)
+  * `double` — double precision (usually 64 bits, about 15–16 significant digits)
+
+  **Use `double`** unless you are really short of memory.
+
+  ### How they are stored
+  A floating-point number is stored like scientific notation: a fixed number
+  of **significant digits** times a **base** to some **exponent**
+  (`significand × base^exponent`). The base is almost always 2. The point
+  "floats" because the exponent says where it goes. A consequence: most
+  decimal fractions, such as 0.1, **cannot be stored exactly** — only a very
+  close binary approximation.
+
+  `2.9979e8` in C code means 2.9979 × 10⁸.
+
+  ### Printing with printf
+  | Conversion | Shows | 1234.5 prints as |
+  |---|---|---|
+  | `%f` | fixed point, 6 decimals | `1234.500000` |
+  | `%e` | scientific `d.dddddde±xx` | `1.234500e+03` |
+  | `%g` | the shorter of %f / %e style, no trailing zeros | `1234.5` |
+  | `%E`, `%G` | like %e / %g but with a capital `E` | `1.234500E+03` |
+
+  For printf, `%f`, `%e` and `%g` work for both `float` and `double` (a float
+  is converted to double when passed to printf). `%.2f` limits the output to 2
+  decimals.
+
+  ### Reading a double
+  `scanf` is different: to read into a **double** use **`%lf`** (letter L);
+  `%f` is for **float**. The next missions practise this.
+
+  ```c example stdin=0.1
+  #include <stdio.h>
+
+  int main(void)
+  {
+      double x;
+      scanf("%lf", &x);
+      printf("%f | %e | %g | %.2f\n", x, x, x, x);
+      return 0;
+  }
+  ```
+success: |
+  Floating-point values are approximations stored as significand × 2^exponent.
+  printf shows them as fixed (`%f`), scientific (`%e`, `%E`) or general
+  (`%g`, `%G`) notation; scanf reads a double with `%lf`.
+steps:
+  - id: approx-predict
+    type: predict
+    title: Is 0.1 + 0.2 exactly 0.3?
+    prompt: |
+      `%.17g` prints 17 significant digits — enough to reveal the stored
+      value. What does this program print?
+    code: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          double sum = 0.1 + 0.2;
+          printf("%.17g\n", sum);
+          return 0;
+      }
+    answer:
+      kind: choice
+      choices:
+        - "0.3"
+        - "0.30000000000000000"
+        - "0.30000000000000004"
+        - "0.29999999999999999"
+      correct: 2
+      actualOutput: "0.30000000000000004\n"
+    explanation: |
+      Neither 0.1 nor 0.2 can be stored exactly in binary, and their sum is a
+      tiny bit above 0.3. This is normal for floating-point arithmetic — and
+      the reason the game's tests compare real numbers with a small tolerance.
+  - id: main
+    type: code
+    title: Three display styles
+    prompt: |
+      Read one reading as a `double` and print it in four styles. For input
+      `1234.5`:
+
+      ```
+      fixed: 1234.500000
+      scientific: 1.234500e+03
+      general: 1234.5
+      SCIENTIFIC: 1.234500E+03
+      ```
+    stdin: "1234.5\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          double reading;
+
+          scanf("%lf", &reading);
+          printf("fixed: %f\n", reading);
+          /* print the scientific, general and SCIENTIFIC lines */
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          double reading;
+
+          scanf("%lf", &reading);
+          printf("fixed: %f\n", reading);
+          printf("scientific: %e\n", reading);
+          printf("general: %g\n", reading);
+          printf("SCIENTIFIC: %E\n", reading);
+          return 0;
+      }
+    explanation: |
+      The same double value is printed four times with different conversions:
+      `%f`, `%e`, `%g` and `%E`. The value does not change — only its text form.
+    hints:
+      - "Each style is a different conversion letter after %."
+      - "Add three printf lines that look like the fixed line, with a different label and conversion each."
+      - "Scientific is `%e`, general is `%g`, and capital-E scientific is `%E`."
+      - "`printf(\"scientific: %e\\n\", reading);` then the same with %g and %E."
+      - "The full solution prints the value with %f, %e, %g and %E."
+    tests:
+      - id: example
+        stdin: "1234.5\n"
+        expect: { output: "fixed: 1234.500000\nscientific: 1.234500e+03\ngeneral: 1234.5\nSCIENTIFIC: 1.234500E+03\n" }
+      - id: small
+        stdin: "0.000123\n"
+        note: Small values.
+        expect: { output: "fixed: 0.000123\nscientific: 1.230000e-04\ngeneral: 0.000123\nSCIENTIFIC: 1.230000E-04\n" }
+      - id: light
+        stdin: "2.9979e8\n"
+        note: Input may itself be in scientific notation.
+        expect: { output: "fixed: 299790000.000000\nscientific: 2.997900e+08\ngeneral: 2.9979e+08\nSCIENTIFIC: 2.997900E+08\n" }
+      - id: negative
+        stdin: "-7.25\n"
+        expect: { output: "fixed: -7.250000\nscientific: -7.250000e+00\ngeneral: -7.25\nSCIENTIFIC: -7.250000E+00\n" }

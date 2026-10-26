@@ -1,0 +1,136 @@
+id: automation-works/runaway-loop
+version: 1
+kind: debug
+source:
+  - { lecture: L10, slides: [4] }
+topics: [L10.while]
+prerequisites: [automation-works/while-batches]
+estimatedMinutes: 12
+objectives:
+  - Recognise an infinite loop and explain why it never ends.
+  - Stop a runaway program and fix the missing update.
+  - Use while (1) with a deliberate exit only when you mean it.
+world:
+  scene: terminal
+  label: COUNTDOWN PRESS
+  goal: Count down and stop
+title: The Runaway Press
+briefing: |
+  The stamping press should count down its remaining crates and stop. Instead
+  it runs forever. In the game, runaway programs are stopped automatically
+  after a few seconds — you can also press **Stop**.
+lesson: |
+  ### Infinite loops
+  A loop whose condition never becomes false runs **forever**. Common causes:
+
+  * the update is missing (`count` never changes);
+  * the update goes the wrong way (`count++` instead of `count--`);
+  * the condition can never be false (`while (x != 10)` while `x` jumps
+    from 9 to 11).
+
+  On your own computer, press **Ctrl+C** in the terminal to stop a runaway
+  program. In this game, each run has a time limit (3 seconds) and an output
+  limit, and **Stop** ends it at once — your browser never freezes.
+
+  ### Deliberate endless loops
+  `while (1)` (or `for (;;)`) is sometimes used on purpose, for example in a
+  machine controller that should run until it is switched off. Such loops end
+  through a `break` statement — you will meet it soon.
+success: |
+  A loop needs an update that moves it toward its end. When a program seems to
+  hang, look for a loop whose condition never changes — and in the game, use
+  Stop.
+steps:
+  - id: main
+    type: code
+    title: Stop the runaway press
+    prompt: |
+      Run the program: it never finishes (the game stops it after 3 seconds).
+      Fix it so that for input `3` it prints:
+
+      ```
+      Crates left: 3
+      Crates left: 2
+      Crates left: 1
+      Press stopped
+      ```
+    stdin: "3\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int crates;
+
+          scanf("%d", &crates);
+          while (crates > 0) {
+              printf("Crates left: %d\n", crates);
+          }
+          printf("Press stopped\n");
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int crates;
+
+          scanf("%d", &crates);
+          while (crates > 0) {
+              printf("Crates left: %d\n", crates);
+              crates--;
+          }
+          printf("Press stopped\n");
+          return 0;
+      }
+    explanation: |
+      `crates--` reduces the count each time, so `crates > 0` eventually becomes
+      false and the loop ends.
+    hints:
+      - "Nothing inside the loop changes the value that the condition tests."
+      - "Each pass through the loop handles one crate, so the count should go down by one."
+      - "Decrement: `crates--;`"
+      - "Add `crates--;` after the printf inside the loop."
+      - "The full solution adds one statement."
+    tests:
+      - id: three
+        stdin: "3\n"
+        expect: { output: "Crates left: 3\nCrates left: 2\nCrates left: 1\nPress stopped\n" }
+      - id: zero
+        stdin: "0\n"
+        note: The loop body never runs.
+        expect: { output: "Press stopped\n" }
+      - id: one
+        stdin: "1\n"
+        expect: { output: "Crates left: 1\nPress stopped\n" }
+    wrong:
+      - code: |
+          #include <stdio.h>
+          int main(void)
+          {
+              int crates;
+              scanf("%d", &crates);
+              while (crates > 0) {
+                  printf("Crates left: %d\n", crates);
+                  crates++;
+              }
+              printf("Press stopped\n");
+              return 0;
+          }
+        why: update in the wrong direction (signed overflow is caught, or the loop runs too long)
+      - code: |
+          #include <stdio.h>
+          int main(void)
+          {
+              int crates;
+              scanf("%d", &crates);
+              while (crates > 0) {
+                  int dummy = 0;
+                  dummy++;
+              }
+              printf("Press stopped\n");
+              return 0;
+          }
+        why: silent infinite loop - must time out
+        expect: timeout

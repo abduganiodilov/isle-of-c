@@ -1,0 +1,115 @@
+id: control-center/signum
+version: 1
+kind: guided
+source:
+  - { lecture: L09, slides: [36, 39] }
+topics: [L09.signum, L09.if-statement]
+prerequisites: [control-center/assign-vs-equal]
+estimatedMinutes: 12
+objectives:
+  - Build an else-if chain with three outcomes.
+  - Implement the signum function from the lecture.
+world:
+  scene: sorter
+  label: SENSOR CLASSIFIER
+  bins:
+    - { label: "-1", match: "signum = -1" }
+    - { label: "0", match: "signum = 0" }
+    - { label: "1", match: "signum = 1" }
+title: Three-Way Decisions
+briefing: |
+  The pressure sensors report positive, zero or negative drift. The classifier
+  must sort each reading into one of three bins: the **signum** of the value.
+lesson: |
+  ### else if
+  C has no special `elseif` keyword. Because `else` can be followed by *any*
+  statement — including another `if` — you can chain decisions:
+
+  ```c
+  if (x > 0)
+      signum = 1;
+  else if (x == 0)
+      signum = 0;
+  else
+      signum = -1;
+  ```
+
+  The conditions are tested from top to bottom; the first true one wins, and
+  the final `else` catches everything left.
+
+  > [!correction] Slide 36 asks how to implement "elseif" since C lacks it.
+  > The answer is above: `else if` is simply an `else` whose statement is
+  > another `if`.
+
+  The signum function: sgn(x) = 1 if x > 0, 0 if x = 0, −1 if x < 0.
+success: |
+  An `else if` chain tests conditions in order and runs exactly one branch.
+  The signum classifier sorts every reading into −1, 0 or 1.
+steps:
+  - id: main
+    type: code
+    title: Classify the drift
+    prompt: |
+      Complete the lecture's signum program: read a `double` and print its
+      signum. For input `-3.5`:
+
+      ```
+      signum = -1
+      ```
+    stdin: "-3.5\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          double x;
+          int signum;
+
+          printf("Input x: ");
+          scanf("%lf", &x);
+          if (x > 0) signum = 1;
+          /* add the two other cases */
+
+          printf("signum = %d\n", signum);
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          double x;
+          int signum;
+
+          printf("Input x: ");
+          scanf("%lf", &x);
+          if (x > 0) signum = 1;
+          else if (x == 0) signum = 0;
+          else signum = -1;
+
+          printf("signum = %d\n", signum);
+          return 0;
+      }
+    explanation: |
+      The chain checks `x > 0`, then `x == 0`; anything else must be negative.
+      Every path assigns `signum`, so it is never used uninitialised.
+    hints:
+      - "There are three cases; the first one is done."
+      - "Continue the if with `else if` for zero, and a final `else` for negative values."
+      - "`else if (x == 0) signum = 0;`"
+      - "Then `else signum = -1;`"
+      - "The full solution is the lecture's signum program."
+    tests:
+      - id: negative
+        stdin: "-3.5\n"
+        expect: { contains: ["signum = -1"] }
+      - id: zero
+        stdin: "0\n"
+        expect: { contains: ["signum = 0"] }
+      - id: positive
+        stdin: "2\n"
+        expect: { contains: ["signum = 1"] }
+      - id: tiny
+        stdin: "0.0001\n"
+        note: Small but positive.
+        expect: { contains: ["signum = 1"] }

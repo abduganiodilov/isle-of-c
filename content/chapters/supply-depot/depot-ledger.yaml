@@ -1,0 +1,122 @@
+id: supply-depot/depot-ledger
+version: 1
+kind: chapter-challenge
+source:
+  - { lecture: L09, slides: [27, 28, 30, 31] }
+topics: [L09.arithmetic, L09.type-conversion, L09.compound-assignment]
+prerequisites: [supply-depot/feet-to-cm]
+estimatedMinutes: 15
+objectives:
+  - Combine integer division, remainder, casts and compound assignment in one program.
+  - Format a percentage with one decimal place.
+world:
+  scene: gauges
+  label: DEPOT LEDGER
+  gauges:
+    - { label: Per drone, pattern: "Each drone: (-?\\d+)", max: 100 }
+    - { label: Reserve, pattern: "Reserve: (-?\\d+)", max: 50 }
+title: "Chapter Challenge: Depot Ledger"
+briefing: |
+  Supply drones leave the depot with equal loads. The ledger must report each
+  drone's load, the reserve left behind, each drone's share as a percentage,
+  and the reserve after a safety top-up.
+lesson: |
+  Everything here was taught in this chapter: integer `/` and `%`, casts to
+  double, `%.1f`, and compound assignment. Plan the calculations before you
+  type. (`%%` in a printf string prints a percent sign.)
+success: |
+  Your ledger used integer division for whole loads, `%` for the reserve, a
+  cast for an exact percentage, and compound assignment for the top-up. The
+  Supply Depot is fully operational.
+steps:
+  - id: main
+    type: code
+    title: Write the ledger
+    prompt: |
+      Read the total supply units and the number of drones (both ints, drones ≥ 1).
+      Print four lines. For input `100 3`:
+
+      ```
+      Each drone: 33 units
+      Reserve: 1 units
+      Share per drone: 33.0%
+      Reserve after top-up: 11 units
+      ```
+
+      * **Share per drone** = load ÷ total × 100, with one decimal (if the total
+        is 0, the tests never ask).
+      * The top-up adds 10 units to the reserve.
+    stdin: "100 3\n"
+    starter: |
+      /* Depot ledger */
+      #include <stdio.h>
+
+      int main(void)
+      {
+
+          return 0;
+      }
+    solution: |
+      /* Depot ledger */
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int total, drones;
+          int load, reserve;
+          double share;
+
+          scanf("%d %d", &total, &drones);
+          load = total / drones;
+          reserve = total % drones;
+          share = (double) load / total * 100;
+
+          printf("Each drone: %d units\n", load);
+          printf("Reserve: %d units\n", reserve);
+          printf("Share per drone: %.1f%%\n", share);
+          reserve += 10;
+          printf("Reserve after top-up: %d units\n", reserve);
+          return 0;
+      }
+    explanation: |
+      `/` and `%` split the total into equal loads and a reserve. The cast
+      `(double) load` prevents integer division in the percentage. `reserve += 10`
+      updates the reserve in place.
+    hints:
+      - "Two values come from integer division and remainder; the percentage needs floating-point division."
+      - "Compute load, reserve and share first, then print. Do the top-up with a compound assignment before the last line."
+      - "`share = (double) load / total * 100;` and `printf(\"%.1f%%\\n\", share);`"
+      - "`load = total / drones; reserve = total % drones; ... reserve += 10;`"
+      - "The full solution prints the four lines in order."
+    tests:
+      - id: example
+        stdin: "100 3\n"
+        expect: { output: "Each drone: 33 units\nReserve: 1 units\nShare per drone: 33.0%\nReserve after top-up: 11 units\n" }
+      - id: even
+        stdin: "80 4\n"
+        expect: { output: "Each drone: 20 units\nReserve: 0 units\nShare per drone: 25.0%\nReserve after top-up: 10 units\n" }
+      - id: small
+        stdin: "7 3\n"
+        expect: { output: "Each drone: 2 units\nReserve: 1 units\nShare per drone: 28.6%\nReserve after top-up: 11 units\n" }
+      - id: single
+        stdin: "45 1\n"
+        expect: { output: "Each drone: 45 units\nReserve: 0 units\nShare per drone: 100.0%\nReserve after top-up: 10 units\n" }
+    wrong:
+      - code: |
+          #include <stdio.h>
+          int main(void)
+          {
+              int total, drones;
+              scanf("%d %d", &total, &drones);
+              int load = total / drones;
+              int reserve = total % drones;
+              double share = load / total * 100;
+              printf("Each drone: %d units\n", load);
+              printf("Reserve: %d units\n", reserve);
+              printf("Share per drone: %.1f%%\n", share);
+              reserve += 10;
+              printf("Reserve after top-up: %d units\n", reserve);
+              return 0;
+          }
+        why: integer division in the percentage
+        expect: outputMismatch

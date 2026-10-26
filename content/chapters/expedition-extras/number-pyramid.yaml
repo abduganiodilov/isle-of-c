@@ -1,0 +1,86 @@
+id: expedition-extras/number-pyramid
+version: 1
+kind: mastery
+optional: true
+source:
+  - { lecture: L10, slides: [13] }
+topics: [L10.times-table]
+prerequisites: [automation-works/factory-shift]
+estimatedMinutes: 15
+objectives:
+  - Use an inner loop whose length depends on the outer loop variable.
+world:
+  scene: table
+  label: STACKING YARD
+  goal: Stack the crates in a pyramid
+title: Crate Pyramid
+briefing: |
+  Crates in the stacking yard are piled as a staircase: row 1 has one crate,
+  row 2 has two, and so on. Print the stacking plan.
+lesson: |
+  In the multiplication table both loops had the same length. Here the inner
+  loop runs `row` times — it depends on the outer loop's variable:
+
+  ```c
+  for (row = 1; row <= n; row++)
+      for (col = 1; col <= row; col++)
+          ...
+  ```
+success: |
+  An inner loop bounded by the outer loop variable produced the triangle.
+steps:
+  - id: main
+    type: code
+    title: Print the pyramid
+    prompt: |
+      Read `n` and print `n` rows; row `r` contains the numbers 1 to r
+      separated by single spaces. For input `4`:
+
+      ```
+      1
+      1 2
+      1 2 3
+      1 2 3 4
+      ```
+    stdin: "4\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int n, row, col;
+
+          scanf("%d", &n);
+          for (row = 1; row <= n; row++) {
+              for (col = 1; col <= row; col++) {
+                  if (col > 1) {
+                      printf(" ");
+                  }
+                  printf("%d", col);
+              }
+              printf("\n");
+          }
+          return 0;
+      }
+    explanation: |
+      The inner loop's bound is `row`. Printing the space before every number
+      except the first avoids a trailing space.
+    hints:
+      - "Row r has r numbers: the inner loop depends on the outer variable."
+      - "Outer loop over rows 1..n, inner loop 1..row, newline after each inner loop."
+      - "`for (col = 1; col <= row; col++)`"
+      - "Print a space before each number except the first: `if (col > 1) printf(\" \");`"
+      - "The full solution uses two nested for loops."
+    tests:
+      - { id: four, stdin: "4\n", expect: { output: "1\n1 2\n1 2 3\n1 2 3 4\n" } }
+      - { id: one, stdin: "1\n", expect: { output: "1\n" } }
+      - { id: zero, stdin: "0\n", expect: { output: "" } }
+      - { id: six, stdin: "6\n", expect: { lines: ["1 2 3 4 5 6"], exactLineCount: false } }

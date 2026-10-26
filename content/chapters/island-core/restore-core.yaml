@@ -1,0 +1,291 @@
+id: island-core/restore-core
+version: 1
+kind: capstone
+source:
+  - { lecture: L09, slides: [12, 21, 32, 39, 43] }
+  - { lecture: L10, slides: [4, 7, 17, 21, 26, 33] }
+topics: [L09.scanf-address, L09.printf-float, L09.if-statement, L09.switch, L09.logical, L10.while, L10.for-syntax, L10.decomposition, L10.distance-function, L10.digit-root, L10.function-anatomy]
+prerequisites: [core-systems/modular-control]
+estimatedMinutes: 60
+objectives:
+  - Design and write a complete program that combines input/output, calculations, decisions, loops and functions.
+  - Decompose a larger problem into functions and test it step by step through checkpoints.
+world:
+  scene: core
+  checkpoints:
+    - Read every station report
+    - Compute distances to the core
+    - Classify stations and verify IDs
+    - Write the core summary
+title: Restore the Island Core
+briefing: |
+  Every station on the island sends one report to the Core: its ID, its
+  position and its energy level. The Core must list each station with its
+  distance, status and checksum, then summarise the island and decide whether
+  it can come online. Write the Core's program yourself.
+lesson: |
+  This is the **capstone**. It uses only what the lectures taught, but you
+  decide how to structure it. The tests are grouped into four
+  **checkpoints**, so you can build the program step by step and see
+  progress — each checkpoint lights up a ring of the Core.
+
+  Suggested approach (top-down):
+
+  1. **Read**: read `n`, then loop `n` times reading one report per
+     iteration, and print a line for each station.
+  2. **Distance**: write `double distance(double x1, double y1, double x2,
+     double y2)`; the Core is at (0, 0).
+  3. **Classify**: write `int classify(int level)` returning a status code,
+     and use a `switch` to print the status name. Reuse `digit_sum` /
+     `digit_root` from the previous chapter for the checksum.
+  4. **Summarise**: count the statuses while looping, and remember the
+     nearest critical station.
+
+  Hints are available, but try each checkpoint on your own first.
+success: |
+  You integrated the whole course so far: formatted input and output,
+  arithmetic with ints and doubles, decisions with if/else and switch, a loop
+  over input, and functions with clear interfaces. The Island Core is online.
+steps:
+  - id: main
+    type: code
+    title: Write the Core program
+    prompt: |
+      **Input:** `n`, then `n` reports `id x y level` (id: int, x and y:
+      double, level: int).
+
+      **Output:** one line per station, in input order:
+
+      ```
+      Station <id>: distance <d>, level <level>, status <STATUS>, check <c>
+      ```
+
+      * `<d>` — distance from the Core at (0, 0), with `%.2f`
+      * `<STATUS>` — `FAULT` if level < 0, `LOW` if 0–49, `NORMAL` if 50–89,
+        `CRITICAL` if 90 or more
+      * `<c>` — the digit root of the ID (the ID is never negative)
+
+      Then three summary lines:
+
+      ```
+      Summary: <a> normal, <b> low, <c> critical, <d> fault
+      Nearest critical: <id of the closest CRITICAL station, or none>
+      Core status: <ONLINE if there are no CRITICAL and no FAULT stations, otherwise ATTENTION>
+      ```
+
+      Example input:
+
+      ```
+      3
+      7 3 4 55
+      12 -6 8 95
+      305 1 1 20
+      ```
+
+      Example output:
+
+      ```
+      Station 7: distance 5.00, level 55, status NORMAL, check 7
+      Station 12: distance 10.00, level 95, status CRITICAL, check 3
+      Station 305: distance 1.41, level 20, status LOW, check 8
+      Summary: 1 normal, 1 low, 1 critical, 0 fault
+      Nearest critical: 12
+      Core status: ATTENTION
+      ```
+    stdin: "3\n7 3 4 55\n12 -6 8 95\n305 1 1 20\n"
+    timeoutMs: 4000
+    starter: |
+      /*
+       * Island Core program.
+       * Plan: read n reports in a loop; for each, compute the distance,
+       * classify the level and compute the ID checksum; print the station
+       * line; count statuses; then print the summary.
+       */
+      #include <stdio.h>
+      #include <math.h>
+
+      int main(void)
+      {
+
+          return 0;
+      }
+    solution: |
+      /*
+       * Island Core program.
+       * Reads n station reports and prints a status line for each,
+       * followed by a summary of the whole island.
+       */
+      #include <stdio.h>
+      #include <math.h>
+
+      double distance(double x1, double y1, double x2, double y2);
+      int classify(int level);
+      void print_status(int code);
+      int digit_sum(int n);
+      int digit_root(int n);
+
+      int main(void)
+      {
+          int n, i;
+          int id, level, code;
+          double x, y, d;
+          int normal = 0, low = 0, critical = 0, fault = 0;
+          int nearestId = -1;
+          double nearestDistance = 0;
+
+          scanf("%d", &n);
+          for (i = 0; i < n; i++) {
+              scanf("%d %lf %lf %d", &id, &x, &y, &level);
+              d = distance(x, y, 0, 0);
+              code = classify(level);
+
+              printf("Station %d: distance %.2f, level %d, status ", id, d, level);
+              print_status(code);
+              printf(", check %d\n", digit_root(id));
+
+              switch (code) {
+              case 0: fault++; break;
+              case 1: low++; break;
+              case 2: normal++; break;
+              case 3:
+                  critical++;
+                  if (nearestId == -1 || d < nearestDistance) {
+                      nearestId = id;
+                      nearestDistance = d;
+                  }
+                  break;
+              }
+          }
+
+          printf("Summary: %d normal, %d low, %d critical, %d fault\n", normal, low, critical, fault);
+          if (nearestId == -1) {
+              printf("Nearest critical: none\n");
+          } else {
+              printf("Nearest critical: %d\n", nearestId);
+          }
+          if (critical == 0 && fault == 0) {
+              printf("Core status: ONLINE\n");
+          } else {
+              printf("Core status: ATTENTION\n");
+          }
+          return 0;
+      }
+
+      double distance(double x1, double y1, double x2, double y2)
+      {
+          return sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+      }
+
+      /* 0 = FAULT, 1 = LOW, 2 = NORMAL, 3 = CRITICAL */
+      int classify(int level)
+      {
+          if (level < 0) {
+              return 0;
+          } else if (level < 50) {
+              return 1;
+          } else if (level < 90) {
+              return 2;
+          }
+          return 3;
+      }
+
+      void print_status(int code)
+      {
+          switch (code) {
+          case 0: printf("FAULT"); break;
+          case 1: printf("LOW"); break;
+          case 2: printf("NORMAL"); break;
+          default: printf("CRITICAL"); break;
+          }
+      }
+
+      int digit_sum(int n)
+      {
+          int sum = 0;
+          while (n > 0) {
+              sum += n % 10;
+              n /= 10;
+          }
+          return sum;
+      }
+
+      int digit_root(int n)
+      {
+          while (n >= 10) {
+              n = digit_sum(n);
+          }
+          return n;
+      }
+    explanation: |
+      The program is decomposed into small functions: `distance` (geometry),
+      `classify` (decision → code), `print_status` (code → text with a
+      switch) and `digit_root` (loop). `main` is the plan: one loop reads and
+      reports each station while updating the counters and the nearest critical
+      station; the summary follows the loop.
+    hints:
+      - "Build it checkpoint by checkpoint: first just read the reports in a loop and print 'Station <id>:' for each."
+      - "Add one function at a time: distance (checkpoint 2), classify + digit_root (checkpoint 3), then counters in the loop and the summary after it (checkpoint 4)."
+      - "Read a report with `scanf(\"%d %lf %lf %d\", &id, &x, &y, &level);` For the nearest critical station keep two variables: its id (start at -1) and its distance."
+      - "Inside the loop: `d = distance(x, y, 0, 0); code = classify(level);` then print the line and update the counter for code with a switch."
+      - "The full solution shows one possible structure; others pass the tests too."
+    tests:
+      - id: cp1-read
+        checkpoint: 1
+        stdin: "3\n7 3 4 55\n12 -6 8 95\n305 1 1 20\n"
+        note: Every station gets a line, in input order.
+        expect: { contains: ["Station 7:", "Station 12:", "Station 305:"], exitCode: 0 }
+      - id: cp1-single
+        checkpoint: 1
+        stdin: "1\n42 0 0 0\n"
+        expect: { contains: ["Station 42:"] }
+      - id: cp2-distance
+        checkpoint: 2
+        stdin: "3\n7 3 4 55\n12 -6 8 95\n305 1 1 20\n"
+        note: Distances to (0, 0) with two decimals.
+        expect: { contains: ["Station 7: distance 5.00", "Station 12: distance 10.00", "Station 305: distance 1.41"] }
+      - id: cp2-origin
+        checkpoint: 2
+        stdin: "2\n1 0 0 10\n2 -0.5 1.2 10\n"
+        expect: { contains: ["Station 1: distance 0.00", "Station 2: distance 1.30"] }
+      - id: cp3-lines
+        checkpoint: 3
+        stdin: "3\n7 3 4 55\n12 -6 8 95\n305 1 1 20\n"
+        expect:
+          lines:
+            - "Station 7: distance 5.00, level 55, status NORMAL, check 7"
+            - "Station 12: distance 10.00, level 95, status CRITICAL, check 3"
+            - "Station 305: distance 1.41, level 20, status LOW, check 8"
+      - id: cp3-boundaries
+        checkpoint: 3
+        stdin: "5\n1 0 0 -1\n2 0 0 0\n3 0 0 49\n4 0 0 50\n99999 0 0 90\n"
+        note: Boundary levels -1, 0, 49, 50 and 90.
+        expect:
+          lines:
+            - "Station 1: distance 0.00, level -1, status FAULT, check 1"
+            - "Station 2: distance 0.00, level 0, status LOW, check 2"
+            - "Station 3: distance 0.00, level 49, status LOW, check 3"
+            - "Station 4: distance 0.00, level 50, status NORMAL, check 4"
+            - "Station 99999: distance 0.00, level 90, status CRITICAL, check 9"
+      - id: cp4-example
+        checkpoint: 4
+        stdin: "3\n7 3 4 55\n12 -6 8 95\n305 1 1 20\n"
+        expect: { output: "Station 7: distance 5.00, level 55, status NORMAL, check 7\nStation 12: distance 10.00, level 95, status CRITICAL, check 3\nStation 305: distance 1.41, level 20, status LOW, check 8\nSummary: 1 normal, 1 low, 1 critical, 0 fault\nNearest critical: 12\nCore status: ATTENTION\n" }
+      - id: cp4-online
+        checkpoint: 4
+        stdin: "2\n10 1 0 60\n20 0 2 30\n"
+        note: No critical or faulty stations.
+        expect: { lines: ["Summary: 1 normal, 1 low, 0 critical, 0 fault", "Nearest critical: none", "Core status: ONLINE"] }
+      - id: cp4-nearest
+        checkpoint: 4
+        stdin: "4\n5 10 0 95\n6 2 0 99\n8 1 0 30\n9 -3 0 100\n"
+        note: The nearest critical station is not the first one.
+        expect: { lines: ["Summary: 0 normal, 1 low, 3 critical, 0 fault", "Nearest critical: 6", "Core status: ATTENTION"] }
+      - id: cp4-fault
+        checkpoint: 4
+        stdin: "2\n3 0 1 -5\n4 1 0 70\n"
+        expect: { lines: ["Summary: 1 normal, 0 low, 0 critical, 1 fault", "Nearest critical: none", "Core status: ATTENTION"] }
+      - id: cp4-empty
+        checkpoint: 4
+        stdin: "0\n"
+        note: An island with no reports.
+        expect: { output: "Summary: 0 normal, 0 low, 0 critical, 0 fault\nNearest critical: none\nCore status: ONLINE\n" }

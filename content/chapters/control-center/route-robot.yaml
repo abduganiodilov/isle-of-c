@@ -1,0 +1,145 @@
+id: control-center/route-robot
+version: 1
+kind: guided
+source:
+  - { lecture: L09, slides: [36, 38] }
+topics: [L09.if-statement, L09.relational]
+prerequisites: [control-center/blocks-and-scope]
+estimatedMinutes: 12
+objectives:
+  - Write an if/else statement that chooses between two actions.
+  - Use the relational operators < <= > >= in a condition.
+  - Test the boundary value of a condition.
+world:
+  scene: sorter
+  label: ROUTE GATE
+  bins:
+    - { label: STOP, match: "\\bSTOP\\b" }
+    - { label: GO, match: "\\bGO\\b" }
+title: Route the Robot
+briefing: |
+  A narrow bridge leads to the control center. PIP-7's distance sensor reports
+  how far the next obstacle is. Too close: stop. Otherwise: go.
+lesson: |
+  ### if and else
+  ```c
+  if (condition)
+      statement;            /* runs only when the condition is true */
+
+  if (condition) {
+      statements;           /* true branch */
+  } else {
+      statements;           /* false branch */
+  }
+  ```
+
+  The condition goes in **parentheses**. With more than one statement in a
+  branch, use a **block** `{ }`. Many programmers always use braces — it
+  avoids mistakes when a second statement is added later.
+
+  ### Relational operators
+  | Operator | Meaning | Example |
+  |---|---|---|
+  | `<` | less than | `a < 1` |
+  | `<=` | less than or equal | `a <= 1` |
+  | `>` | greater than | `a > 1` |
+  | `>=` | greater than or equal | `a >= 1` |
+  | `==` | equal to | `a == 1` |
+  | `!=` | not equal to | `a != 1` |
+
+  ```c example stdin=72
+  #include <stdio.h>
+
+  int main(void)
+  {
+      int temperature;
+      scanf("%d", &temperature);
+      if (temperature > 60) {
+          printf("Too hot\n");
+      } else {
+          printf("Temperature OK\n");
+      }
+      return 0;
+  }
+  ```
+
+  > [!tip] Always test the **boundary**: if the rule is "below 50", try 49
+  > and 50.
+success: |
+  `if (condition) ... else ...` chooses exactly one of two branches. The
+  boundary test (50) checked that you used `<` rather than `<=`.
+steps:
+  - id: main
+    type: code
+    title: Stop or go?
+    prompt: |
+      Read the obstacle distance in centimetres (an int). If it is **less than
+      50**, print `STOP`; otherwise print `GO`.
+    stdin: "30\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int distance;
+
+          scanf("%d", &distance);
+          if (distance < 50) {
+              printf("STOP\n");
+          }
+          /* add the else branch */
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int distance;
+
+          scanf("%d", &distance);
+          if (distance < 50) {
+              printf("STOP\n");
+          } else {
+              printf("GO\n");
+          }
+          return 0;
+      }
+    explanation: |
+      Exactly one branch runs: `STOP` when `distance < 50`, `GO` in every other
+      case, including exactly 50.
+    hints:
+      - "Two outcomes: one when the condition holds, one when it does not."
+      - "Add an else branch after the closing brace of the if."
+      - "`} else { printf(\"GO\\n\"); }`"
+      - "The complete statement: `if (distance < 50) { printf(\"STOP\\n\"); } else { printf(\"GO\\n\"); }`"
+      - "The full solution adds the else branch."
+    tests:
+      - id: close
+        stdin: "10\n"
+        expect: { lines: ["STOP"], exactLineCount: true }
+      - id: just-below
+        stdin: "49\n"
+        note: Boundary - 49 is less than 50.
+        expect: { lines: ["STOP"], exactLineCount: true }
+      - id: boundary
+        stdin: "50\n"
+        note: Boundary - 50 is not less than 50.
+        expect: { lines: ["GO"], exactLineCount: true }
+      - id: far
+        stdin: "200\n"
+        expect: { lines: ["GO"], exactLineCount: true }
+    wrong:
+      - code: |
+          #include <stdio.h>
+          int main(void)
+          {
+              int distance;
+              scanf("%d", &distance);
+              if (distance <= 50) printf("STOP\n");
+              else printf("GO\n");
+              return 0;
+          }
+        why: off by one at the boundary
+        expect: missingLine

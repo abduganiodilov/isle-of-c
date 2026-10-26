@@ -1,0 +1,139 @@
+id: supply-depot/forbidden-expression
+version: 1
+kind: debug
+source:
+  - { lecture: L09, slides: [29, 47] }
+topics: [L09.increment, L09.style-example]
+prerequisites: [supply-depot/increment]
+estimatedMinutes: 15
+objectives:
+  - Recognise undefined behaviour caused by modifying a variable twice in one expression.
+  - Explain why such an expression has no correct "answer".
+  - Rewrite it as separate, well-defined statements that express the intended calculation.
+world:
+  scene: gauges
+  label: SEALED TERMINAL
+  gauges:
+    - { label: Total, pattern: "total = (-?\\d+)", max: 60 }
+title: The Forbidden Expression
+briefing: |
+  In a sealed depot office PIP-7 finds a terminal running
+  `(++i) + (i++) + (++i)`. Different machines on the island print different
+  results for it. Find out why — and replace it with code that means something.
+lesson: |
+  ### Undefined behaviour
+  Some C programs have **undefined behaviour** (UB): the C standard places
+  *no requirements* on what happens. Any output, a crash, or code that seems to
+  work today and fails tomorrow are all "allowed".
+
+  One source of UB: **modifying the same variable more than once in one
+  expression** (or modifying it and also reading it elsewhere in the same
+  expression), because C does not fix the order in which the parts are
+  evaluated. Examples:
+
+  ```c
+  i = i++ + 1;              /* undefined */
+  x = (++i) + (i++) + (++i);  /* undefined */
+  printf("%d %d", i, i++);  /* undefined: argument order is not specified */
+  ```
+
+  The compiler warns: *multiple unsequenced modifications to 'i'*. Different
+  compilers — or the same compiler with different options — really do produce
+  different numbers.
+
+  > [!correction] Slide 47 shows `(++i)+(i++)+(++i)` as a style example. It
+  > is worse than bad style: it is **undefined behaviour**, so there is no
+  > correct result to predict, and the game will never ask you to predict one.
+
+  ### The fix: one change per statement
+  Split the work into statements. Each statement finishes completely before
+  the next begins, so the order is fixed.
+success: |
+  An expression that modifies a variable twice (or modifies and reads it) has
+  undefined behaviour — no value is "correct". Writing one change per
+  statement makes the order explicit and the result well defined.
+steps:
+  - id: ub-quiz
+    type: quiz
+    title: What is the value?
+    question: "`int i = 1; int x = (++i) + (i++) + (++i);` — what is the value of x according to the C standard?"
+    choices:
+      - "8"
+      - "9"
+      - "7"
+      - "There is no correct value: the behaviour is undefined"
+    correct: 3
+    explanation: |
+      Because `i` is modified three times without any sequencing between the
+      modifications, the standard does not define the behaviour. A compiler
+      might print 8, 9, 7 or something else, and none of them is "the answer".
+  - id: main
+    type: code
+    title: Make it well defined
+    prompt: |
+      The original programmer **intended** this calculation, done step by step:
+
+      1. increase `i` by one and add the new `i` to `total`;
+      2. add the current `i` to `total`, then increase `i` by one;
+      3. increase `i` by one and add the new `i` to `total`.
+
+      Rewrite the program so it does exactly that with separate statements
+      (no `++`/`--` mixed into a larger expression). For input `1`:
+
+      ```
+      total = 8, i = 4
+      ```
+
+      The compiler must not report the *unsequenced modification* warning.
+    stdin: "1\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int i, total;
+
+          scanf("%d", &i);
+          total = (++i) + (i++) + (++i);   /* undefined behaviour! */
+          printf("total = %d, i = %d\n", total, i);
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int i, total = 0;
+
+          scanf("%d", &i);
+          i++;            /* step 1: increase, then add the new value */
+          total += i;
+          total += i;     /* step 2: add the current value, then increase */
+          i++;
+          i++;            /* step 3: increase, then add the new value */
+          total += i;
+          printf("total = %d, i = %d\n", total, i);
+          return 0;
+      }
+    explanation: |
+      Each statement changes one thing, so the order is exactly the order you
+      wrote. For i = 1: i becomes 2 (total 2), total becomes 4, i becomes 3,
+      i becomes 4 (total 8).
+    hints:
+      - "Undefined behaviour cannot be fixed by guessing the order — write the order explicitly."
+      - "Turn each of the three described steps into two separate statements: one that changes i and one that adds to total."
+      - "Use `i++;` on its own line and `total += i;` on another. Don't forget to start total at 0."
+      - "Step 1 is `i++; total += i;` and step 2 is `total += i; i++;`"
+      - "The full solution has six short statements."
+    tests:
+      - id: one
+        stdin: "1\n"
+        expect: { output: "total = 8, i = 4\n" }
+      - id: ten
+        stdin: "10\n"
+        expect: { output: "total = 35, i = 13\n" }
+      - id: negative
+        stdin: "-3\n"
+        expect: { output: "total = -4, i = 0\n" }
+    require:
+      noWarnings: [-Wunsequenced]

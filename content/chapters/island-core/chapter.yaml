@@ -1,0 +1,16 @@
+id: island-core
+version: 1
+letter: "★"
+title: The Island Core
+region: Summit — The Island Core
+lectures: [L09, L10]
+intro: >
+  At the summit sleeps the Island Core, which links every station on the
+  island. To wake it, PIP-7 must combine everything: input and output,
+  calculations, decisions, loops and functions.
+outro: >
+  The Island Core is online. Every station reports in, and the island hums
+  with life again. The expedition through the current lectures is complete.
+map: { x: 62, y: 14 }
+missions:
+  - restore-core

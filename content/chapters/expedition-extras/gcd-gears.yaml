@@ -1,0 +1,114 @@
+id: expedition-extras/gcd-gears
+version: 1
+kind: mastery
+optional: true
+source:
+  - { lecture: L10, slides: [4, 21] }
+topics: [L10.function-anatomy, L10.while]
+prerequisites: [core-systems/modular-control]
+estimatedMinutes: 15
+objectives:
+  - Implement Euclid's algorithm as a function with a while loop.
+  - Reuse a function to compute a derived value (lcm).
+world:
+  scene: gauges
+  label: GEAR TRAIN
+  gauges:
+    - { label: gcd, pattern: "gcd = (\\d+)", max: 100 }
+    - { label: lcm, pattern: "lcm = (\\d+)", max: 1000 }
+title: Gear Alignment
+briefing: |
+  Two gears with a and b teeth turn together. The marks on both gears line up
+  again after lcm(a, b) teeth have passed — and lcm needs the greatest common
+  divisor first.
+lesson: |
+  **Euclid's algorithm:** while `b` is not 0, replace `(a, b)` by
+  `(b, a % b)`. When `b` is 0, `a` is the greatest common divisor.
+
+  Then lcm(a, b) = a / gcd(a, b) × b (divide first to keep numbers small).
+success: |
+  `gcd` is a reusable black box built from a while loop, and `lcm` is built
+  on top of it.
+steps:
+  - id: main
+    type: code
+    title: Write gcd and lcm
+    prompt: |
+      Write `int gcd(int a, int b)` (Euclid) and `int lcm(int a, int b)`.
+      main reads two positive ints and prints, for input `12 18`:
+
+      ```
+      gcd = 6
+      lcm = 36
+      ```
+    stdin: "12 18\n"
+    starter: |
+      #include <stdio.h>
+
+      int gcd(int a, int b);
+      int lcm(int a, int b);
+
+      int main(void)
+      {
+          int a, b;
+
+          scanf("%d %d", &a, &b);
+          printf("gcd = %d\n", gcd(a, b));
+          printf("lcm = %d\n", lcm(a, b));
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int gcd(int a, int b);
+      int lcm(int a, int b);
+
+      int main(void)
+      {
+          int a, b;
+
+          scanf("%d %d", &a, &b);
+          printf("gcd = %d\n", gcd(a, b));
+          printf("lcm = %d\n", lcm(a, b));
+          return 0;
+      }
+
+      int gcd(int a, int b)
+      {
+          int remainder;
+          while (b != 0) {
+              remainder = a % b;
+              a = b;
+              b = remainder;
+          }
+          return a;
+      }
+
+      int lcm(int a, int b)
+      {
+          return a / gcd(a, b) * b;
+      }
+    explanation: |
+      Because of call by value, gcd may overwrite its own copies of a and b.
+      lcm divides before multiplying to avoid overflow.
+    harness: |
+      #include <stdio.h>
+      int gcd(int a, int b);
+      int lcm(int a, int b);
+      int main(void)
+      {
+          int a, b;
+          while (scanf("%d %d", &a, &b) == 2) printf("%d %d\n", gcd(a, b), lcm(a, b));
+          return 0;
+      }
+    hints:
+      - "Euclid repeatedly replaces the pair by (b, a % b)."
+      - "You need a temporary variable to hold a % b while you shift the values."
+      - "`while (b != 0) { r = a % b; a = b; b = r; } return a;`"
+      - "`int lcm(int a, int b) { return a / gcd(a, b) * b; }`"
+      - "The full solution has two functions."
+    tests:
+      - { id: example, stdin: "12 18\n", expect: { output: "gcd = 6\nlcm = 36\n" } }
+      - { id: direct, harness: true, stdin: "7 13\n100 10\n1 1\n48 180\n", expect: { output: "1 91\n10 100\n1 1\n12 720\n" } }
+    require:
+      functions: [gcd, lcm]

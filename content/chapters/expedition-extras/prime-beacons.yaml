@@ -1,0 +1,113 @@
+id: expedition-extras/prime-beacons
+version: 1
+kind: mastery
+optional: true
+source:
+  - { lecture: L10, slides: [11, 13, 21] }
+topics: [L10.break, L10.function-anatomy, L10.times-table]
+prerequisites: [core-systems/modular-control]
+estimatedMinutes: 20
+objectives:
+  - Write a predicate function is_prime that returns 1 or 0.
+  - Use a loop with an early exit inside a function.
+world:
+  scene: gauges
+  label: BEACON NETWORK
+  gauges:
+    - { label: Prime beacons, pattern: "count: (\\d+)", max: 30 }
+title: Prime Beacons
+briefing: |
+  Beacons numbered with prime numbers belong to the long-range network. List
+  them all up to n.
+lesson: |
+  A number p ≥ 2 is **prime** if no number from 2 to p−1 divides it. You
+  only need to test divisors `d` while `d * d <= p`. Return 0 as soon as a
+  divisor is found — `return` inside a loop ends the whole function.
+success: |
+  `is_prime` is a black box returning 1 or 0, so main reads naturally:
+  `if (is_prime(k)) ...`.
+steps:
+  - id: main
+    type: code
+    title: List the primes
+    prompt: |
+      Write `int is_prime(int p)`. main reads `n` and prints all primes ≤ n
+      on one line separated by spaces, then the count. For input `20`:
+
+      ```
+      2 3 5 7 11 13 17 19
+      count: 8
+      ```
+    stdin: "20\n"
+    starter: |
+      #include <stdio.h>
+
+      int is_prime(int p);
+
+      int main(void)
+      {
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int is_prime(int p);
+
+      int main(void)
+      {
+          int n, k, count = 0;
+
+          scanf("%d", &n);
+          for (k = 2; k <= n; k++) {
+              if (is_prime(k)) {
+                  if (count > 0) {
+                      printf(" ");
+                  }
+                  printf("%d", k);
+                  count++;
+              }
+          }
+          printf("\ncount: %d\n", count);
+          return 0;
+      }
+
+      int is_prime(int p)
+      {
+          int d;
+          if (p < 2) {
+              return 0;
+          }
+          for (d = 2; d * d <= p; d++) {
+              if (p % d == 0) {
+                  return 0;
+              }
+          }
+          return 1;
+      }
+    explanation: |
+      `is_prime` stops at the first divisor. Only divisors up to √p need to be
+      tested because a larger divisor would pair with a smaller one.
+    harness: |
+      #include <stdio.h>
+      int is_prime(int p);
+      int main(void)
+      {
+          int p;
+          while (scanf("%d", &p) == 1) printf("%d", is_prime(p));
+          printf("\n");
+          return 0;
+      }
+    hints:
+      - "A number is not prime as soon as one divisor is found."
+      - "is_prime: return 0 for p < 2; loop d from 2 while d * d <= p; return 0 if p % d == 0; after the loop return 1."
+      - "`for (d = 2; d * d <= p; d++) if (p % d == 0) return 0;`"
+      - "main: loop k from 2 to n and print k when is_prime(k)."
+      - "The full solution has is_prime and a loop in main."
+    tests:
+      - { id: twenty, stdin: "20\n", expect: { output: "2 3 5 7 11 13 17 19\ncount: 8\n" } }
+      - { id: one, stdin: "1\n", expect: { output: "\ncount: 0\n" } }
+      - { id: hundred, stdin: "100\n", expect: { lines: ["count: 25"] } }
+      - { id: direct, harness: true, stdin: "0 1 2 3 4 9 25 97 7919 7917\n", expect: { output: "0011000110\n" } }
+    require:
+      functions: [is_prime]

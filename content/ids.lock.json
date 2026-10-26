@@ -1,0 +1,334 @@
+{
+  "_comment": "Generated. Every published id is recorded here; the build fails if one disappears.",
+  "missions": {
+    "first-contact/wake-up": {
+      "version": 1,
+      "chapter": "first-contact"
+    },
+    "first-contact/build-pipeline": {
+      "version": 1,
+      "chapter": "first-contact"
+    },
+    "first-contact/anatomy": {
+      "version": 1,
+      "chapter": "first-contact"
+    },
+    "first-contact/newlines": {
+      "version": 1,
+      "chapter": "first-contact"
+    },
+    "first-contact/beacon-debug": {
+      "version": 1,
+      "chapter": "first-contact"
+    },
+    "first-contact/comms-tower": {
+      "version": 1,
+      "chapter": "first-contact"
+    },
+    "sensor-lab/variables": {
+      "version": 1,
+      "chapter": "sensor-lab"
+    },
+    "sensor-lab/read-input": {
+      "version": 1,
+      "chapter": "sensor-lab"
+    },
+    "sensor-lab/char-codes": {
+      "version": 1,
+      "chapter": "sensor-lab"
+    },
+    "sensor-lab/type-sizes": {
+      "version": 1,
+      "chapter": "sensor-lab"
+    },
+    "sensor-lab/floating-point": {
+      "version": 1,
+      "chapter": "sensor-lab"
+    },
+    "sensor-lab/float-scanf": {
+      "version": 1,
+      "chapter": "sensor-lab"
+    },
+    "sensor-lab/combine-resources": {
+      "version": 1,
+      "chapter": "sensor-lab"
+    },
+    "sensor-lab/lab-report": {
+      "version": 1,
+      "chapter": "sensor-lab"
+    },
+    "supply-depot/expressions": {
+      "version": 1,
+      "chapter": "supply-depot"
+    },
+    "supply-depot/assignment-value": {
+      "version": 1,
+      "chapter": "supply-depot"
+    },
+    "supply-depot/integer-division": {
+      "version": 1,
+      "chapter": "supply-depot"
+    },
+    "supply-depot/precedence": {
+      "version": 1,
+      "chapter": "supply-depot"
+    },
+    "supply-depot/increment": {
+      "version": 1,
+      "chapter": "supply-depot"
+    },
+    "supply-depot/forbidden-expression": {
+      "version": 1,
+      "chapter": "supply-depot"
+    },
+    "supply-depot/type-conversion": {
+      "version": 1,
+      "chapter": "supply-depot"
+    },
+    "supply-depot/cm-to-feet": {
+      "version": 1,
+      "chapter": "supply-depot"
+    },
+    "supply-depot/feet-to-cm": {
+      "version": 1,
+      "chapter": "supply-depot"
+    },
+    "supply-depot/depot-ledger": {
+      "version": 1,
+      "chapter": "supply-depot"
+    },
+    "control-center/blocks-and-scope": {
+      "version": 1,
+      "chapter": "control-center"
+    },
+    "control-center/route-robot": {
+      "version": 1,
+      "chapter": "control-center"
+    },
+    "control-center/truth-values": {
+      "version": 1,
+      "chapter": "control-center"
+    },
+    "control-center/assign-vs-equal": {
+      "version": 1,
+      "chapter": "control-center"
+    },
+    "control-center/signum": {
+      "version": 1,
+      "chapter": "control-center"
+    },
+    "control-center/absolute-value": {
+      "version": 1,
+      "chapter": "control-center"
+    },
+    "control-center/logic-gates": {
+      "version": 1,
+      "chapter": "control-center"
+    },
+    "control-center/short-circuit": {
+      "version": 1,
+      "chapter": "control-center"
+    },
+    "control-center/conditional-operator": {
+      "version": 1,
+      "chapter": "control-center"
+    },
+    "control-center/machine-modes": {
+      "version": 1,
+      "chapter": "control-center"
+    },
+    "control-center/card-ranks": {
+      "version": 1,
+      "chapter": "control-center"
+    },
+    "control-center/first-loop": {
+      "version": 1,
+      "chapter": "control-center"
+    },
+    "control-center/style-review": {
+      "version": 1,
+      "chapter": "control-center"
+    },
+    "control-center/control-room": {
+      "version": 1,
+      "chapter": "control-center"
+    },
+    "automation-works/while-batches": {
+      "version": 1,
+      "chapter": "automation-works"
+    },
+    "automation-works/runaway-loop": {
+      "version": 1,
+      "chapter": "automation-works"
+    },
+    "automation-works/digit-sum": {
+      "version": 1,
+      "chapter": "automation-works"
+    },
+    "automation-works/for-anatomy": {
+      "version": 1,
+      "chapter": "automation-works"
+    },
+    "automation-works/off-by-one": {
+      "version": 1,
+      "chapter": "automation-works"
+    },
+    "automation-works/comma-products": {
+      "version": 1,
+      "chapter": "automation-works"
+    },
+    "automation-works/do-while-retry": {
+      "version": 1,
+      "chapter": "automation-works"
+    },
+    "automation-works/break-continue": {
+      "version": 1,
+      "chapter": "automation-works"
+    },
+    "automation-works/repair-row": {
+      "version": 1,
+      "chapter": "automation-works"
+    },
+    "automation-works/sweep-field": {
+      "version": 1,
+      "chapter": "automation-works"
+    },
+    "automation-works/times-table": {
+      "version": 1,
+      "chapter": "automation-works"
+    },
+    "automation-works/celsius-table": {
+      "version": 1,
+      "chapter": "automation-works"
+    },
+    "automation-works/factory-shift": {
+      "version": 1,
+      "chapter": "automation-works"
+    },
+    "core-systems/library-black-boxes": {
+      "version": 1,
+      "chapter": "core-systems"
+    },
+    "core-systems/times2": {
+      "version": 1,
+      "chapter": "core-systems"
+    },
+    "core-systems/max-function": {
+      "version": 1,
+      "chapter": "core-systems"
+    },
+    "core-systems/arguments-and-conversion": {
+      "version": 1,
+      "chapter": "core-systems"
+    },
+    "core-systems/local-scope": {
+      "version": 1,
+      "chapter": "core-systems"
+    },
+    "core-systems/call-by-value": {
+      "version": 1,
+      "chapter": "core-systems"
+    },
+    "core-systems/void-functions": {
+      "version": 1,
+      "chapter": "core-systems"
+    },
+    "core-systems/robot-utilities": {
+      "version": 1,
+      "chapter": "core-systems"
+    },
+    "core-systems/digit-root": {
+      "version": 1,
+      "chapter": "core-systems"
+    },
+    "core-systems/modular-control": {
+      "version": 1,
+      "chapter": "core-systems"
+    },
+    "island-core/restore-core": {
+      "version": 1,
+      "chapter": "island-core"
+    },
+    "expedition-extras/change-maker": {
+      "version": 1,
+      "chapter": "expedition-extras"
+    },
+    "expedition-extras/leap-calendar": {
+      "version": 1,
+      "chapter": "expedition-extras"
+    },
+    "expedition-extras/number-pyramid": {
+      "version": 1,
+      "chapter": "expedition-extras"
+    },
+    "expedition-extras/collatz-drone": {
+      "version": 1,
+      "chapter": "expedition-extras"
+    },
+    "expedition-extras/gcd-gears": {
+      "version": 1,
+      "chapter": "expedition-extras"
+    },
+    "expedition-extras/prime-beacons": {
+      "version": 1,
+      "chapter": "expedition-extras"
+    }
+  },
+  "chapters": {
+    "first-contact": {
+      "version": 1
+    },
+    "sensor-lab": {
+      "version": 1
+    },
+    "supply-depot": {
+      "version": 1
+    },
+    "control-center": {
+      "version": 1
+    },
+    "automation-works": {
+      "version": 1
+    },
+    "core-systems": {
+      "version": 1
+    },
+    "island-core": {
+      "version": 1
+    },
+    "expedition-extras": {
+      "version": 1
+    }
+  },
+  "notebook": {
+    "game-howto": true,
+    "compile-outside": true,
+    "program-skeleton": true,
+    "escapes": true,
+    "common-errors": true,
+    "variables": true,
+    "scanf-basics": true,
+    "ascii": true,
+    "types": true,
+    "printf-formats": true,
+    "scanf-formats": true,
+    "floating": true,
+    "operators": true,
+    "assignment": true,
+    "undefined-behaviour": true,
+    "conversions": true,
+    "blocks-scope": true,
+    "conditions": true,
+    "logic": true,
+    "conditional-op": true,
+    "switch": true,
+    "style": true,
+    "while-loops": true,
+    "for-loops": true,
+    "break-continue": true,
+    "island-api": true,
+    "functions": true,
+    "math-library": true,
+    "call-by-value": true
+  }
+}

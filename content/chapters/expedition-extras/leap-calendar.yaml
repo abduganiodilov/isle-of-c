@@ -1,0 +1,72 @@
+id: expedition-extras/leap-calendar
+version: 1
+kind: mastery
+optional: true
+source:
+  - { lecture: L09, slides: [28, 36, 41] }
+topics: [L09.logical, L09.if-statement, L09.arithmetic]
+prerequisites: [control-center/control-room]
+estimatedMinutes: 12
+objectives:
+  - Express a multi-part rule with % , && and ||.
+world:
+  scene: sorter
+  label: CALENDAR CLOCK
+  bins:
+    - { label: leap, match: "is a leap year" }
+    - { label: common, match: "is not a leap year" }
+title: Leap Years
+briefing: |
+  The research station's calendar clock lost track of leap years. Restore the
+  Gregorian rule.
+lesson: |
+  A year is a leap year if it is divisible by 4 **and not** by 100 — **or**
+  if it is divisible by 400. "Divisible by k" means `year % k == 0`.
+success: |
+  `(year % 4 == 0 && year % 100 != 0) || year % 400 == 0` captures the whole
+  rule in one condition.
+steps:
+  - id: main
+    type: code
+    title: Leap or not?
+    prompt: |
+      Read a year and print `<year> is a leap year` or
+      `<year> is not a leap year`.
+    stdin: "2024\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int year;
+
+          scanf("%d", &year);
+          if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0) {
+              printf("%d is a leap year\n", year);
+          } else {
+              printf("%d is not a leap year\n", year);
+          }
+          return 0;
+      }
+    explanation: |
+      The parentheses group the "divisible by 4 but not by 100" part; `||`
+      adds the 400 exception.
+    hints:
+      - "Translate the rule word by word: divisible → % == 0, and → &&, or → ||, not divisible → % != 0."
+      - "Build the condition (by 4 and not by 100) or (by 400)."
+      - "`year % 4 == 0 && year % 100 != 0`"
+      - "`if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0)`"
+      - "The full solution uses one if/else."
+    tests:
+      - { id: y2024, stdin: "2024\n", expect: { output: "2024 is a leap year\n" } }
+      - { id: y2023, stdin: "2023\n", expect: { output: "2023 is not a leap year\n" } }
+      - { id: y1900, stdin: "1900\n", note: Divisible by 100 but not 400., expect: { output: "1900 is not a leap year\n" } }
+      - { id: y2000, stdin: "2000\n", note: Divisible by 400., expect: { output: "2000 is a leap year\n" } }

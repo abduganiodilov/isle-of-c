@@ -1,0 +1,103 @@
+id: sensor-lab/combine-resources
+version: 1
+kind: challenge
+source:
+  - { lecture: L09, slides: [22] }
+topics: [L09.add-two-doubles, L09.scanf-float, L09.printf-float]
+prerequisites: [sensor-lab/float-scanf]
+estimatedMinutes: 10
+objectives:
+  - Write a complete program that reads two double values and prints their sum with %g.
+world:
+  scene: gauges
+  label: FUEL TANKS
+  gauges:
+    - { label: Combined, pattern: "sum is\\s*([-+0-9.eE]+)", max: 1000 }
+title: Combine the Tanks
+briefing: |
+  Two fuel tanks report partial levels such as 2.5 and 0.75 litres. Write the
+  program that adds them — this time without a template.
+lesson: |
+  This is the lecture's `add2f.c` exercise: the integer adder from *Listen to
+  the Operator*, but for floating-point values. Think about which **type**,
+  which **scanf** conversion and which **printf** conversion you need.
+
+  > [!correction] Slide 22's comment says "floating-poing"; it should read
+  > *floating-point*.
+success: |
+  You combined everything in this chapter: `double` variables, `scanf("%lf")`
+  and `printf("%g")`. The tests compared your result with a small tolerance,
+  because floating-point results are approximations.
+steps:
+  - id: main
+    type: code
+    title: Write add2f
+    prompt: |
+      Write a program that reads two floating-point numbers and prints their
+      sum using `%g`, followed by a full stop. For input `2.5 0.75`:
+
+      ```
+      The sum is 3.25.
+      ```
+
+      You may print prompts before reading, like the lecture does.
+    stdin: "2.5 0.75\n"
+    starter: |
+      /* add2f.c - add two floating-point numbers */
+      #include <stdio.h>
+
+      int main(void)
+      {
+
+          return 0;
+      }
+    solution: |
+      /* add2f.c - add two floating-point numbers */
+      #include <stdio.h>
+
+      int main(void)
+      {
+          double d1, d2;
+
+          printf("This program adds two floating-point numbers\n");
+          printf("1st number? ");
+          scanf("%lf", &d1);
+          printf("2nd number? ");
+          scanf("%lf", &d2);
+          printf("The sum is %g.\n", d1 + d2);
+          return 0;
+      }
+    explanation: |
+      `double d1, d2;` declares two floating-point variables, `scanf("%lf", ...)`
+      reads into them, and `%g` prints the sum without unnecessary zeros.
+    hints:
+      - "This is the integer adder again, but with real numbers: three things change."
+      - "Change the variable type, the scanf conversion and the printf conversion."
+      - "`double d1;` … `scanf(\"%lf\", &d1);` … `printf(\"The sum is %g.\\n\", d1 + d2);`"
+      - "Declare `double d1, d2;`, read both with %lf, then print d1 + d2 with %g."
+      - "The full solution is the lecture's add2f.c."
+    tests:
+      - id: example
+        stdin: "2.5 0.75\n"
+        expect: { contains: ["The sum is 3.25."], tolerance: 0.0001 }
+      - id: cancel
+        stdin: "-1.5 1.5\n"
+        expect: { contains: ["The sum is 0."], tolerance: 0.0001 }
+      - id: small
+        stdin: "0.001 0.002\n"
+        expect: { contains: ["The sum is 0.003."], tolerance: 0.000001 }
+      - id: mixed
+        stdin: "123.456\n0.004\n"
+        expect: { contains: ["The sum is 123.46."], tolerance: 0.0001 }
+    wrong:
+      - code: |
+          #include <stdio.h>
+          int main(void)
+          {
+              int a, b;
+              scanf("%d", &a);
+              scanf("%d", &b);
+              printf("The sum is %d.\n", a + b);
+              return 0;
+          }
+        why: integers cannot hold fractions

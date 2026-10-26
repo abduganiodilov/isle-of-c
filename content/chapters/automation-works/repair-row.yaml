@@ -1,0 +1,122 @@
+id: automation-works/repair-row
+version: 1
+kind: guided
+source:
+  - { lecture: L10, slides: [4, 10] }
+topics: [L10.while, L10.do-while]
+prerequisites: [automation-works/break-continue]
+estimatedMinutes: 18
+objectives:
+  - Drive the robot with a loop whose end is decided by a function's return value.
+  - Combine a loop with a condition to act only where needed.
+  - Tell standard C apart from the game's own island.h functions.
+world:
+  scene: grid
+  label: SOLAR ROW
+  grid: { width: 8, height: 1, start: [0, 0], damage: [[2, 0, 1], [5, 0, 2], [7, 0, 1]] }
+title: Repair the Solar Row
+briefing: |
+  A row of solar panels lies east of the factory. Some panels are damaged. The
+  rows have different lengths, so PIP-7 must keep moving east until it reaches
+  the end — repairing only the damaged panels on the way.
+lesson: |
+  ### The island API (game-only)
+  From now on some missions let your C program control PIP-7 directly. The
+  game provides a header, **`island.h`**, with a few functions. They are
+  **not part of standard C** — they exist only inside this game. Everything
+  else in your program is ordinary C17.
+
+  | Function | What it does |
+  |---|---|
+  | `int robot_move(char direction)` | moves one tile: `'N'`, `'S'`, `'E'` or `'W'`. Returns **1** if the robot moved, **0** if the edge (or a wall) blocked it. |
+  | `int robot_scan(void)` | damage level of the tile under the robot (**0** = fine) |
+  | `void robot_repair(void)` | repairs the tile under the robot |
+  | `int robot_x(void)`, `int robot_y(void)` | the robot's column and row |
+
+  Include it with `#include <island.h>`, just like a standard header. When
+  your program runs, every call is recorded and the world view replays exactly
+  those calls — the animation is a real trace of your program, not a
+  pre-made film. (See **Notebook → Island API** for details.)
+
+  ### Looping until something happens
+  You don't know the row's length, but `robot_move` tells you when the robot
+  cannot go further. A `while` loop can use that return value directly as its
+  condition:
+
+  ```c
+  while (robot_move('E')) {
+      /* runs after every successful step */
+  }
+  ```
+
+  The first tile (where the robot starts) is not reached by a move, so check
+  it before the loop — or use a do-while loop, which runs its body once
+  before testing.
+success: |
+  The loop ended because `robot_move` returned 0 at the edge — the program
+  works for rows of any length. Scanning before repairing avoided wasted
+  repairs.
+steps:
+  - id: main
+    type: code
+    title: Repair the whole row
+    prompt: |
+      Repair every damaged panel in the row, **whatever its length**. Repair
+      only damaged tiles (scan first). The current program walks a fixed three
+      steps; the tests use rows of different lengths and damage patterns.
+    starter: |
+      #include <island.h>   /* game API: robot_move, robot_scan, robot_repair */
+
+      int main(void)
+      {
+          int step;
+
+          for (step = 0; step < 3; step++) {
+              robot_move('E');
+              robot_repair();
+          }
+          return 0;
+      }
+    solution: |
+      #include <island.h>   /* game API: robot_move, robot_scan, robot_repair */
+
+      int main(void)
+      {
+          do {
+              if (robot_scan() > 0) {
+                  robot_repair();
+              }
+          } while (robot_move('E'));
+          return 0;
+      }
+    explanation: |
+      The do-while checks the starting tile first, then keeps moving east while
+      `robot_move('E')` returns 1. At the end of the row it returns 0 and the
+      loop stops. `robot_scan() > 0` prevents repairs of healthy panels.
+    hints:
+      - "The loop should stop when the robot cannot move any further, not after a fixed count."
+      - "robot_move returns 1 or 0 — use it as the loop condition. Check each tile with robot_scan before repairing."
+      - "`while (robot_move('E')) { ... }` or `do { ... } while (robot_move('E'));`"
+      - "Inside the loop: `if (robot_scan() > 0) robot_repair();` — and don't forget the starting tile."
+      - "The full solution uses a do-while loop."
+    tests:
+      - id: default-row
+        note: The row shown in the world view.
+        world: { width: 8, height: 1, start: [0, 0], damage: [[2, 0, 1], [5, 0, 2], [7, 0, 1]] }
+        expect: { world: { allRepaired: true, noWastedRepairs: true } }
+      - id: start-damaged
+        note: The starting tile itself is damaged.
+        world: { width: 4, height: 1, start: [0, 0], damage: [[0, 0, 1], [3, 0, 1]] }
+        expect: { world: { allRepaired: true, noWastedRepairs: true } }
+      - id: long
+        note: A long row of 15 panels.
+        world: { width: 15, height: 1, start: [0, 0], damage: [[1, 0, 1], [9, 0, 3], [14, 0, 1]] }
+        expect: { world: { allRepaired: true, noWastedRepairs: true } }
+      - id: single
+        note: A row with just one panel.
+        world: { width: 1, height: 1, start: [0, 0], damage: [[0, 0, 2]] }
+        expect: { world: { allRepaired: true, noWastedRepairs: true } }
+      - id: clean
+        note: Nothing to repair.
+        world: { width: 6, height: 1, start: [0, 0], damage: [] }
+        expect: { world: { allRepaired: true, noWastedRepairs: true } }

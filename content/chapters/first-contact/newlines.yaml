@@ -1,0 +1,147 @@
+id: first-contact/newlines
+version: 1
+kind: predict
+source:
+  - { lecture: L09, slides: [7, 10] }
+topics: [L09.printf-basics]
+prerequisites: [first-contact/anatomy]
+estimatedMinutes: 12
+objectives:
+  - Predict how printf output joins together when there is no \n.
+  - Use the escape sequences \n, \t, \" and \\ inside strings.
+  - Print an exact multi-line display.
+world:
+  scene: terminal
+  label: RELAY DISPLAY
+  goal: Draw the framed relay banner
+title: Lines and Escapes
+briefing: |
+  The relay display draws a framed banner, but the old program printed
+  everything on one line. Learn how `printf` decides where lines end.
+lesson: |
+  ### printf prints exactly what you give it
+  `printf` does **not** add a line break by itself. Two calls without `\n`
+  appear on the same line:
+
+  ```c example
+  #include <stdio.h>
+
+  int main(void)
+  {
+      printf("Power ");
+      printf("on\n");
+      printf("Ready\n");
+      return 0;
+  }
+  ```
+
+  ### Escape sequences
+  Some characters cannot be typed directly inside a string, so C uses a
+  **backslash** to start an *escape sequence*:
+
+  | Write | Prints |
+  |---|---|
+  | `\n` | a new line |
+  | `\t` | a tab (jump to the next tab column) |
+  | `\"` | a double quote (a plain `"` would end the string) |
+  | `\\` | one backslash |
+
+  ```c example
+  #include <stdio.h>
+
+  int main(void)
+  {
+      printf("Path:\tC:\\island\\relay\n");
+      printf("Label: \"Relay 7\"\n");
+      return 0;
+  }
+  ```
+success: |
+  `printf` prints characters exactly as given; you control line breaks with
+  `\n`. To print a quote or a backslash inside a string, escape it as `\"` or
+  `\\`.
+steps:
+  - id: join-predict
+    type: predict
+    title: Where do the lines break?
+    prompt: Type exactly what this program prints (one line per output line).
+    code: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          printf("A");
+          printf("B\n");
+          printf("C");
+          printf("D\n");
+          return 0;
+      }
+    answer:
+      kind: output
+      output: "AB\nCD\n"
+    explanation: |
+      Without `\n`, the next printf continues on the same line, so A and B are
+      joined, then C and D.
+  - id: main
+    type: code
+    title: Draw the relay banner
+    prompt: |
+      Write the body of `main` so the program prints exactly this banner
+      (three lines; the quotes around 7 are part of the text):
+
+      ```
+      +------------------+
+      | ISLAND RELAY "7" |
+      +------------------+
+      ```
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          printf("+------------------+\n");
+          /* print the middle line here (it contains double quotes) */
+
+          /* print the bottom border here */
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          printf("+------------------+\n");
+          printf("| ISLAND RELAY \"7\" |\n");
+          printf("+------------------+\n");
+          return 0;
+      }
+    explanation: |
+      Inside a string, `\"` prints a double quote without ending the string.
+      Each line ends with `\n`. Copying the border line for the bottom keeps the
+      widths equal.
+    hints:
+      - "A double quote normally ends a string, so you need a way to print one inside the text."
+      - "Print the three lines with three printf calls, each ending in \\n."
+      - "To print a quote inside a string write a backslash before it: `printf(\"say \\\"hi\\\"\\n\");` prints say \"hi\"."
+      - "Middle line: `printf(\"| ISLAND RELAY \\\"7\\\" |\\n\");`"
+      - "Full solution: border, middle line with escaped quotes, border again."
+    tests:
+      - id: banner
+        note: The banner must match character for character.
+        expect: { output: "+------------------+\n| ISLAND RELAY \"7\" |\n+------------------+\n" }
+      - id: lines
+        note: Exactly three lines.
+        expect: { lines: ["+------------------+", "| ISLAND RELAY \"7\" |", "+------------------+"], exactLineCount: true }
+    wrong:
+      - code: |
+          #include <stdio.h>
+          int main(void)
+          {
+              printf("+------------------+");
+              printf("| ISLAND RELAY \"7\" |");
+              printf("+------------------+\n");
+              return 0;
+          }
+        why: forgot newlines
+        expect: outputMismatch

@@ -1,0 +1,169 @@
+id: core-systems/library-black-boxes
+version: 1
+kind: guided
+source:
+  - { lecture: L10, slides: [16, 17, 18, 19, 20] }
+topics: [L10.why-functions, L10.decomposition, L10.black-boxes, L10.library-functions, L10.prototypes]
+prerequisites: [automation-works/factory-shift]
+estimatedMinutes: 20
+objectives:
+  - Explain why programs are split into functions (divide and conquer, top-down design).
+  - Treat a function as a black box with defined inputs and outputs.
+  - Call library functions from math.h (sqrt, sin, cos) after including the right header.
+world:
+  scene: gauges
+  label: ANTENNA ARRAY
+  gauges:
+    - { label: Range, pattern: "Range: (\\S+)", max: 100 }
+    - { label: sin, pattern: "sin = (\\S+)", max: 1 }
+    - { label: cos, pattern: "cos = (\\S+)", max: 1 }
+title: Black Boxes
+briefing: |
+  The core's antenna array must point at relay stations. That needs square
+  roots and trigonometry — but nobody has to write those from scratch: the C
+  library already contains them as ready-made **functions**.
+lesson: |
+  ### Why functions?
+  A C program is made of **functions**; so far you have written one, `main`.
+  Large problems become manageable when you **divide and conquer**:
+
+  * **Top-down design / stepwise refinement:** describe the whole task in a
+    few big steps, then refine each step into smaller ones until each piece is
+    simple enough to write.
+  * Each piece becomes a **function** with a well-defined **interface**: what
+    goes in (inputs) and what comes out (outputs).
+
+  ### Black boxes
+  Many functions are **black boxes**: you know *what* they do from their
+  interface, not *how*. `sqrt` takes a number and returns its square root —
+  you never need to see its code:
+
+  ```
+  input(s) ──▶ [ function (black box) ] ──▶ output(s)
+  ```
+
+  Other functions are called for an **operation** they perform, such as
+  `printf` printing text.
+
+  ### Library functions and headers
+  Functions must be **declared before they are used**. A **prototype**
+  declares a function: its name, its parameters and its result type. For
+  library functions, the prototype comes from the **header** you
+  `#include`, and the implementation comes from a **library file** that the
+  linker adds.
+
+  | Header | Functions |
+  |---|---|
+  | `<stdio.h>` | `printf`, `scanf`, … |
+  | `<math.h>` | `sqrt`, `sin`, `cos`, `fabs`, `pow`, … (work with `double`) |
+
+  ```c example stdin=3\n4
+  #include <stdio.h>
+  #include <math.h>
+
+  int main(void)
+  {
+      double a, b;
+      scanf("%lf %lf", &a, &b);
+      printf("hypotenuse = %g\n", sqrt(a * a + b * b));
+      return 0;
+  }
+  ```
+
+  `sin` and `cos` expect the angle in **radians**: radians = degrees × π /
+  180. Standard C has no π constant, so define one yourself:
+  `double pi = 3.14159265358979;`
+
+  > [!outside] With gcc on Linux, programs that use `<math.h>` may need `-lm`
+  > at the end of the command: `gcc -std=c17 -Wall prog.c -o prog -lm`.
+success: |
+  Functions are black boxes with defined inputs and outputs. Including
+  `<math.h>` gives you the prototypes of `sqrt`, `sin` and `cos`; the linker
+  supplies their implementations.
+steps:
+  - id: refine
+    type: order
+    title: Stepwise refinement
+    prompt: |
+      PIP-7 must "aim the antenna at a relay". Put these refinement steps in a
+      sensible top-down order (from the big task to the details).
+    lines:
+      - "Aim the antenna at a relay"
+      - "Get the relay's position relative to the antenna"
+      - "Compute the distance (a black box: sqrt)"
+      - "Compute the direction (black boxes: sin, cos)"
+      - "Print the aiming report"
+    explanation: |
+      Top-down design starts with the whole task and refines it into steps;
+      each step can become a function — here several are already provided by
+      the library.
+  - id: main
+    type: code
+    title: Aim the antenna
+    prompt: |
+      Read the relay's offset `x y` (doubles) and an angle in degrees
+      (double). Print the range √(x² + y²) and the sine and cosine of the
+      angle, all with `%.4f`. For input `3 4 30`:
+
+      ```
+      Range: 5.0000
+      sin = 0.5000
+      cos = 0.8660
+      ```
+    stdin: "3 4 30\n"
+    starter: |
+      #include <stdio.h>
+      /* include the header that declares sqrt, sin and cos */
+
+      int main(void)
+      {
+          double x, y, degrees, radians;
+          double pi = 3.14159265358979;
+
+          scanf("%lf %lf %lf", &x, &y, &degrees);
+          radians = degrees * pi / 180;
+          /* print the range, the sine and the cosine */
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+      #include <math.h>
+
+      int main(void)
+      {
+          double x, y, degrees, radians;
+          double pi = 3.14159265358979;
+
+          scanf("%lf %lf %lf", &x, &y, &degrees);
+          radians = degrees * pi / 180;
+          printf("Range: %.4f\n", sqrt(x * x + y * y));
+          printf("sin = %.4f\n", sin(radians));
+          printf("cos = %.4f\n", cos(radians));
+          return 0;
+      }
+    explanation: |
+      `#include <math.h>` declares the three functions. Each call is a term in
+      an expression: its returned value is printed directly.
+    hints:
+      - "The maths functions are declared in a standard header."
+      - "Include <math.h>, then call each function with the right argument inside printf."
+      - "`printf(\"Range: %.4f\\n\", sqrt(x * x + y * y));`"
+      - "`printf(\"sin = %.4f\\n\", sin(radians));` and the same with cos."
+      - "The full solution adds the include and three printf lines."
+    tests:
+      - id: example
+        stdin: "3 4 30\n"
+        expect: { output: "Range: 5.0000\nsin = 0.5000\ncos = 0.8660\n" }
+      - id: right-angle
+        stdin: "0 2 90\n"
+        expect: { output: "Range: 2.0000\nsin = 1.0000\ncos = 0.0000\n" }
+      - id: diagonal
+        stdin: "1 1 45\n"
+        expect: { output: "Range: 1.4142\nsin = 0.7071\ncos = 0.7071\n" }
+      - id: zero
+        stdin: "0 0 0\n"
+        expect: { output: "Range: 0.0000\nsin = 0.0000\ncos = 1.0000\n" }
+    require:
+      includes: [math.h]
+      calls: [sqrt, sin, cos]

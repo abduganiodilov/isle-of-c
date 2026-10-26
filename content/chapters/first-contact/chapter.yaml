@@ -1,0 +1,21 @@
+id: first-contact
+version: 1
+letter: A
+title: First Contact
+region: Landing Beach — Comms Tower
+lectures: [L09]
+intro: >
+  PIP-7, a small maintenance robot, wakes up on the shore of an abandoned
+  research island. Its only way to talk to the world is a dusty communication
+  terminal that runs programs written in C. Teach PIP-7 to speak.
+outro: >
+  The Comms Tower is broadcasting again. PIP-7 can now run complete C
+  programs and print exactly what it needs to say.
+map: { x: 14, y: 70 }
+missions:
+  - wake-up
+  - build-pipeline
+  - anatomy
+  - newlines
+  - beacon-debug
+  - comms-tower

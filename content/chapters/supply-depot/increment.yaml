@@ -1,0 +1,186 @@
+id: supply-depot/increment
+version: 1
+kind: guided
+source:
+  - { lecture: L09, slides: [29, 30] }
+topics: [L09.increment, L09.compound-assignment]
+prerequisites: [supply-depot/precedence]
+estimatedMinutes: 18
+objectives:
+  - Use ++ and -- to add or subtract one.
+  - Explain the difference between postfix x++ (use, then increment) and prefix ++x (increment, then use).
+  - Update variables with += -= *= /= %=.
+world:
+  scene: gauges
+  label: STOCK LEDGER
+  gauges:
+    - { label: Crates, pattern: "crates = (-?\\d+)\\s*$", max: 100 }
+title: Counting Up and Down
+briefing: |
+  The depot ledger records every change to the crate stock. Changes such as
+  "add 12" or "halve" are so common that C has short operators for them.
+lesson: |
+  ### Increment and decrement
+  `x++` and `++x` both add 1 to `x`; `x--` and `--x` both subtract 1. As
+  separate statements they do the same thing:
+
+  ```c
+  count++;    /* same effect as count = count + 1; */
+  ```
+
+  The difference appears only when the **value** of the expression is used:
+
+  * **postfix** `x++`: the expression's value is the **old** `x`, then `x`
+    is incremented;
+  * **prefix** `++x`: `x` is incremented, and the expression's value is the
+    **new** `x`.
+
+  ```c example
+  #include <stdio.h>
+
+  int main(void)
+  {
+      int x = 5;
+      int y = x++;    /* y gets 5, then x becomes 6 */
+      printf("x=%d y=%d\n", x, y);
+      int z = ++x;    /* x becomes 7, then z gets 7 */
+      printf("x=%d z=%d\n", x, z);
+      return 0;
+  }
+  ```
+
+  > [!warning] Use `++`/`--` on a variable **at most once per expression**,
+  > and don't read that variable elsewhere in the same expression. The next
+  > mission shows why.
+
+  ### Compound assignment
+  | Shorthand | Means |
+  |---|---|
+  | `x += y` | `x = x + y` |
+  | `x -= y` | `x = x - y` |
+  | `x *= y` | `x = x * y` |
+  | `x /= y` | `x = x / y` |
+  | `x %= y` | `x = x % y` |
+
+  The right side is evaluated first as a whole: `x *= a + b` means
+  `x = x * (a + b)`.
+success: |
+  `++` and `--` change a variable by one; prefix and postfix differ only in the
+  value of the expression. Compound assignments such as `+=` and `/=` update a
+  variable in place.
+steps:
+  - id: prefix-predict
+    type: predict
+    title: Before or after?
+    prompt: What does this program print?
+    code: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int a = 3;
+          int b = a++;
+          int c = ++a;
+          printf("%d %d %d\n", a, b, c);
+          return 0;
+      }
+    answer:
+      kind: choice
+      choices:
+        - "3 3 4"
+        - "5 3 5"
+        - "5 4 5"
+        - "4 3 4"
+      correct: 1
+      actualOutput: "5 3 5\n"
+    explanation: |
+      `b = a++` stores the old value 3 in b, then a becomes 4. `c = ++a` makes
+      a 5 first and stores 5 in c.
+  - id: main
+    type: code
+    title: Keep the ledger
+    prompt: |
+      Read the starting number of crates. Then apply these changes **using
+      compound assignment**, numbering each step with a counter that you
+      increase with `++`:
+
+      1. a delivery adds 12 crates (`+=`)
+      2. repairs use 5 crates (`-=`)
+      3. the fabricator doubles the stock (`*=`)
+      4. the stock is split over 3 depots; keep one third (`/=`)
+
+      After each change print `step <number>: crates = <value>`. For input `10`:
+
+      ```
+      step 1: crates = 22
+      step 2: crates = 17
+      step 3: crates = 34
+      step 4: crates = 11
+      ```
+    stdin: "10\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int crates;
+          int step = 0;
+
+          scanf("%d", &crates);
+
+          crates += 12;
+          step++;
+          printf("step %d: crates = %d\n", step, crates);
+
+          /* steps 2, 3 and 4 */
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int crates;
+          int step = 0;
+
+          scanf("%d", &crates);
+
+          crates += 12;
+          step++;
+          printf("step %d: crates = %d\n", step, crates);
+
+          crates -= 5;
+          step++;
+          printf("step %d: crates = %d\n", step, crates);
+
+          crates *= 2;
+          step++;
+          printf("step %d: crates = %d\n", step, crates);
+
+          crates /= 3;
+          step++;
+          printf("step %d: crates = %d\n", step, crates);
+          return 0;
+      }
+    explanation: |
+      Each compound assignment updates `crates` in place, and `step++` counts the
+      changes. `/=` with ints is integer division, so 34 / 3 becomes 11.
+    hints:
+      - "Each change is one compound assignment; each step also increases the counter by one."
+      - "Repeat the three-line pattern of step 1 (change, count, print) three more times."
+      - "`crates -= 5;` `crates *= 2;` `crates /= 3;`"
+      - "Step 2 is: `crates -= 5; step++; printf(\"step %d: crates = %d\\n\", step, crates);`"
+      - "The full solution repeats the pattern for all four steps."
+    tests:
+      - id: ten
+        stdin: "10\n"
+        expect: { output: "step 1: crates = 22\nstep 2: crates = 17\nstep 3: crates = 34\nstep 4: crates = 11\n" }
+      - id: zero
+        stdin: "0\n"
+        expect: { output: "step 1: crates = 12\nstep 2: crates = 7\nstep 3: crates = 14\nstep 4: crates = 4\n" }
+      - id: big
+        stdin: "100\n"
+        expect: { output: "step 1: crates = 112\nstep 2: crates = 107\nstep 3: crates = 214\nstep 4: crates = 71\n" }
+    require:
+      constructs: [+=, -=, "*=", /=, ++]

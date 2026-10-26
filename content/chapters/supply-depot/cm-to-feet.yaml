@@ -1,0 +1,126 @@
+id: supply-depot/cm-to-feet
+version: 1
+kind: guided
+source:
+  - { lecture: L09, slides: [32] }
+topics: [L09.cm-to-feet, L09.type-conversion]
+prerequisites: [supply-depot/type-conversion]
+estimatedMinutes: 15
+objectives:
+  - Follow the lecture's cm2feet.c program line by line.
+  - Use automatic conversion from double to int to get whole feet.
+  - Compute the remaining inches from the total.
+world:
+  scene: gauges
+  label: CARGO GAUGE
+  gauges:
+    - { label: Feet, pattern: "= (-?\\d+) ft", max: 10 }
+    - { label: Inches, pattern: "ft (\\S+) in", max: 12 }
+title: Centimetres to Feet
+briefing: |
+  An old cargo crane was built by an engineering team that measured in feet and
+  inches. Convert the depot's metric heights so the crane can lift safely.
+lesson: |
+  One inch is 2.54 cm and one foot is 12 inches. The lecture's program:
+
+  ```c example stdin=180
+  /*
+   * File: cm2feet.c
+   * Convert a height in centimetres to feet and inches
+   */
+  #include <stdio.h>
+
+  int main(void)
+  {
+      double cm, totalInches, inch;
+      int feet;
+
+      printf("This program converts centimeters to feet and inches.\n");
+      printf("Height in centimeters? ");
+      scanf("%lf", &cm);
+      totalInches = cm / 2.54;
+      feet = totalInches / 12;           /* automatic conversion to int */
+      inch = totalInches - feet * 12;
+      printf("%g cm = %d ft %g in\n", cm, feet, inch);
+      return 0;
+  }
+  ```
+
+  * `totalInches / 12` is a double, but storing it in the **int** `feet`
+    drops the fraction — exactly the whole feet.
+  * `feet * 12` is converted back to double when it is subtracted from
+    `totalInches`, leaving the extra inches.
+success: |
+  Storing a double in an int keeps only the whole part, which gives whole
+  feet; subtracting `feet * 12` from the total inches gives what is left.
+steps:
+  - id: main
+    type: code
+    title: Rebuild the converter
+    prompt: |
+      Complete the two missing calculations. For input `180` the program must
+      print (after its prompt):
+
+      ```
+      180 cm = 5 ft 10.8661 in
+      ```
+    stdin: "180\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          double cm, totalInches, inch;
+          int feet;
+
+          printf("Height in centimeters? ");
+          scanf("%lf", &cm);
+          totalInches = cm / 2.54;
+          /* whole feet: */
+          feet = 0;
+          /* remaining inches: */
+          inch = 0;
+          printf("%g cm = %d ft %g in\n", cm, feet, inch);
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          double cm, totalInches, inch;
+          int feet;
+
+          printf("Height in centimeters? ");
+          scanf("%lf", &cm);
+          totalInches = cm / 2.54;
+          feet = totalInches / 12;
+          inch = totalInches - feet * 12;
+          printf("%g cm = %d ft %g in\n", cm, feet, inch);
+          return 0;
+      }
+    explanation: |
+      `feet = totalInches / 12;` relies on the automatic double → int
+      conversion to drop the fraction. `inch = totalInches - feet * 12;` is
+      what remains after the whole feet are taken away.
+    hints:
+      - "There are 12 inches in a foot; feet must be a whole number."
+      - "Divide the total inches by 12 and store it in the int variable; then subtract the inches used by the whole feet."
+      - "Storing a double in an int keeps the whole part: `int n = 5.9;` stores 5."
+      - "`feet = totalInches / 12;` and `inch = totalInches - feet * 12;`"
+      - "The full solution is the lecture's cm2feet.c."
+    tests:
+      - id: tall
+        stdin: "180\n"
+        expect: { regex: { pattern: "(\\S+) cm = (-?\\d+) ft (\\S+) in", values: [180, 5, 10.8661], tolerance: 0.001, describe: "180 cm = 5 ft 10.8661 in" } }
+      - id: metre
+        stdin: "100\n"
+        expect: { regex: { pattern: "(\\S+) cm = (-?\\d+) ft (\\S+) in", values: [100, 3, 3.37008], tolerance: 0.001, describe: "100 cm = 3 ft 3.37008 in" } }
+      - id: exact
+        stdin: "254\n"
+        note: 100 inches = 8 ft 4 in.
+        expect: { regex: { pattern: "(\\S+) cm = (-?\\d+) ft (\\S+) in", values: [254, 8, 4], tolerance: 0.001, describe: "254 cm = 8 ft 4 in" } }
+      - id: short
+        stdin: "20\n"
+        note: Less than one foot.
+        expect: { regex: { pattern: "(\\S+) cm = (-?\\d+) ft (\\S+) in", values: [20, 0, 7.87402], tolerance: 0.001, describe: "20 cm = 0 ft 7.87402 in" } }

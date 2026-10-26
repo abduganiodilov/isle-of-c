@@ -1,0 +1,145 @@
+id: control-center/logic-gates
+version: 1
+kind: guided
+source:
+  - { lecture: L09, slides: [41] }
+topics: [L09.logical]
+prerequisites: [control-center/absolute-value]
+estimatedMinutes: 15
+objectives:
+  - Combine conditions with && (and), || (or) and ! (not).
+  - Read a combined condition and decide when it is true.
+  - Distinguish the logical operators && || from the bitwise operators & |.
+world:
+  scene: sorter
+  label: LAUNCH PAD
+  bins:
+    - { label: LAUNCH, match: "\\bLAUNCH\\b" }
+    - { label: HOLD, match: "\\bHOLD\\b" }
+title: Logic Gates
+briefing: |
+  Supply drones may launch only when it is safe — or when the operator declares
+  an emergency. Several conditions must be combined into one decision.
+lesson: |
+  ### Logical operators
+  With `a = 1` and `b = 0`:
+
+  | Operator | Meaning | Example | Value |
+  |---|---|---|---|
+  | `!` | not | `!a` | 0 |
+  | `&&` | and: true only if **both** are true | `a && b` | 0 |
+  | `\|\|` | or: true if **at least one** is true | `a \|\| b` | 1 |
+
+  Like comparisons, the results are the ints 1 and 0. `!` binds tightest,
+  then `&&`, then `||`; comparisons bind tighter than `&&` and `||`, so
+  `x > 0 && x < 10` needs no extra parentheses. When mixing `&&` and `||`,
+  add parentheses for readers.
+
+  ```c example
+  #include <stdio.h>
+
+  int main(void)
+  {
+      int battery = 80, wind = 40;
+      printf("%d\n", battery >= 20 && wind <= 30);
+      printf("%d\n", battery >= 20 || wind <= 30);
+      printf("%d\n", !(wind <= 30));
+      return 0;
+  }
+  ```
+
+  ### & and | are different operators
+  Unlike MATLAB, in C `&` and `|` are **bitwise** operators: they combine the
+  individual bits of two integers. `6 & 3` is 2 (binary 110 & 011 = 010),
+  while `6 && 3` is 1 (both are non-zero). Bitwise operators are not covered
+  in this course — for conditions always use `&&` and `||`.
+success: |
+  `&&` needs both conditions, `||` needs at least one, and `!` inverts a
+  condition. `&` and `|` are bitwise operators — a different tool.
+steps:
+  - id: bitwise-predict
+    type: predict
+    title: "&& versus &"
+    prompt: Type exactly what this program prints.
+    code: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          printf("%d %d\n", 6 && 3, 6 & 3);
+          printf("%d %d\n", 4 && 1, 4 & 1);
+          return 0;
+      }
+    answer:
+      kind: output
+      output: "1 2\n1 0\n"
+    explanation: |
+      `&&` only asks whether both sides are non-zero (yes → 1). `&` combines
+      bits: 6 & 3 = 2 and 4 & 1 = 0 (they share no bits). Using `&` in a
+      condition can therefore give the wrong answer.
+  - id: main
+    type: code
+    title: Launch rules
+    prompt: |
+      Read three ints: battery level (%), wind speed (km/h) and an emergency
+      flag (1 or 0). Print `LAUNCH` if the battery is **at least 20 and** the
+      wind is **at most 30**, **or** if the emergency flag is set. Otherwise
+      print `HOLD`. Use one `if` with `&&` and `||`.
+    stdin: "80 10 0\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int battery, wind, emergency;
+
+          scanf("%d %d %d", &battery, &wind, &emergency);
+          /* one if statement with && and || */
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int battery, wind, emergency;
+
+          scanf("%d %d %d", &battery, &wind, &emergency);
+          if ((battery >= 20 && wind <= 30) || emergency) {
+              printf("LAUNCH\n");
+          } else {
+              printf("HOLD\n");
+          }
+          return 0;
+      }
+    explanation: |
+      `battery >= 20 && wind <= 30` is the "safe" condition; `|| emergency`
+      adds the override. The parentheses are not required (&& binds tighter
+      than ||) but make the intention obvious.
+    hints:
+      - "Write the safe-weather condition first, then add the emergency override."
+      - "Safe = both battery and wind conditions true (&&). Launch = safe OR emergency (||)."
+      - "`if ((condition1 && condition2) || condition3)`"
+      - "`if ((battery >= 20 && wind <= 30) || emergency)`"
+      - "The full solution uses one if/else."
+    tests:
+      - id: safe
+        stdin: "80 10 0\n"
+        expect: { lines: ["LAUNCH"], exactLineCount: true }
+      - id: windy
+        stdin: "80 45 0\n"
+        expect: { lines: ["HOLD"], exactLineCount: true }
+      - id: low-battery
+        stdin: "19 5 0\n"
+        expect: { lines: ["HOLD"], exactLineCount: true }
+      - id: emergency
+        stdin: "5 90 1\n"
+        note: The override launches even in bad conditions.
+        expect: { lines: ["LAUNCH"], exactLineCount: true }
+      - id: boundaries
+        stdin: "20 30 0\n"
+        note: Exactly 20% and exactly 30 km/h are allowed.
+        expect: { lines: ["LAUNCH"], exactLineCount: true }
+    require:
+      constructs: ["&&", "||"]

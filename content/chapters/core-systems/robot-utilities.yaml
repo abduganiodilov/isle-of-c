@@ -1,0 +1,179 @@
+id: core-systems/robot-utilities
+version: 1
+kind: challenge
+source:
+  - { lecture: L10, slides: [17, 18, 31] }
+topics: [L10.decomposition, L10.void-function, L10.black-boxes]
+prerequisites: [core-systems/void-functions]
+estimatedMinutes: 25
+objectives:
+  - Decompose a robot task into small reusable functions.
+  - Write functions with parameters and return values that call the game API.
+  - Reuse one function several times with different arguments.
+world:
+  scene: grid
+  label: MAINTENANCE TUNNELS
+  grid: { width: 6, height: 5, start: [0, 0], damage: [[3, 0, 1], [3, 2, 2], [0, 4, 1], [5, 4, 1]] }
+title: Robot Utilities
+briefing: |
+  The core's maintenance tunnels are laid out in rows. Instead of one huge
+  main, build a toolkit of robot utilities — small functions that can be
+  combined — and use them to inspect selected rows.
+lesson: |
+  ### Building a toolkit
+  Top-down: "inspect rows 0, 2 and 4" refines into
+
+  1. **walk** a number of steps in a direction;
+  2. **repair if damaged** at the current tile;
+  3. **inspect a row**: walk along it repairing, then come back.
+
+  Each step is a function. Functions can call other functions — and the game
+  API functions (`robot_move`, `robot_scan`, `robot_repair` from
+  `island.h`, not standard C).
+
+  ```c
+  void walk(char direction, int steps)
+  {
+      int i;
+      for (i = 0; i < steps; i++) {
+          robot_move(direction);
+      }
+  }
+  ```
+success: |
+  Small functions with clear interfaces (`walk`, `fix_here`, `inspect_row`)
+  combine into a larger behaviour. main now reads like a plan, and each
+  utility can be tested and reused on its own.
+steps:
+  - id: main
+    type: code
+    title: Write the toolkit
+    prompt: |
+      Complete the three utilities so that `main` (already written) works:
+
+      * `void walk(char direction, int steps)` — move `steps` times;
+      * `int fix_here(void)` — if the current tile is damaged, repair it and
+        return 1; otherwise return 0;
+      * `int inspect_row(int width)` — starting at the west end of a row, fix
+        every tile of the row (width tiles), return to the west end, and return
+        how many repairs were made.
+
+      main reads the tunnel width, then inspects rows 0, 2 and 4 and prints the
+      total number of repairs.
+    stdin: "6\n"
+    starter: |
+      #include <stdio.h>
+      #include <island.h>   /* game API (not standard C) */
+
+      void walk(char direction, int steps);
+      int fix_here(void);
+      int inspect_row(int width);
+
+      int main(void)
+      {
+          int width, total = 0;
+
+          scanf("%d", &width);
+          total += inspect_row(width);   /* row 0 */
+          walk('S', 2);
+          total += inspect_row(width);   /* row 2 */
+          walk('S', 2);
+          total += inspect_row(width);   /* row 4 */
+          printf("Repairs: %d\n", total);
+          return 0;
+      }
+
+      void walk(char direction, int steps)
+      {
+      }
+
+      int fix_here(void)
+      {
+          return 0;
+      }
+
+      int inspect_row(int width)
+      {
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+      #include <island.h>   /* game API (not standard C) */
+
+      void walk(char direction, int steps);
+      int fix_here(void);
+      int inspect_row(int width);
+
+      int main(void)
+      {
+          int width, total = 0;
+
+          scanf("%d", &width);
+          total += inspect_row(width);   /* row 0 */
+          walk('S', 2);
+          total += inspect_row(width);   /* row 2 */
+          walk('S', 2);
+          total += inspect_row(width);   /* row 4 */
+          printf("Repairs: %d\n", total);
+          return 0;
+      }
+
+      void walk(char direction, int steps)
+      {
+          int i;
+          for (i = 0; i < steps; i++) {
+              robot_move(direction);
+          }
+      }
+
+      int fix_here(void)
+      {
+          if (robot_scan() > 0) {
+              robot_repair();
+              return 1;
+          }
+          return 0;
+      }
+
+      int inspect_row(int width)
+      {
+          int col, repairs = 0;
+          for (col = 0; col < width; col++) {
+              repairs += fix_here();
+              if (col < width - 1) {
+                  robot_move('E');
+              }
+          }
+          walk('W', width - 1);
+          return repairs;
+      }
+    explanation: |
+      `walk` hides the loop of moves, `fix_here` hides the scan-and-repair
+      decision, and `inspect_row` combines them. Because each returns or does
+      one clear thing, main is a readable plan.
+    hints:
+      - "Each utility is small. Write and test them one at a time."
+      - "walk: a for loop of robot_move. fix_here: if/else on robot_scan. inspect_row: a loop over the columns that adds up fix_here's results, then walks back."
+      - "`repairs += fix_here();` counts repairs because fix_here returns 1 or 0."
+      - "inspect_row: `for (col = 0; col < width; col++) { repairs += fix_here(); if (col < width - 1) robot_move('E'); } walk('W', width - 1); return repairs;`"
+      - "The full solution implements all three functions."
+    tests:
+      - id: default
+        stdin: "6\n"
+        world: { width: 6, height: 5, start: [0, 0], damage: [[3, 0, 1], [3, 2, 2], [0, 4, 1], [5, 4, 1]] }
+        expect: { contains: ["Repairs: 4"], world: { allRepaired: true, noBlocked: true, noWastedRepairs: true, robotAt: [0, 4] } }
+      - id: narrow
+        stdin: "2\n"
+        world: { width: 2, height: 5, start: [0, 0], damage: [[1, 0, 1], [1, 4, 1]] }
+        expect: { contains: ["Repairs: 2"], world: { allRepaired: true, noBlocked: true, robotAt: [0, 4] } }
+      - id: odd-rows-clean
+        stdin: "4\n"
+        note: Damage only in inspected rows.
+        world: { width: 4, height: 5, start: [0, 0], damage: [[0, 0, 1], [1, 2, 1], [2, 2, 1], [3, 4, 1]] }
+        expect: { contains: ["Repairs: 4"], world: { allRepaired: true, noBlocked: true, noWastedRepairs: true } }
+      - id: clean
+        stdin: "5\n"
+        world: { width: 5, height: 5, start: [0, 0], damage: [] }
+        expect: { contains: ["Repairs: 0"], world: { allRepaired: true, noBlocked: true, noWastedRepairs: true } }
+    require:
+      functions: [walk, fix_here, inspect_row]

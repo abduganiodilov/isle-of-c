@@ -1,0 +1,90 @@
+id: expedition-extras/collatz-drone
+version: 1
+kind: mastery
+optional: true
+source:
+  - { lecture: L10, slides: [4] }
+topics: [L10.while]
+prerequisites: [automation-works/factory-shift]
+estimatedMinutes: 15
+objectives:
+  - Write a while loop whose number of iterations is not known in advance.
+  - Combine a loop with an if/else on even and odd values.
+world:
+  scene: gauges
+  label: SURVEY DRONE
+  gauges:
+    - { label: Steps, pattern: "steps: (\\d+)", max: 120 }
+    - { label: Peak, pattern: "peak: (\\d+)", max: 10000 }
+title: The Wandering Drone
+briefing: |
+  A survey drone follows a strange rule: at altitude n, if n is even it drops
+  to n / 2, otherwise it climbs to 3n + 1. It always seems to land at 1
+  eventually. Count its steps and its highest altitude.
+lesson: |
+  This is the famous Collatz sequence. Nobody has proven that it always
+  reaches 1, but it does for every number ever tested — certainly for the
+  test inputs here.
+success: |
+  A while loop is the right tool when the number of repetitions cannot be
+  predicted: it ran until the condition `n != 1` failed.
+steps:
+  - id: main
+    type: code
+    title: Track the drone
+    prompt: |
+      Read a start altitude `n` (1 ≤ n ≤ 10000) and print the number of steps
+      to reach 1 and the highest altitude reached (including the start). For
+      input `6` (6 → 3 → 10 → 5 → 16 → 8 → 4 → 2 → 1):
+
+      ```
+      steps: 8
+      peak: 16
+      ```
+    stdin: "6\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int n, steps = 0, peak;
+
+          scanf("%d", &n);
+          peak = n;
+          while (n != 1) {
+              if (n % 2 == 0) {
+                  n /= 2;
+              } else {
+                  n = 3 * n + 1;
+              }
+              steps++;
+              if (n > peak) {
+                  peak = n;
+              }
+          }
+          printf("steps: %d\n", steps);
+          printf("peak: %d\n", peak);
+          return 0;
+      }
+    explanation: |
+      The loop runs while the drone has not landed. Each iteration applies the
+      rule, counts a step and updates the running maximum.
+    hints:
+      - "You don't know how many steps there will be: use while."
+      - "Loop while n != 1; inside, apply the even/odd rule, count the step and update the peak."
+      - "Even test: `n % 2 == 0`."
+      - "Start `peak = n;` before the loop and update it after each step with an if."
+      - "The full solution has one while loop with an if/else inside."
+    tests:
+      - { id: six, stdin: "6\n", expect: { output: "steps: 8\npeak: 16\n" } }
+      - { id: one, stdin: "1\n", note: Already landed., expect: { output: "steps: 0\npeak: 1\n" } }
+      - { id: twenty-seven, stdin: "27\n", note: A famously long flight., expect: { output: "steps: 111\npeak: 9232\n" } }
+      - { id: power, stdin: "64\n", expect: { output: "steps: 6\npeak: 64\n" } }

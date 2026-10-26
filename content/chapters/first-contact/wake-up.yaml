@@ -1,0 +1,123 @@
+id: first-contact/wake-up
+version: 1
+kind: guided
+source:
+  - { lecture: L09, slides: [4, 7] }
+topics: [L09.what-is-c]
+prerequisites: []
+estimatedMinutes: 6
+objectives:
+  - Know what a program is and what the C language is used for.
+  - Run a C program and see its output.
+  - Change the text a program prints.
+world:
+  scene: terminal
+  label: COMMS TERMINAL
+  goal: Make the terminal display PIP-7 online
+title: Wake Up, PIP-7
+briefing: |
+  PIP-7 has just powered on. Its comms terminal is alive but silent: it only
+  shows what a **program** tells it to show. Your first job is to run a
+  program and then change the message it prints.
+lesson: |
+  ### What is a program?
+  A **program** is a list of precise instructions for a computer. The computer
+  does exactly what the instructions say — nothing more, nothing less.
+
+  ### What is C?
+  **C** is a programming language created by Dennis Ritchie at Bell Labs in the
+  early 1970s. It was standardised by ANSI in 1989 (**C89**, also called ANSI C),
+  and later revised as **C99**, **C11**, **C17** and **C23**. This game uses
+  **C17**.
+
+  C is a *relatively low-level* high-level language: you write readable code, but
+  you stay close to how the machine works. That is why it is used for operating
+  systems (most of the Linux kernel is written in C), embedded systems (cars,
+  sensors, washing machines, robots like PIP-7) and fast libraries used by
+  other languages.
+
+  ### Your first program
+  The editor on the right already contains a complete program. For now you only
+  need one line:
+
+  ```c
+  printf("Hello, island!\n");
+  ```
+
+  `printf` shows text on the screen. The text goes between the double quotes
+  `" "`. The `\n` at the end means "move to a new line". The other lines are
+  **boilerplate** — lines every program needs. They are explained in mission 3,
+  *Anatomy of a Program*. You don't need to understand them yet.
+
+  ### How to play
+  1. Press **Run** (or Ctrl+Enter). The game compiles your C code with a real C
+     compiler and runs it. The output appears in the **Output** panel and on
+     PIP-7's terminal.
+  2. Change the code, run again, and press **Check** to test your solution.
+
+  > [!correction] Slide 4 wording is clarified: C is usually described as a
+  > *relatively low-level high-level language*.
+success: |
+  You ran a real C program and changed what it prints. Every C program you
+  write in this game is compiled by a real C compiler (Clang) — the same kind
+  of tool you will use outside the game.
+steps:
+  - id: main
+    type: code
+    title: Change the message
+    prompt: |
+      1. Press **Run** and look at the Output panel.
+      2. Change the text between the quotes so the program prints exactly:
+
+      ```
+      PIP-7 online
+      ```
+
+      Keep the `\n` at the end and keep the quotes.
+    stdin: ""
+    starter: |
+      /* --- Boilerplate: explained in mission 3. Leave it as it is. --- */
+      #include <stdio.h>
+
+      int main(void)
+      {
+          /* --- Your code: the line below prints text --- */
+          printf("Hello, island!\n");
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          printf("PIP-7 online\n");
+
+          return 0;
+      }
+    explanation: |
+      Only the text between the double quotes changes. `printf` prints that text
+      exactly as written, and `\n` ends the line.
+    hints:
+      - "The text the program prints is the part inside the double quotes."
+      - "Find the line with `printf`. Replace only the words between `\"` and `\\n`."
+      - "A printf line looks like this: `printf(\"Some text\\n\");`"
+      - "Your line should start with `printf(\"PIP-7` and end with `\\n\");`"
+      - "The full solution replaces Hello, island! with PIP-7 online."
+    tests:
+      - id: message
+        note: The terminal must show exactly PIP-7 online.
+        expect: { output: "PIP-7 online\n" }
+      - id: one-line
+        note: Nothing else is printed.
+        expect: { lines: ["PIP-7 online"], exactLineCount: true }
+    wrong:
+      - code: |
+          #include <stdio.h>
+          int main(void)
+          {
+              printf("PIP-7 Online\n");
+              return 0;
+          }
+        why: capital O — output must match exactly
+        expect: outputMismatch

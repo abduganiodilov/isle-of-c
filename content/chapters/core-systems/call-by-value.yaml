@@ -1,0 +1,200 @@
+id: core-systems/call-by-value
+version: 1
+kind: debug
+source:
+  - { lecture: L10, slides: [29, 30] }
+topics: [L10.call-by-value]
+prerequisites: [core-systems/local-scope]
+estimatedMinutes: 20
+objectives:
+  - Explain call by value - a function receives copies of the argument values.
+  - Predict that changing a parameter does not change the caller's variable.
+  - Return a new value and assign it in the caller instead.
+world:
+  scene: frames
+  label: CALL STACK
+  illustration:
+    - caption: "main is running. Its variable fuel holds 40."
+      frames:
+        - { name: main, vars: [{ name: fuel, value: "40" }] }
+    - caption: "main calls refuel(fuel, 25). C copies the VALUES 40 and 25 into refuel's parameters. refuel gets its own box called fuel."
+      frames:
+        - { name: main, vars: [{ name: fuel, value: "40" }] }
+        - { name: refuel, vars: [{ name: fuel, value: "40", copy: true }, { name: amount, value: "25", copy: true }] }
+    - caption: "refuel executes fuel = fuel + amount. Only refuel's copy changes to 65."
+      frames:
+        - { name: main, vars: [{ name: fuel, value: "40" }] }
+        - { name: refuel, vars: [{ name: fuel, value: "65", changed: true }, { name: amount, value: "25" }] }
+    - caption: "refuel returns. Its box disappears. main's fuel is still 40 - unless main stores the returned value."
+      frames:
+        - { name: main, vars: [{ name: fuel, value: "40" }] }
+title: Call by Value
+briefing: |
+  The refuelling module claims it filled PIP-7's tank, but the fuel gauge
+  never moves. The module changes a copy of the value. Find out why, and fix
+  it.
+lesson: |
+  ### Call by value
+  C passes information into a function **by value**: each parameter receives
+  a **copy** of the argument's value. The function may change its copies —
+  that is allowed — but it has **no effect on the caller's variables**.
+
+  The world view shows an **illustration** of this (step through it with the
+  arrows). It is a diagram of the idea, not a trace of your program.
+
+  The lecture's example: inside `distance`, the statement `x1 = 6.0;` changes
+  only the parameter `x1`; `main`'s own `x1` stays 12.0.
+
+  ```c example
+  #include <stdio.h>
+
+  void tryToChange(int value)
+  {
+      value = 99;                 /* changes the copy only */
+      printf("inside: %d\n", value);
+  }
+
+  int main(void)
+  {
+      int level = 5;
+      tryToChange(level);
+      printf("outside: %d\n", level);   /* still 5 */
+      return 0;
+  }
+  ```
+
+  ### How to get a result back
+  Let the function **return** the new value, and let the caller **assign**
+  it:
+
+  ```c
+  fuel = refuel(fuel, 25);
+  ```
+
+  (Later you will learn about pointers, which allow a function to change a
+  caller's variable directly — that is what `&` in `scanf` is about.)
+success: |
+  C copies argument values into parameters. Changing a parameter changes only
+  the copy. To pass a result back, return it and assign it in the caller.
+steps:
+  - id: copy-predict
+    type: predict
+    title: Did it change?
+    prompt: Type exactly what this program prints.
+    code: |
+      #include <stdio.h>
+
+      int doubleIt(int n)
+      {
+          n = n * 2;
+          return n;
+      }
+
+      int main(void)
+      {
+          int n = 4;
+          int result = doubleIt(n);
+          printf("%d %d\n", n, result);
+          return 0;
+      }
+    answer:
+      kind: output
+      output: "4 8\n"
+    explanation: |
+      `doubleIt` doubles its own copy and returns 8. main's `n` is untouched
+      (4); only `result` receives the returned value.
+  - id: main
+    type: code
+    title: Fix the refuelling module
+    prompt: |
+      `refuel` should add `amount` to the fuel level, but never above the tank
+      capacity of 100. Change it so it **returns** the new level, and update
+      `main` so its `fuel` actually changes. For input `40 25`:
+
+      ```
+      Before: 40
+      After: 65
+      ```
+    stdin: "40 25\n"
+    starter: |
+      #include <stdio.h>
+
+      void refuel(int fuel, int amount);
+
+      int main(void)
+      {
+          int fuel, amount;
+
+          scanf("%d %d", &fuel, &amount);
+          printf("Before: %d\n", fuel);
+          refuel(fuel, amount);
+          printf("After: %d\n", fuel);
+          return 0;
+      }
+
+      void refuel(int fuel, int amount)
+      {
+          fuel = fuel + amount;
+          if (fuel > 100) {
+              fuel = 100;
+          }
+      }
+    solution: |
+      #include <stdio.h>
+
+      int refuel(int fuel, int amount);
+
+      int main(void)
+      {
+          int fuel, amount;
+
+          scanf("%d %d", &fuel, &amount);
+          printf("Before: %d\n", fuel);
+          fuel = refuel(fuel, amount);
+          printf("After: %d\n", fuel);
+          return 0;
+      }
+
+      int refuel(int fuel, int amount)
+      {
+          fuel = fuel + amount;
+          if (fuel > 100) {
+              fuel = 100;
+          }
+          return fuel;
+      }
+    explanation: |
+      The function now returns its computed level (return type `int`), and
+      `main` stores it with `fuel = refuel(fuel, amount);`. Changing the
+      parameter inside refuel is fine — it is refuel's own copy.
+    harness: |
+      #include <stdio.h>
+      int refuel(int fuel, int amount);
+      int main(void)
+      {
+          int f, a;
+          while (scanf("%d %d", &f, &a) == 2) {
+              printf("%d\n", refuel(f, a));
+          }
+          return 0;
+      }
+    hints:
+      - "The function changes its copy; nothing carries the result back to main."
+      - "Give refuel a return type, return the new level, and assign the call's result to main's fuel."
+      - "`int refuel(int fuel, int amount)` … `return fuel;` … `fuel = refuel(fuel, amount);`"
+      - "Change void to int in both the prototype and the definition."
+      - "The full solution returns the level and assigns it in main."
+    tests:
+      - id: program
+        stdin: "40 25\n"
+        expect: { output: "Before: 40\nAfter: 65\n" }
+      - id: overflow
+        stdin: "90 25\n"
+        note: The tank holds at most 100.
+        expect: { output: "Before: 90\nAfter: 100\n" }
+      - id: direct
+        harness: true
+        stdin: "0 0\n10 5\n99 1\n100 50\n"
+        expect: { output: "0\n15\n100\n100\n" }
+    require:
+      functions: [refuel]

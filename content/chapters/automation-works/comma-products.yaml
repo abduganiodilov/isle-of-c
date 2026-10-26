@@ -1,0 +1,161 @@
+id: automation-works/comma-products
+version: 1
+kind: guided
+source:
+  - { lecture: L10, slides: [9] }
+topics: [L10.comma-operator]
+prerequisites: [automation-works/off-by-one]
+estimatedMinutes: 15
+objectives:
+  - Explain the comma operator - evaluate left to right, result is the last operand.
+  - Explain why a = 2, 3 and a = (2, 3) differ.
+  - Accumulate a product in a for loop (factorial).
+world:
+  scene: gauges
+  label: FABRICATOR
+  gauges:
+    - { label: n!, pattern: "! = (\\d+)", max: 479001600 }
+title: Commas and Products
+briefing: |
+  The fabricator can arrange n different parts in n! (n factorial) different
+  orders. Compute that product — and meet the strange comma operator.
+lesson: |
+  ### The comma operator
+  `expr1, expr2` evaluates `expr1`, then `expr2`, **left to right**, and the
+  value of the whole expression is the value of the **last** operand.
+
+  ```c example
+  #include <stdio.h>
+
+  int main(void)
+  {
+      int a, b;
+      a = 2, 3;       /* (a = 2), 3;  assignment binds tighter: a is 2 */
+      b = (2, 3);     /* parentheses: the comma expression is 3, so b is 3 */
+      printf("%d %d\n", a, b);
+      return 0;
+  }
+  ```
+
+  The compiler warns that the `3` is unused — a sign that the comma operator
+  is rarely what you want. Its main legitimate use is in `for` headers, to
+  initialise or update **two** variables.
+
+  ### Product accumulation
+  To multiply 1·2·…·n, start the product at **1** (not 0!). The lecture shows
+  three equivalent loops:
+
+  ```c
+  for (i = 1, prod = 1; i <= n; prod *= i++);           /* empty body */
+  for (i = 1, prod = 1; i <= n; prod *= i, i++);        /* empty body */
+  for (i = 1, prod = 1; i <= n; i++) prod *= i;         /* clearest */
+  ```
+
+  `prod *= i++` is well defined: `i` is modified once, and `prod` once.
+
+  > [!correction] The first two forms have an **empty body**: the `;` right
+  > after `)`. They work, but a stray semicolon after a `for` header is a
+  > classic bug (the compiler warns "for loop has empty body"). Prefer the
+  > third form.
+success: |
+  The comma operator evaluates left to right and yields its last operand; it
+  is mainly useful in for headers. Products start at 1 and are accumulated with
+  `*=`.
+steps:
+  - id: comma-predict
+    type: predict
+    title: Which value is stored?
+    prompt: Type exactly what this program prints.
+    code: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int x, y, i, prod;
+          x = (5, 6, 7);
+          y = 10;
+          for (i = 1, prod = 1; i <= 4; i++) prod *= i;
+          printf("%d %d %d %d\n", x, y, i, prod);
+          return 0;
+      }
+    answer:
+      kind: output
+      output: "7 10 5 24\n"
+    explanation: |
+      `(5, 6, 7)` has the value of its last operand, 7. The loop multiplies
+      1·2·3·4 = 24 and stops when i becomes 5.
+  - id: main
+    type: code
+    title: Factorials
+    prompt: |
+      Read `n` (0 ≤ n ≤ 12) and print `n! = <value>` using a `for` loop with
+      a product accumulator. For input `5`: `5! = 120`. Remember that 0! = 1.
+    stdin: "5\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int n, i, prod;
+
+          scanf("%d", &n);
+          /* compute prod = 1 * 2 * ... * n */
+
+          printf("%d! = %d\n", n, prod);
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int n, i, prod;
+
+          scanf("%d", &n);
+          for (i = 1, prod = 1; i <= n; i++) {
+              prod *= i;
+          }
+          printf("%d! = %d\n", n, prod);
+          return 0;
+      }
+    explanation: |
+      `i = 1, prod = 1` initialises both variables with the comma operator. The
+      product starts at 1, so for n = 0 the loop does not run and the result is
+      1. 12! = 479001600 still fits in a 32-bit int; 13! would overflow.
+    hints:
+      - "Multiplying numbers together needs a starting value that does not change the product."
+      - "Start prod at 1 and multiply it by every i from 1 to n."
+      - "`for (i = 1, prod = 1; i <= n; i++) prod *= i;`"
+      - "Put that loop between the scanf and the printf."
+      - "The full solution uses the lecture's third form."
+    tests:
+      - id: five
+        stdin: "5\n"
+        expect: { output: "5! = 120\n" }
+      - id: zero
+        stdin: "0\n"
+        note: The empty product is 1.
+        expect: { output: "0! = 1\n" }
+      - id: one
+        stdin: "1\n"
+        expect: { output: "1! = 1\n" }
+      - id: ten
+        stdin: "10\n"
+        expect: { output: "10! = 3628800\n" }
+      - id: twelve
+        stdin: "12\n"
+        note: The largest factorial that fits in a 32-bit int.
+        expect: { output: "12! = 479001600\n" }
+    wrong:
+      - code: |
+          #include <stdio.h>
+          int main(void)
+          {
+              int n, i, prod = 0;
+              scanf("%d", &n);
+              for (i = 1; i <= n; i++) prod *= i;
+              printf("%d! = %d\n", n, prod);
+              return 0;
+          }
+        why: product starts at 0
+        expect: outputMismatch

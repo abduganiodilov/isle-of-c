@@ -1,0 +1,83 @@
+id: first-contact/comms-tower
+version: 1
+kind: chapter-challenge
+source:
+  - { lecture: L09, slides: [7, 8, 9, 10] }
+topics: [L09.hello-program, L09.printf-basics, L09.main-function, L09.libraries]
+prerequisites: [first-contact/beacon-debug]
+estimatedMinutes: 10
+objectives:
+  - Write a complete C program from an empty file without a template.
+  - Use escape sequences for quotes and backslashes.
+world:
+  scene: terminal
+  label: COMMS TOWER
+  goal: Broadcast the full startup sequence
+title: "Chapter Challenge: Comms Tower"
+briefing: |
+  The tower's memory was wiped. Write the whole startup program yourself — no
+  template this time. When it runs, the tower broadcasts and the next region
+  of the island opens.
+lesson: |
+  This is a **chapter challenge**: everything you need was taught in this
+  chapter. Write the include line, `main`, the printf statements and the
+  return statement yourself. Use the Notebook (book icon) if you want to look
+  something up.
+success: |
+  You wrote a complete C program from nothing: header, `main`, statements with
+  escape sequences, and `return 0;`. The Comms Tower is broadcasting and the
+  Sensor Lab is now reachable.
+steps:
+  - id: main
+    type: code
+    title: Write the startup program
+    prompt: |
+      Starting from an empty file, write a program that prints exactly:
+
+      ```
+      PIP-7 COMMS v1.0
+      Status: "ready"
+      Log path: C:\island\comms
+      ```
+    starter: |
+      /* Comms Tower startup program: write it from scratch. */
+    solution: |
+      /* Comms Tower startup program */
+      #include <stdio.h>
+
+      int main(void)
+      {
+          printf("PIP-7 COMMS v1.0\n");
+          printf("Status: \"ready\"\n");
+          printf("Log path: C:\\island\\comms\n");
+          return 0;
+      }
+    explanation: |
+      The program has the four parts you learned: `#include <stdio.h>`,
+      `int main(void)`, the body in braces, and `return 0;`. Quotes inside a
+      string are written `\"` and each backslash is written `\\`.
+    hints:
+      - "Every complete program needs a header include, a main function with a body in braces, and a return."
+      - "Write the boilerplate first, run it (it should print nothing), then add one printf per line."
+      - "Escapes: `\\\"` prints a quote, `\\\\` prints one backslash, `\\n` ends the line."
+      - "Line 3 is: `printf(\"Log path: C:\\\\island\\\\comms\\n\");`"
+      - "The full solution is shown below with all three printf statements."
+    tests:
+      - id: sequence
+        note: All three lines exactly.
+        expect: { output: "PIP-7 COMMS v1.0\nStatus: \"ready\"\nLog path: C:\\island\\comms\n" }
+      - id: count
+        note: Nothing extra.
+        expect: { lines: ["PIP-7 COMMS v1.0", "Status: \"ready\"", "Log path: C:\\island\\comms"], exactLineCount: true }
+    wrong:
+      - code: |
+          #include <stdio.h>
+          int main(void)
+          {
+              printf("PIP-7 COMMS v1.0\n");
+              printf("Status: \"ready\"\n");
+              printf("Log path: C:\island\comms\n");
+              return 0;
+          }
+        why: single backslashes start (invalid) escape sequences
+        expect: outputMismatch

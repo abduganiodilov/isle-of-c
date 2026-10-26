@@ -1,0 +1,128 @@
+id: control-center/style-review
+version: 1
+kind: challenge
+source:
+  - { lecture: L09, slides: [47, 48] }
+topics: [L09.style-guidelines, L09.style-example]
+prerequisites: [control-center/first-loop]
+estimatedMinutes: 15
+objectives:
+  - Rewrite cramped code readably without changing its behaviour.
+  - Apply the style rules - comments, indentation, meaningful names, one statement per line, no unnecessary complexity.
+world:
+  scene: sorter
+  label: PRESSURE ALARM
+  bins:
+    - { label: ALERT, match: "ALERT" }
+    - { label: ok, match: "^ok" }
+title: Readable Code
+briefing: |
+  The pressure alarm works — but its program is one unreadable line. The next
+  engineer to touch it will introduce a bug. Make it readable without changing
+  what it does.
+lesson: |
+  ### Programming style
+  Programs are read far more often than they are written. Style rules from
+  the lecture:
+
+  * **Comments** tell readers what they need to know (the *why*, not every
+    *what*).
+  * **Indentation** shows the levels of control: everything inside a block is
+    indented one level more than the block's braces.
+  * **Meaningful names**: `difference` instead of `c`. Short names like `i`
+    or `n` are fine for loop counters and simple counts.
+  * A **naming convention** helps readers: e.g. `camelCase` for variables.
+  * **Standard idioms**: write things the way experienced C programmers
+    expect (for example `for (i = 0; i < n; i++)`).
+  * **Avoid unnecessary complexity**: one statement per line, no clever
+    tricks.
+
+  The lecture's bad example squeezes a whole loop into a few lines:
+
+  ```c
+  while (1){ scanf("%d", &n);
+  if (n==0) break; else if (n==1) continue;
+  printf("n=%d\n", n);}
+  ```
+
+  It works, but you must read it three times to see what it does. You will
+  meet `while`, `break` and `continue` in the next chapter.
+
+  In this mission the game checks your behaviour with tests, and also runs
+  simple automatic style checks: at most one statement per line, indented
+  block contents, at least one comment, and descriptive variable names (at
+  least 3 characters, except `i`, `j`, `k`, `n`, `x`, `y`). Real style review
+  is done by people — use the checklist too.
+success: |
+  Same behaviour, but now the code explains itself: descriptive names,
+  one statement per line, indentation that shows the structure, and a comment
+  saying what the program is for.
+steps:
+  - id: main
+    type: code
+    title: Clean up the alarm
+    prompt: |
+      Rewrite the program so it behaves exactly the same (the tests check this)
+      but follows the style rules. It reads two pressure readings and prints
+      `ALERT <difference>` if they differ by more than 10, otherwise
+      `ok <difference>`.
+    stdin: "40 55\n"
+    starterPasses: true
+    starter: |
+      #include <stdio.h>
+      int main(void){int a,b,c;scanf("%d %d",&a,&b);if(a>b){c=a-b;}else{c=b-a;}if(c>10)printf("ALERT %d\n",c);else printf("ok %d\n",c);return 0;}
+    solution: |
+      /* Pressure alarm: compares two readings and raises an alert
+         when they differ by more than 10 units. */
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int first, second, difference;
+
+          scanf("%d %d", &first, &second);
+
+          if (first > second) {
+              difference = first - second;
+          } else {
+              difference = second - first;
+          }
+
+          if (difference > 10) {
+              printf("ALERT %d\n", difference);
+          } else {
+              printf("ok %d\n", difference);
+          }
+          return 0;
+      }
+    explanation: |
+      Nothing about the logic changed. Descriptive names (`first`, `second`,
+      `difference`), one statement per line, consistent indentation and a
+      comment make the purpose clear at a glance.
+    checklist:
+      - Could a classmate understand the program without asking you?
+      - Does each variable name say what it holds?
+      - Is every block indented one level deeper than its braces?
+      - Did you avoid any trick that a reader must decode?
+    hints:
+      - "Behaviour stays the same; only the layout and names change."
+      - "First split the code into one statement per line, then indent the blocks, then rename a, b and c, then add a comment."
+      - "Indent inside braces by 4 spaces. A comment looks like `/* ... */` or `// ...`."
+      - "Rename a → first, b → second, c → difference, and put each if/else on its own lines."
+      - "The full solution shows the cleaned-up program."
+    tests:
+      - id: alert
+        stdin: "40 55\n"
+        expect: { output: "ALERT 15\n" }
+      - id: ok
+        stdin: "40 45\n"
+        expect: { output: "ok 5\n" }
+      - id: reversed
+        stdin: "70 20\n"
+        expect: { output: "ALERT 50\n" }
+      - id: boundary
+        stdin: "10 20\n"
+        note: A difference of exactly 10 is still ok.
+        expect: { output: "ok 10\n" }
+    require:
+      style: { maxStatementsPerLine: 1, requireIndent: true, requireComment: true, minNameLength: 3 }

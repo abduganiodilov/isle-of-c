@@ -1,0 +1,192 @@
+id: control-center/card-ranks
+version: 1
+kind: debug
+source:
+  - { lecture: L09, slides: [44, 45] }
+topics: [L09.fall-through, L09.card-rank, L09.switch]
+prerequisites: [control-center/machine-modes]
+estimatedMinutes: 15
+objectives:
+  - Predict what happens when a case has no break (fall-through).
+  - Fix accidental fall-through and use deliberate fall-through to group cases.
+world:
+  scene: terminal
+  label: CARD READER
+  goal: Name every card rank correctly
+title: Falling Through
+briefing: |
+  The researchers left behind a card-game terminal that names card ranks. It
+  sometimes prints two names for one card. Investigate the missing `break`.
+lesson: |
+  ### What if there is no break?
+  After jumping to a matching `case`, the switch keeps executing statements
+  — **including those of the following cases** — until it reaches a `break`
+  or the end. This is called **fall-through**:
+
+  ```c example stdin=1
+  #include <stdio.h>
+
+  int main(void)
+  {
+      int n;
+      printf("What is the rank of the card (1-13)? ");
+      scanf("%d", &n);
+      switch (n)
+      {
+      case 1: printf("Ace\n");          /* no break! */
+      case 11: printf("Jack\n"); break;
+      default: printf("%d\n", n); break;
+      }
+      return 0;
+  }
+  ```
+
+  The compiler warns *unannotated fall-through between switch labels* (the
+  game enables `-Wimplicit-fallthrough`).
+
+  ### Deliberate fall-through
+  Several case labels in a row share the same code — a useful pattern:
+
+  ```c
+  case 11:
+  case 12:
+  case 13:
+      printf("Face card\n");
+      break;
+  ```
+
+  Labels with no statements between them are not warned about.
+success: |
+  Without `break`, execution falls through into the next case. Accidental
+  fall-through is a bug; stacking labels like `case 12: case 13:` is the
+  deliberate, readable way to share code.
+steps:
+  - id: fall-predict
+    type: predict
+    title: Ace and...?
+    prompt: The example above is run with input `1`. Type exactly what it prints after the prompt (one line per output line; leave out the prompt).
+    code: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int n = 1;
+          switch (n)
+          {
+          case 1: printf("Ace\n");
+          case 11: printf("Jack\n"); break;
+          default: printf("%d\n", n); break;
+          }
+          return 0;
+      }
+    answer:
+      kind: output
+      output: "Ace\nJack\n"
+    explanation: |
+      `case 1` prints Ace; with no break, execution continues into `case 11`
+      and prints Jack, then stops at its break.
+  - id: main
+    type: code
+    title: Fix and extend the card reader
+    prompt: |
+      Read a rank (int) and print:
+
+      * 1 → `Ace`
+      * 2 to 10 → the number, e.g. `7`
+      * 11 → `Jack`, 12 → `Queen`, 13 → `King`
+      * anything else → `Invalid rank`
+
+      Then, **for 11, 12 and 13 only**, print a second line `Face card`
+      using one shared group of case labels. Every rank must print only its
+      own lines.
+    stdin: "12\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int n;
+
+          scanf("%d", &n);
+          switch (n)
+          {
+          case 1: printf("Ace\n");
+          case 11: printf("Jack\n"); break;
+          default: printf("%d\n", n); break;
+          }
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int n;
+
+          scanf("%d", &n);
+          switch (n)
+          {
+          case 1: printf("Ace\n"); break;
+          case 11: printf("Jack\n"); break;
+          case 12: printf("Queen\n"); break;
+          case 13: printf("King\n"); break;
+          default:
+              if (n >= 2 && n <= 10) {
+                  printf("%d\n", n);
+              } else {
+                  printf("Invalid rank\n");
+              }
+              break;
+          }
+
+          switch (n)
+          {
+          case 11:
+          case 12:
+          case 13:
+              printf("Face card\n");
+              break;
+          default:
+              break;
+          }
+          return 0;
+      }
+    explanation: |
+      Adding `break` after Ace removes the accidental fall-through. The number
+      cards share the default branch, which also rejects invalid ranks. The
+      second switch stacks the labels 11, 12 and 13 — deliberate fall-through —
+      to print `Face card` once.
+    hints:
+      - "Run the test for rank 1 and compare: what is printed that should not be?"
+      - "Every case needs a break. Handle ranks 2–10 and invalid ranks in default with an if."
+      - "Stacked labels share code: `case 11: case 12: case 13: printf(...); break;`"
+      - "Add `break;` after Ace, add cases 12 and 13, and in default check `n >= 2 && n <= 10`."
+      - "The full solution uses two switch statements."
+    tests:
+      - id: ace
+        stdin: "1\n"
+        expect: { output: "Ace\n" }
+      - id: number
+        stdin: "7\n"
+        expect: { output: "7\n" }
+      - id: ten
+        stdin: "10\n"
+        expect: { output: "10\n" }
+      - id: jack
+        stdin: "11\n"
+        expect: { output: "Jack\nFace card\n" }
+      - id: queen
+        stdin: "12\n"
+        expect: { output: "Queen\nFace card\n" }
+      - id: king
+        stdin: "13\n"
+        expect: { output: "King\nFace card\n" }
+      - id: invalid-high
+        stdin: "14\n"
+        expect: { output: "Invalid rank\n" }
+      - id: invalid-zero
+        stdin: "0\n"
+        expect: { output: "Invalid rank\n" }
+    require:
+      constructs: [switch]
+      noWarnings: [-Wimplicit-fallthrough]

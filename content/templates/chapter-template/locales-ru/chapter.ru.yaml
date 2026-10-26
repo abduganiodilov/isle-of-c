@@ -1,0 +1,58 @@
+# Russian translation: same structure, only human-readable text. Code stays as is.
+chapters:
+  template-arrays:
+    title: Архив
+    region: Утёсы — Архив
+    intro: >
+      Короткое сюжетное вступление к новому району.
+    outro: >
+      Что умеет игрок после этой главы.
+missions:
+  template-arrays/example-mission:
+    title: Пример миссии
+    objectives:
+      - Одна цель обучения на строку.
+    world: { label: ТЕРМИНАЛ АРХИВА, goal: Что миру нужно от программы }
+    briefing: |
+      Сюжет и конкретная цель в мире игры.
+    lesson: |
+      ### Одна небольшая идея
+      Объяснение простыми словами и короткий рабочий пример:
+
+      ```c example
+      #include <stdio.h>
+
+      int main(void)
+      {
+          printf("Example\n");
+          return 0;
+      }
+      ```
+    success: |
+      Чему научился игрок и почему программа работает.
+    steps:
+      predict:
+        title: Сначала предскажите
+        prompt: Что выведет эта программа?
+        explanation: |
+          Почему программа выводит именно это.
+      main:
+        title: Напишите код
+        prompt: |
+          Точная задача с примером ввода и ожидаемого вывода.
+        explanation: |
+          Почему эталонное решение работает.
+        hints:
+          - Идея.
+          - Стратегия.
+          - Пример синтаксиса.
+          - Частичное решение.
+          - Вступление к полному решению.
+        tests:
+          zero: Граничный случай.
+lectures:
+  L11:
+    title: Пример лекции
+    topics:
+      L11.outline: План лекции
+      L11.example-topic: Пример темы

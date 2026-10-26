@@ -1,0 +1,43 @@
+{
+  "name": "isle-of-c",
+  "version": "1.0.0",
+  "description": "Isle of C — a programming adventure that teaches real C17",
+  "scripts": {
+    "test": "node scripts/build-content.mjs --strict && node scripts/test-units.mjs && node scripts/test-progress.mjs && node scripts/verify-content.mjs",
+    "content": "node scripts/build-content.mjs",
+    "toolchain": "node scripts/copy-toolchain.mjs",
+    "predev": "npm run toolchain && npm run content",
+    "dev": "vite",
+    "prebuild": "npm run toolchain && npm run content",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "node server.mjs",
+    "verify": "node scripts/verify-content.mjs",
+    "postinstall": "node scripts/copy-toolchain.mjs",
+    "postbuild": "node scripts/compress-dist.mjs",
+    "e2e": "node tests/e2e/campaign.mjs --all",
+    "content:strict": "node scripts/build-content.mjs --strict"
+  },
+  "dependencies": {
+    "@codemirror/autocomplete": "^6.20.4",
+    "@codemirror/commands": "^6.11.1",
+    "@codemirror/lang-cpp": "^6.0.3",
+    "@codemirror/language": "^6.13.1",
+    "@codemirror/lint": "^6.9.7",
+    "@codemirror/search": "^6.7.2",
+    "@codemirror/state": "^6.7.6",
+    "@codemirror/view": "^6.43.15",
+    "@lezer/highlight": "^1.2.5",
+    "@yowasp/clang": "22.0.0-git20542-10",
+    "js-yaml": "^5.5.0",
+    "marked": "^18.1.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.1.2",
+    "vite": "^8.3.5"
+  },
+  "type": "module",
+  "private": true
+}

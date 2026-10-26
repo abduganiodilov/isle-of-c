@@ -1,0 +1,26 @@
+id: supply-depot
+version: 1
+letter: C
+title: Supply Depot
+region: Harbour — Supply Depot
+lectures: [L09]
+intro: >
+  The harbour depot still holds crates, batteries and spare parts, but the
+  allocation computer forgot how to calculate. PIP-7 must learn expressions,
+  operators and type conversions to share out the supplies fairly.
+outro: >
+  Supplies flow again. PIP-7 can build expressions, control their order with
+  parentheses, update variables with ++ and +=, and convert between types on
+  purpose.
+map: { x: 52, y: 72 }
+missions:
+  - expressions
+  - assignment-value
+  - integer-division
+  - precedence
+  - increment
+  - forbidden-expression
+  - type-conversion
+  - cm-to-feet
+  - feet-to-cm
+  - depot-ledger

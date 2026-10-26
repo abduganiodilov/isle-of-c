@@ -1,0 +1,156 @@
+id: core-systems/void-functions
+version: 1
+kind: guided
+source:
+  - { lecture: L10, slides: [31, 32] }
+topics: [L10.void-function, L10.void-parameter]
+prerequisites: [core-systems/call-by-value]
+estimatedMinutes: 15
+objectives:
+  - Write a void function that is called for its effect and returns no value.
+  - Write a function with no parameters using (void), and call it with ().
+world:
+  scene: terminal
+  label: STATUS BOARD
+  goal: Print a formatted status board
+title: Functions That Just Act
+briefing: |
+  The core's status board prints the same divider line again and again, and a
+  status line for each subsystem. Package those actions as functions.
+lesson: |
+  ### void return type
+  Some functions are called for an **effect** (printing, moving a robot), not
+  for a value. Their return type is **`void`**:
+
+  ```c
+  void sayHi(int id)
+  {
+      printf("Hi! %d\n", id);
+  }
+  ```
+
+  There is no `return value;` — the function ends at its closing brace (or
+  at a plain `return;`). Call it as a statement: `sayHi(1234567);`
+
+  ### void parameter list
+  A function that needs **no inputs** has `void` as its parameter list. It
+  is still called with empty parentheses:
+
+  ```c
+  void sayHi(void)
+  {
+      printf("Hi!\n");
+  }
+  ...
+  sayHi();
+  ```
+
+  `main` itself is written `int main(void)` for exactly this reason.
+
+  > [!correction] Slide 31 calls `sayHi(1234567)`. That requires `int` wider
+  > than 16 bits; the standard only guarantees up to 32767. Use `long` for
+  > values that may be that large on small systems.
+success: |
+  A `void` function performs an action and returns nothing; a `(void)`
+  parameter list means "no inputs", and such a function is called with `()`.
+steps:
+  - id: main
+    type: code
+    title: Build the status board
+    prompt: |
+      Write two functions and use them in `main`:
+
+      * `void divider(void)` prints `----------`
+      * `void status(int id, int level)` prints `unit <id>: <level>%`
+
+      `main` reads three subsystem levels and prints, for input `80 45 100`:
+
+      ```
+      ----------
+      unit 1: 80%
+      unit 2: 45%
+      unit 3: 100%
+      ----------
+      ```
+    stdin: "80 45 100\n"
+    starter: |
+      #include <stdio.h>
+
+      void divider(void);
+      void status(int id, int level);
+
+      int main(void)
+      {
+          int a, b, c;
+
+          scanf("%d %d %d", &a, &b, &c);
+          /* print the board using divider() and status() */
+
+          return 0;
+      }
+
+      /* write the two function definitions here */
+    solution: |
+      #include <stdio.h>
+
+      void divider(void);
+      void status(int id, int level);
+
+      int main(void)
+      {
+          int a, b, c;
+
+          scanf("%d %d %d", &a, &b, &c);
+          divider();
+          status(1, a);
+          status(2, b);
+          status(3, c);
+          divider();
+          return 0;
+      }
+
+      void divider(void)
+      {
+          printf("----------\n");
+      }
+
+      void status(int id, int level)
+      {
+          printf("unit %d: %d%%\n", id, level);
+      }
+    explanation: |
+      Neither function returns a value: they are called as statements for their
+      printing effect. `divider()` takes no arguments; `status` takes two.
+    harness: |
+      #include <stdio.h>
+      void divider(void);
+      void status(int id, int level);
+      int main(void)
+      {
+          int id, level;
+          divider();
+          while (scanf("%d %d", &id, &level) == 2) {
+              status(id, level);
+          }
+          divider();
+          return 0;
+      }
+    hints:
+      - "Each function does one action; neither returns anything."
+      - "Write the two definitions below main, then call divider once, status three times and divider again."
+      - "`void divider(void) { printf(\"----------\\n\"); }` and `printf(\"unit %d: %d%%\\n\", id, level);`"
+      - "In main: `divider(); status(1, a); status(2, b); status(3, c); divider();`"
+      - "The full solution defines both functions and calls them five times."
+    tests:
+      - id: program
+        stdin: "80 45 100\n"
+        expect: { output: "----------\nunit 1: 80%\nunit 2: 45%\nunit 3: 100%\n----------\n" }
+      - id: program-zero
+        stdin: "0 0 0\n"
+        expect: { output: "----------\nunit 1: 0%\nunit 2: 0%\nunit 3: 0%\n----------\n" }
+      - id: direct
+        harness: true
+        stdin: "7 12\n42 99\n"
+        expect: { output: "----------\nunit 7: 12%\nunit 42: 99%\n----------\n" }
+    require:
+      functions: [divider, status]

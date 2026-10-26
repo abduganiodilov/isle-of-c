@@ -1,0 +1,140 @@
+id: automation-works/while-batches
+version: 1
+kind: guided
+source:
+  - { lecture: L10, slides: [4] }
+topics: [L10.while]
+prerequisites: [control-center/control-room]
+estimatedMinutes: 15
+objectives:
+  - Write a while loop with a condition, a body and an update.
+  - Read a sequence of values with scanf inside a loop.
+  - Accumulate a running total.
+world:
+  scene: gauges
+  label: CONVEYOR SCALE
+  gauges:
+    - { label: Total kg, pattern: "Total weight: (-?\\d+)", max: 500 }
+title: Batches on the Belt
+briefing: |
+  Crates roll along the conveyor in batches. The scale must add up the weight
+  of every crate in a batch — and the number of crates changes every time.
+lesson: |
+  ### while
+  ```c
+  while (condition)
+      statement;
+
+  while (condition) {
+      statements;
+  }
+  ```
+
+  The condition is tested **before** each repetition. While it is true
+  (non-zero), the body runs; as soon as it is false, the loop ends and the
+  program continues after it. If it is false at the start, the body never
+  runs.
+
+  Something in the body must eventually make the condition false — usually a
+  counter update. Otherwise the loop never ends:
+
+  ```c
+  while (1) {}     /* an infinite loop: 1 is always true */
+  ```
+
+  ### Counting and accumulating
+  ```c example stdin=3\n5\n7\n9
+  #include <stdio.h>
+
+  int main(void)
+  {
+      int n, value, count = 0, sum = 0;
+      scanf("%d", &n);            /* how many values follow */
+      while (count < n) {
+          scanf("%d", &value);
+          sum += value;           /* accumulate */
+          count++;                /* update: brings the loop closer to its end */
+      }
+      printf("sum = %d\n", sum);
+      return 0;
+  }
+  ```
+
+  The variables `sum` and `count` must start at 0 **before** the loop.
+success: |
+  A while loop repeats while its condition is true. A counter that is updated
+  in the body ends the loop; an accumulator (`total += weight`) collects a
+  result across iterations.
+steps:
+  - id: main
+    type: code
+    title: Weigh the batch
+    prompt: |
+      The first input is the number of crates `n`, followed by `n` crate
+      weights. Print the total weight. For input `3 10 20 30`:
+
+      ```
+      Total weight: 60 kg
+      ```
+    stdin: "3\n10 20 30\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int n, weight;
+          int count = 0;
+          int total = 0;
+
+          scanf("%d", &n);
+          while (count < n) {
+              /* read one weight, add it to total, update count */
+
+          }
+          printf("Total weight: %d kg\n", total);
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int n, weight;
+          int count = 0;
+          int total = 0;
+
+          scanf("%d", &n);
+          while (count < n) {
+              scanf("%d", &weight);
+              total += weight;
+              count++;
+          }
+          printf("Total weight: %d kg\n", total);
+          return 0;
+      }
+    explanation: |
+      Each iteration reads one weight, adds it to `total` and increases
+      `count`. When `count` reaches `n`, the condition `count < n` becomes false
+      and the loop stops.
+    hints:
+      - "Each repetition handles exactly one crate."
+      - "Inside the loop: read, accumulate, count. Without the count update the loop never ends."
+      - "`scanf(\"%d\", &weight);` `total += weight;` `count++;`"
+      - "Those three statements are the whole loop body."
+      - "The full solution fills in the loop body."
+    tests:
+      - id: three
+        stdin: "3\n10 20 30\n"
+        expect: { contains: ["Total weight: 60 kg"] }
+      - id: one
+        stdin: "1\n42\n"
+        expect: { contains: ["Total weight: 42 kg"] }
+      - id: empty
+        stdin: "0\n"
+        note: An empty batch.
+        expect: { contains: ["Total weight: 0 kg"] }
+      - id: five
+        stdin: "5\n7 7 7 7 7\n"
+        expect: { contains: ["Total weight: 35 kg"] }
+    require:
+      constructs: [while]

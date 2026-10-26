@@ -1,0 +1,144 @@
+id: supply-depot/type-conversion
+version: 1
+kind: debug
+source:
+  - { lecture: L09, slides: [31] }
+topics: [L09.type-conversion]
+prerequisites: [supply-depot/forbidden-expression]
+estimatedMinutes: 15
+objectives:
+  - Predict automatic conversions in mixed expressions such as 1 + 1.5.
+  - Recognise that int / int stays an integer even when stored in a double.
+  - Use an explicit cast (double) to get the intended result.
+world:
+  scene: gauges
+  label: CALIBRATION STATION
+  gauges:
+    - { label: Average, pattern: "Average: (-?[0-9.]+)", max: 100 }
+title: Converting Types
+briefing: |
+  The measurement station averages three integer readings, but its averages
+  are always whole numbers — the calibration is off. Find out why.
+lesson: |
+  ### Automatic (implicit) conversion
+  When an expression mixes types, C converts automatically:
+
+  * `1 + 1.5`: the int `1` is converted to double, the result is `2.5`
+    (a `double`).
+  * Assigning a double to an int **cuts off the fraction**:
+    `int n = 3.99;` stores `3`.
+  * Assigning an int to a double is exact for normal values: `double d = 7;`
+
+  ### The classic trap
+  The type of an operation depends on its **operands**, not on where the
+  result goes:
+
+  ```c example
+  #include <stdio.h>
+
+  int main(void)
+  {
+      int sum = 7, count = 2;
+      double wrong = sum / count;            /* int / int = 3, then 3.0 */
+      double right = (double) sum / count;   /* 7.0 / 2 = 3.5 */
+      printf("%g %g\n", wrong, right);
+      return 0;
+  }
+  ```
+
+  ### Explicit conversion (cast)
+  `(type) expression` converts a value on purpose. `(double) sum` turns `sum`
+  into a double *before* the division. Writing a double constant such as
+  `3.0` has the same effect.
+
+  **Good practice:** keep the types in one expression the same, except in
+  obvious cases, and use explicit casts when you mean to convert.
+
+  > [!correction] Slide 31 says automatic conversion "might induce a warning".
+  > `1 + 1.5` never warns. Compilers warn only about *possibly lossy*
+  > conversions (for example double → int), and only with options like
+  > `-Wconversion`.
+success: |
+  Mixed int/double arithmetic converts the int to double, but `int / int` is
+  integer division regardless of where the result is stored. A cast such as
+  `(double) total` converts on purpose, before the division.
+steps:
+  - id: mixed-predict
+    type: predict
+    title: Which type wins?
+    prompt: Type exactly what this program prints.
+    code: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int a = 5;
+          double b = a / 2;
+          double c = a / 2.0;
+          int d = 9.99;
+          printf("%g %g %d\n", b, c, d);
+          return 0;
+      }
+    answer:
+      kind: output
+      output: "2 2.5 9\n"
+    explanation: |
+      `a / 2` is int / int = 2 (then stored as 2.0). `a / 2.0` converts a to
+      double, giving 2.5. Storing 9.99 in an int truncates it to 9.
+  - id: main
+    type: code
+    title: Fix the average
+    prompt: |
+      The program reads three integer readings and must print their average
+      with two decimals. For input `1 2 2` the correct output is
+      `Average: 1.67`, but the program prints `Average: 1.00`. Fix it.
+    stdin: "1 2 2\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int r1, r2, r3;
+          double average;
+
+          scanf("%d %d %d", &r1, &r2, &r3);
+          average = (r1 + r2 + r3) / 3;
+          printf("Average: %.2f\n", average);
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int r1, r2, r3;
+          double average;
+
+          scanf("%d %d %d", &r1, &r2, &r3);
+          average = (double) (r1 + r2 + r3) / 3;
+          printf("Average: %.2f\n", average);
+          return 0;
+      }
+    explanation: |
+      `(r1 + r2 + r3) / 3` divides two ints, so the fraction was lost before the
+      result reached `average`. Casting the sum to double makes it a
+      floating-point division. Dividing by `3.0` instead would also work.
+    hints:
+      - "Ask: what are the types of the two operands of the division?"
+      - "Make at least one operand of / a double before dividing."
+      - "Cast syntax: `(double) expression`; or use a double constant like 3.0."
+      - "`average = (double) (r1 + r2 + r3) / 3;`"
+      - "The full solution casts the sum to double."
+    tests:
+      - id: example
+        stdin: "1 2 2\n"
+        expect: { output: "Average: 1.67\n" }
+      - id: whole
+        stdin: "10 20 30\n"
+        expect: { output: "Average: 20.00\n" }
+      - id: thirds
+        stdin: "10 10 11\n"
+        expect: { output: "Average: 10.33\n" }
+      - id: negative
+        stdin: "-1 0 0\n"
+        expect: { output: "Average: -0.33\n" }

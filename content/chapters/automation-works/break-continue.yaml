@@ -1,0 +1,141 @@
+id: automation-works/break-continue
+version: 1
+kind: guided
+source:
+  - { lecture: L10, slides: [11, 12] }
+  - { lecture: L09, slides: [47] }
+topics: [L10.break, L10.continue, L09.style-example]
+prerequisites: [automation-works/do-while-retry]
+estimatedMinutes: 18
+objectives:
+  - End a loop early with break.
+  - Skip the rest of one iteration with continue.
+  - Rewrite the lecture's cramped while(1) example in readable form.
+world:
+  scene: terminal
+  label: SORTING GATE
+  goal: Pass the right crates, stop at the end marker
+title: Break and Continue
+briefing: |
+  Crate codes arrive on the sorting gate. Code 0 is the end-of-shift marker.
+  Code 1 means "empty crate, skip it". Every other code is passed through and
+  logged.
+lesson: |
+  ### break
+  `break` **terminates** the innermost `for`, `while` or `do` loop (or
+  `switch`) immediately. Execution continues with the statement after the
+  loop. It is how a deliberate `while (1)` loop ends:
+
+  ```c
+  while (1) {
+      scanf("%d", &n);
+      if (n == 0) break;
+      printf("n=%d\n", n);
+  }
+  ```
+
+  ### continue
+  `continue` skips the **rest of the current iteration** and starts the next
+  one (in a `for` loop, the step still runs first).
+
+  ```c
+  while (1) {
+      scanf("%d", &n);
+      if (n == 0) break;
+      else if (n == 1) continue;
+      printf("n=%d\n", n);
+  }
+  ```
+
+  These are the lecture's examples. Remember the previous mission: if the
+  input ends, `scanf` fails and `n` keeps its old value, so this loop would
+  never end. Safer:
+
+  ```c
+  if (scanf("%d", &n) != 1 || n == 0) break;
+  ```
+
+  ### A style lesson
+  Lecture slide 47 shows the same loop squeezed together:
+
+  ```c
+  while (1){ scanf("%d", &n);
+  if (n==0) break; else if (n==1) continue;
+  printf("n=%d\n", n);}
+  ```
+
+  It compiles and does the same thing, but it hides the structure. Lay loops
+  out with one statement per line and indented bodies.
+success: |
+  `break` leaves the loop; `continue` jumps to the next iteration. Together
+  with a `scanf` check they make sentinel-controlled loops safe and readable.
+steps:
+  - id: main
+    type: code
+    title: Run the sorting gate
+    prompt: |
+      Read crate codes until `0` (or until the input ends). Skip code `1` with
+      `continue`; print `n=<code>` for all other codes; stop at `0` with
+      `break`. Finally print `passed: <count>` with the number of printed
+      crates. For input `5 1 7 0 9`:
+
+      ```
+      n=5
+      n=7
+      passed: 2
+      ```
+    stdin: "5 1 7 0 9\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void){int n,c=0;while(1){if(scanf("%d",&n)!=1)break;printf("n=%d\n",n);c++;}printf("passed: %d\n",c);return 0;}
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int n;
+          int passed = 0;
+
+          while (1) {
+              if (scanf("%d", &n) != 1 || n == 0) {
+                  break;              /* end marker or no more input */
+              }
+              if (n == 1) {
+                  continue;           /* empty crate: skip it */
+              }
+              printf("n=%d\n", n);
+              passed++;
+          }
+          printf("passed: %d\n", passed);
+          return 0;
+      }
+    explanation: |
+      `break` handles both the end marker and the end of input. `continue`
+      skips the printf and the counter for empty crates. Laid out one statement
+      per line, the structure is visible at a glance.
+    hints:
+      - "Two special codes: one ends the loop, the other skips one crate."
+      - "Add a check for 0 that breaks, and a check for 1 that continues — both before the printf."
+      - "`if (n == 0) break;` `if (n == 1) continue;`"
+      - "Combine the input check: `if (scanf(\"%d\", &n) != 1 || n == 0) break;` — and spread the code over several lines."
+      - "The full solution is a readable version of the lecture's loop with a counter."
+    tests:
+      - id: example
+        stdin: "5 1 7 0 9\n"
+        expect: { output: "n=5\nn=7\npassed: 2\n" }
+      - id: only-skips
+        stdin: "1 1 1 0\n"
+        expect: { output: "passed: 0\n" }
+      - id: no-marker
+        stdin: "3 4\n"
+        note: Input ends without 0 - the loop must still stop.
+        expect: { output: "n=3\nn=4\npassed: 2\n" }
+      - id: immediate
+        stdin: "0 5\n"
+        expect: { output: "passed: 0\n" }
+      - id: negatives
+        stdin: "-2 1 2 0\n"
+        expect: { output: "n=-2\nn=2\npassed: 2\n" }
+    require:
+      constructs: [break, continue]

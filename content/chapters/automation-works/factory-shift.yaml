@@ -1,0 +1,125 @@
+id: automation-works/factory-shift
+version: 1
+kind: chapter-challenge
+source:
+  - { lecture: L10, slides: [4, 7, 11, 12] }
+topics: [L10.while, L10.break, L10.continue]
+prerequisites: [automation-works/celsius-table]
+estimatedMinutes: 20
+objectives:
+  - Process an input stream of unknown length with a sentinel value.
+  - Combine counting, accumulating, maximum-finding, break and continue.
+world:
+  scene: gauges
+  label: SHIFT REPORT
+  gauges:
+    - { label: Batches, pattern: "Batches: (\\d+)", max: 20 }
+    - { label: Total, pattern: "Total: (-?\\d+)", max: 500 }
+    - { label: Largest, pattern: "Largest: (-?\\d+)", max: 200 }
+title: "Chapter Challenge: Factory Shift"
+briefing: |
+  At the end of each shift the factory prints a report: how many batches were
+  produced, their total size and the largest batch. Faulty sensor readings
+  (negative sizes) must be ignored.
+lesson: |
+  This challenge combines the chapter: a loop over input of unknown length,
+  a sentinel (`0`), `continue` for invalid values, `break` for the end, and
+  counting/accumulating. Remember to stop when the input ends, too.
+
+  > [!tip] Finding a maximum: keep the largest value seen so far in a
+  > variable. Because all valid sizes are positive, it can start at 0.
+success: |
+  Your report loop reads until the sentinel or the end of input, skips invalid
+  values, and keeps a count, a total and a running maximum. The Automation
+  Works run on their own now — next stop: the island's core systems.
+steps:
+  - id: main
+    type: code
+    title: Write the shift report
+    prompt: |
+      Read batch sizes (ints) until `0` or the end of input. Ignore negative
+      sizes. Then print, for input `12 40 -3 7 0 99`:
+
+      ```
+      Batches: 3
+      Total: 59
+      Largest: 40
+      ```
+
+      If there were no valid batches, print `Batches: 0`, `Total: 0` and
+      `Largest: none`.
+    stdin: "12 40 -3 7 0 99\n"
+    starter: |
+      /* Factory shift report */
+      #include <stdio.h>
+
+      int main(void)
+      {
+
+          return 0;
+      }
+    solution: |
+      /* Factory shift report */
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int size;
+          int batches = 0;
+          int total = 0;
+          int largest = 0;
+
+          while (1) {
+              if (scanf("%d", &size) != 1 || size == 0) {
+                  break;                  /* end of shift */
+              }
+              if (size < 0) {
+                  continue;               /* faulty reading */
+              }
+              batches++;
+              total += size;
+              if (size > largest) {
+                  largest = size;
+              }
+          }
+
+          printf("Batches: %d\n", batches);
+          printf("Total: %d\n", total);
+          if (batches > 0) {
+              printf("Largest: %d\n", largest);
+          } else {
+              printf("Largest: none\n");
+          }
+          return 0;
+      }
+    explanation: |
+      The loop ends at the sentinel 0 or when scanf can no longer read a
+      number. Negative sizes are skipped with continue before they are
+      counted. `largest` is updated whenever a bigger batch appears.
+    hints:
+      - "One loop reads values; three variables (count, total, largest) collect the report."
+      - "Inside a while (1) loop: read and break on 0 or failed input; continue on negatives; otherwise update the three variables."
+      - "`if (scanf(\"%d\", &size) != 1 || size == 0) break;` and `if (size > largest) largest = size;`"
+      - "After the loop, print the three lines; use an if to print `Largest: none` when no batch was counted."
+      - "The full solution uses while (1), break and continue."
+    tests:
+      - id: example
+        stdin: "12 40 -3 7 0 99\n"
+        expect: { output: "Batches: 3\nTotal: 59\nLargest: 40\n" }
+      - id: no-sentinel
+        stdin: "5 6\n"
+        note: Input ends without 0.
+        expect: { output: "Batches: 2\nTotal: 11\nLargest: 6\n" }
+      - id: empty
+        stdin: "0\n"
+        expect: { output: "Batches: 0\nTotal: 0\nLargest: none\n" }
+      - id: all-faulty
+        stdin: "-1 -2 0\n"
+        expect: { output: "Batches: 0\nTotal: 0\nLargest: none\n" }
+      - id: first-largest
+        stdin: "100 1 2 3 0\n"
+        expect: { output: "Batches: 4\nTotal: 106\nLargest: 100\n" }
+      - id: nothing
+        stdin: ""
+        note: No input at all.
+        expect: { output: "Batches: 0\nTotal: 0\nLargest: none\n" }

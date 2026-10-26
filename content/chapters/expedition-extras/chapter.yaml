@@ -1,0 +1,21 @@
+id: expedition-extras
+version: 1
+letter: "+"
+title: Expedition Extras
+region: Outlying Islets — Optional Challenges
+lectures: [L09, L10]
+optional: true
+intro: >
+  Small islets around the main island hold optional challenges. They use only
+  what you have already learned, and they are the best way to build mastery.
+  None of them is required to finish the expedition.
+outro: >
+  Every optional islet is restored. True mastery!
+map: { x: 88, y: 66 }
+missions:
+  - change-maker
+  - leap-calendar
+  - number-pyramid
+  - collatz-drone
+  - gcd-gears
+  - prime-beacons

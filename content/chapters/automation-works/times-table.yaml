@@ -1,0 +1,118 @@
+id: automation-works/times-table
+version: 1
+kind: guided
+source:
+  - { lecture: L10, slides: [13] }
+topics: [L10.times-table]
+prerequisites: [automation-works/sweep-field]
+estimatedMinutes: 15
+objectives:
+  - Print a two-dimensional table with nested loops.
+  - Use a field width (%4d) to align columns.
+world:
+  scene: table
+  label: CALIBRATION GRID
+  goal: Print an aligned multiplication table
+title: The Multiplication Table
+briefing: |
+  The calibration bench needs a reference grid of products. Generate it with
+  the lecture's `timestab.c`, then make the table size adjustable.
+lesson: |
+  The lecture's program prints a 9 × 9 multiplication table:
+
+  ```c example
+  /* File: timestab.c
+   * Generates a multiplication table
+   */
+  #include <stdio.h>
+
+  int main(void)
+  {
+      int i, j;
+      for (i = 1; i <= 9; i++)
+      {
+          for (j = 1; j <= 9; j++) printf("%4d", i * j);
+          printf("\n");
+      }
+      return 0;
+  }
+  ```
+
+  * The **inner** loop prints one row: the products `i*1` … `i*9`.
+  * After the inner loop finishes, `printf("\n")` ends the row; then the
+    outer loop moves to the next `i`.
+  * `%4d` prints the number **right-aligned in a field 4 characters wide**
+    (padded with spaces), so the columns line up.
+success: |
+  The outer loop chooses the row, the inner loop prints the row's entries, and
+  the newline after the inner loop ends each row. `%4d` keeps the columns
+  aligned.
+steps:
+  - id: main
+    type: code
+    title: Adjustable table
+    prompt: |
+      Read `n` and print an `n × n` multiplication table, each number printed
+      with `%4d`, one row per line. For input `3`:
+
+      ```
+         1   2   3
+         2   4   6
+         3   6   9
+      ```
+    stdin: "3\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int i, j, n;
+
+          scanf("%d", &n);
+          for (i = 1; i <= 9; i++)
+          {
+              for (j = 1; j <= 9; j++) printf("%4d", i * j);
+              printf("\n");
+          }
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int i, j, n;
+
+          scanf("%d", &n);
+          for (i = 1; i <= n; i++)
+          {
+              for (j = 1; j <= n; j++) {
+                  printf("%4d", i * j);
+              }
+              printf("\n");
+          }
+          return 0;
+      }
+    explanation: |
+      Replacing both limits 9 by `n` makes the table size follow the input.
+      The layout comes from `%4d` and the newline after each inner loop.
+    hints:
+      - "The table size is fixed at 9 in two places."
+      - "Both loops should run up to n instead of 9."
+      - "`for (i = 1; i <= n; i++)` and `for (j = 1; j <= n; j++)`"
+      - "Keep `printf(\"%4d\", i * j);` inside and `printf(\"\\n\");` after the inner loop."
+      - "The full solution replaces 9 by n twice."
+    tests:
+      - id: three
+        stdin: "3\n"
+        expect: { output: "   1   2   3\n   2   4   6\n   3   6   9\n" }
+      - id: one
+        stdin: "1\n"
+        expect: { output: "   1\n" }
+      - id: five
+        stdin: "5\n"
+        expect: { output: "   1   2   3   4   5\n   2   4   6   8  10\n   3   6   9  12  15\n   4   8  12  16  20\n   5  10  15  20  25\n" }
+      - id: nine
+        stdin: "9\n"
+        note: The lecture's full table.
+        expect: { lines: ["   9  18  27  36  45  54  63  72  81"], exactLineCount: false }

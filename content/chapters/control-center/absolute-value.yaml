@@ -1,0 +1,89 @@
+id: control-center/absolute-value
+version: 1
+kind: challenge
+source:
+  - { lecture: L09, slides: [40] }
+topics: [L09.absolute-value, L09.if-statement]
+prerequisites: [control-center/signum]
+estimatedMinutes: 10
+objectives:
+  - Write a complete program with a decision, independently.
+  - Compute the absolute value of a number using a condition.
+world:
+  scene: gauges
+  label: DRIFT METER
+  gauges:
+    - { label: "|x|", pattern: "\\|x\\| = (\\S+)", max: 100 }
+title: Absolute Drift
+briefing: |
+  The drift meter's needle only moves to the right: it shows the size of the
+  drift, never its direction. Compute the **absolute value**.
+lesson: |
+  The absolute value |x| is x when x ≥ 0 and −x when x < 0. This is the
+  lecture's practice exercise (slide 40). Write it with an `if` statement;
+  this mission does not allow the library functions `fabs` and `abs`, so you
+  practise the decision yourself.
+success: |
+  You wrote a decision on your own: negate the value only when it is negative.
+  (Outside this exercise, `fabs` from `<math.h>` does the same for doubles.)
+steps:
+  - id: main
+    type: code
+    title: Write the absolute value program
+    prompt: |
+      Read a `double` and print its absolute value with `%g`. For input `-4.5`:
+
+      ```
+      |x| = 4.5
+      ```
+    stdin: "-4.5\n"
+    starter: |
+      /* Absolute value */
+      #include <stdio.h>
+
+      int main(void)
+      {
+
+          return 0;
+      }
+    solution: |
+      /* Absolute value */
+      #include <stdio.h>
+
+      int main(void)
+      {
+          double x;
+
+          printf("Input x: ");
+          scanf("%lf", &x);
+          if (x < 0) {
+              x = -x;
+          }
+          printf("|x| = %g\n", x);
+          return 0;
+      }
+    explanation: |
+      If the value is negative, unary minus flips its sign; otherwise it is
+      already its own absolute value. One `if` without `else` is enough.
+    hints:
+      - "Only negative values need to change."
+      - "Read x; if it is below zero, replace it by its negation; then print it."
+      - "Negation: `x = -x;`"
+      - "`if (x < 0) { x = -x; }` then `printf(\"|x| = %g\\n\", x);`"
+      - "The full solution uses one if statement."
+    tests:
+      - id: negative
+        stdin: "-4.5\n"
+        expect: { contains: ["|x| = 4.5"] }
+      - id: positive
+        stdin: "3\n"
+        expect: { contains: ["|x| = 3"] }
+      - id: zero
+        stdin: "0\n"
+        expect: { regex: { pattern: "\\|x\\| = (-?0)\\b", describe: "|x| = 0" } }
+      - id: small
+        stdin: "-0.25\n"
+        expect: { contains: ["|x| = 0.25"] }
+    require:
+      forbid: [fabs, abs]
+      constructs: [if]

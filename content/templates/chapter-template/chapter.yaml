@@ -1,0 +1,14 @@
+# Chapter metadata. `id` must equal the folder name and never change once published.
+id: template-arrays
+version: 1
+letter: G
+title: The Archive
+region: Cliffs — The Archive
+lectures: [L11]
+intro: >
+  Short story introduction for the new region (2-3 sentences).
+outro: >
+  What the player can do after finishing this chapter.
+map: { x: 30, y: 20 }      # position on the island map in percent
+missions:
+  - example-mission         # file name without .yaml; order = play order
