@@ -9,6 +9,10 @@ import { CLANG_PACKAGE_VERSION, TOOLCHAIN_DIR } from '../src/exec/toolchain.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const src = path.join(ROOT, 'node_modules/@yowasp/clang/gen');
+if (!fs.existsSync(path.join(src, '..', 'package.json'))) {
+  console.error('\nThe C compiler package is not installed yet.\nRun `npm install` first, then `npm run build` again.\n');
+  process.exit(1);
+}
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'node_modules/@yowasp/clang/package.json'), 'utf8'));
 if (pkg.version !== CLANG_PACKAGE_VERSION) {
   console.error(`@yowasp/clang ${pkg.version} installed, but src/exec/toolchain.js expects ${CLANG_PACKAGE_VERSION}.`);
