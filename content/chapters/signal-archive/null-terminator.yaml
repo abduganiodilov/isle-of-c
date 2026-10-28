@@ -1,0 +1,233 @@
+id: signal-archive/null-terminator
+version: 1
+kind: guided
+source:
+  - { lecture: L11, slides: [32, 33] }
+topics: [L11.c-strings, L11.reading-strings]
+prerequisites: [signal-archive/escape-sequences]
+estimatedMinutes: 25
+objectives:
+  - Explain that a C string is a char array that ends with the null character '\0'.
+  - Print strings with %s and read words with a width-limited scanf("%19s", ...).
+  - Know that gets no longer exists and that fgets keeps the newline.
+  - Walk through a string character by character until the '\0'.
+world:
+  scene: terminal
+  label: CALLSIGN READER
+  goal: Read and spell out a callsign
+title: The Null Terminator
+briefing: |
+  Each archived message starts with the sender's callsign. Read callsigns as
+  C strings, measure them, and spell them out letter by letter for the
+  archive index.
+lesson: |
+  ### C-style strings
+  C has no separate string type. A **C-style string** is an array of `char`
+  that ends with the **null character** `'\0'` (code 0). The terminator is
+  how every function knows where the text stops.
+
+  ```c
+  char word[] = "PIP";   /* 4 elements: 'P' 'I' 'P' '\0' */
+  ```
+
+  A string constant like `"PIP"` adds the `'\0'` for you, so this array has
+  **4** elements. An array for text must always have room for the
+  terminator: `char name[20]` holds at most 19 visible characters.
+
+  `printf` prints a string with **`%s`**: it prints characters until it
+  reaches the `'\0'`.
+
+  ### Reading strings
+  ```c example stdin=Los\nAngeles
+  #include <stdio.h>
+
+  int main(void)
+  {
+      char city[30];
+
+      printf("Enter a city: ");
+      scanf("%29s", city);          /* no & : city is already an address */
+      printf("You entered %s\n", city);
+      return 0;
+  }
+  ```
+
+  * `scanf("%s", city)` reads **one word**: it stops at the first space, so
+    "Los Angeles" gives just `Los`. The array name needs no `&` — it already
+    is the address of the first element.
+  * Without a width, `%s` writes past the end of the array when the word is
+    too long. Always give the width: at most size − 1 characters (`%29s`
+    for `char city[30]`).
+  * `fgets(city, sizeof city, stdin)` reads a **whole line**, spaces
+    included, and never more than the array can hold — but it keeps the
+    `'\n'` at the end of the line.
+
+  ### Walking a string
+  Since the end is marked by `'\0'`, a loop can visit each character until
+  it finds it:
+
+  ```c
+  i = 0;
+  while (name[i] != '\0') {
+      /* use name[i] */
+      i++;
+  }
+  /* now i is the length */
+  ```
+
+  > [!correction] Slide 33 shows `gets(city)`. `gets` cannot know the
+  > array's size, so it was **removed from C** in C11 — a C17 compiler
+  > rejects it. Use `fgets` (or `scanf` with a width) instead. The slide's
+  > `scanf(“%s”, city)` also needs plain `"` quotes.
+success: |
+  A C string is a char array ending in `'\0'`. `%s` prints it, `scanf("%19s",
+  …)` reads one word safely, `fgets` reads a line, and a loop can walk it
+  until the terminator.
+steps:
+  - id: size-predict
+    type: predict
+    title: How many elements?
+    prompt: What does this program print?
+    code: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          char word[] = "PIP";
+
+          printf("%zu %d\n", sizeof word, word[3]);
+          return 0;
+      }
+    answer:
+      kind: choice
+      choices:
+        - "3 0"
+        - "4 0"
+        - "4 80"
+        - "3 80"
+      correct: 1
+      actualOutput: "4 0\n"
+    explanation: |
+      The string constant has 3 visible characters plus the terminator, so
+      the array has 4 elements. `word[3]` is that terminator, `'\0'`, whose
+      code is 0.
+  - id: scanf-quiz
+    type: quiz
+    title: One word
+    question: "The user types `Los Angeles`. What does `scanf(\"%29s\", city);` store in city?"
+    choices:
+      - "`Los Angeles`"
+      - "`Los`"
+      - "`Los Angeles` followed by a newline"
+      - "Nothing: scanf cannot read text"
+    correct: 1
+    explanation: |
+      `%s` reads a sequence of non-space characters, so it stops at the space.
+      To read a whole line with spaces, use `fgets` — which also stores the
+      newline.
+  - id: main
+    type: code
+    title: Spell the callsign
+    prompt: |
+      Read a callsign (one word, at most 19 characters) into `name`. Print it,
+      its length, and the letters separated by dashes. Count the length
+      **yourself** with a loop that stops at `'\0'`. For input `ALPHA`:
+
+      ```
+      Callsign: ALPHA
+      Length: 5
+      Spelled: A-L-P-H-A
+      ```
+    stdin: "ALPHA\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          char name[20];
+          int length = 0;
+
+          scanf("%19s", name);
+          printf("Callsign: %s\n", name);
+
+          /* count the characters up to '\0' */
+
+          /* print the letters separated by dashes */
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          char name[20];
+          int length = 0;
+          int i;
+
+          scanf("%19s", name);
+          printf("Callsign: %s\n", name);
+
+          while (name[length] != '\0') {
+              length++;
+          }
+          printf("Length: %d\n", length);
+
+          printf("Spelled: ");
+          for (i = 0; i < length; i++) {
+              if (i > 0) {
+                  printf("-");
+              }
+              printf("%c", name[i]);
+          }
+          printf("\n");
+          return 0;
+      }
+    explanation: |
+      The `while` loop advances `length` until it reaches the terminator, so
+      it ends with the number of visible characters. The second loop prints
+      each character with `%c` and a dash before every character except the
+      first.
+    hints:
+      - "The string ends at the element that holds '\\0'. Count how many elements come before it."
+      - "One loop counts, a second loop prints each character; put a dash before every character except the first."
+      - "`while (name[length] != '\\0') length++;`"
+      - "`for (i = 0; i < length; i++) { if (i > 0) printf(\"-\"); printf(\"%c\", name[i]); }`"
+      - "The full solution counts with a while loop and prints with a for loop."
+    tests:
+      - id: alpha
+        stdin: "ALPHA\n"
+        expect: { output: "Callsign: ALPHA\nLength: 5\nSpelled: A-L-P-H-A\n" }
+      - id: one
+        stdin: "Q\n"
+        note: A single character needs no dash.
+        expect: { output: "Callsign: Q\nLength: 1\nSpelled: Q\n" }
+      - id: mixed
+        stdin: "pip7x\n"
+        expect: { output: "Callsign: pip7x\nLength: 5\nSpelled: p-i-p-7-x\n" }
+      - id: two-words
+        stdin: "SEA HAWK\n"
+        note: scanf with %s reads only the first word.
+        expect: { output: "Callsign: SEA\nLength: 3\nSpelled: S-E-A\n" }
+      - id: longest
+        stdin: "ABCDEFGHIJKLMNOPQRS\n"
+        note: 19 characters, the most that fit.
+        expect: { output: "Callsign: ABCDEFGHIJKLMNOPQRS\nLength: 19\nSpelled: A-B-C-D-E-F-G-H-I-J-K-L-M-N-O-P-Q-R-S\n" }
+    wrong:
+      - code: |
+          #include <stdio.h>
+          int main(void)
+          {
+              char name[20];
+              int length = 0, i;
+              scanf("%19s", name);
+              printf("Callsign: %s\n", name);
+              while (name[length] != '\0') length++;
+              printf("Length: %d\n", length);
+              printf("Spelled: ");
+              for (i = 0; i < length; i++) printf("%c-", name[i]);
+              printf("\n");
+              return 0;
+          }
+        why: prints a dash after the last letter too
+        expect: outputMismatch

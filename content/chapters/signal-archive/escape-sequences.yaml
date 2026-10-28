@@ -1,0 +1,169 @@
+id: signal-archive/escape-sequences
+version: 1
+kind: guided
+source:
+  - { lecture: L11, slides: [26, 27, 28] }
+topics: [L11.ascii, L11.escapes]
+prerequisites: [relay-station/calibration]
+estimatedMinutes: 20
+objectives:
+  - Revisit ASCII codes and print a character from its code.
+  - Use escape sequences for special characters - tab, quotes, backslash, null - and octal or hexadecimal codes.
+world:
+  scene: terminal
+  label: ARCHIVE PANEL
+  goal: Print the archive's signal panel
+title: Special Characters
+briefing: |
+  The archive's display panel uses tabs to line up columns, quotes around
+  names and Windows-style paths full of backslashes. All of those need
+  special characters in C.
+lesson: |
+  ### ASCII again
+  Every character is stored as its code (see **Notebook → ASCII table**):
+  `'A'` is 65, `'0'` is 48, a space is 32. Most codes are printing
+  characters; codes 0–31 and 127 are **special characters** that perform an
+  action, such as starting a new line.
+
+  ### Escape sequences
+  Inside character and string constants, a backslash starts an **escape
+  sequence**:
+
+  | Sequence | Meaning | Code |
+  |---|---|---|
+  | `\n` | newline | 10 |
+  | `\t` | horizontal tab | 9 |
+  | `\v` | vertical tab | 11 |
+  | `\b` | backspace | 8 |
+  | `\r` | carriage return | 13 |
+  | `\f` | form feed | 12 |
+  | `\a` | alert (bell) | 7 |
+  | `\\` | backslash | 92 |
+  | `\'` | single quote | 39 |
+  | `\"` | double quote | 34 |
+  | `\0` | null character | 0 |
+  | `\ooo` | the character with octal code ooo, e.g. `\101` = `'A'` | |
+  | `\xhh` | the character with hexadecimal code hh, e.g. `\x41` = `'A'` | |
+
+  ```c example
+  #include <stdio.h>
+
+  int main(void)
+  {
+      printf("Name\tCode\n");
+      printf("\"A\"\t%d\n", 'A');
+      printf("Octal 101 is %c, hex 42 is %c\n", '\101', '\x42');
+      printf("Path: C:\\archive\\logs\n");
+      return 0;
+  }
+  ```
+
+  > [!note] The null character `\0` (code 0) prints nothing. It becomes
+  > very important in the next mission: it marks the end of every C string.
+  > `\a` asks the terminal to beep; many terminals today ignore it.
+success: |
+  A backslash in a character or string constant starts an escape sequence:
+  `\t`, `\"`, `\\`, `\0`, or a character given by its octal (`\101`) or
+  hexadecimal (`\x41`) code.
+steps:
+  - id: codes-predict
+    type: predict
+    title: Codes of special characters
+    prompt: What does this program print?
+    code: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          printf("%d %d %d %c%c\n", '\n', '\t', '\0', '\x48', '\111');
+          return 0;
+      }
+    answer:
+      kind: choice
+      choices:
+        - "10 9 0 HI"
+        - "13 9 0 HI"
+        - "10 8 48 HI"
+        - "10 9 0 48111"
+      correct: 0
+      actualOutput: "10 9 0 HI\n"
+    explanation: |
+      Newline is code 10, tab is 9 and the null character is 0. `'\x48'` is
+      hexadecimal 48 = 72 = `'H'`, and `'\111'` is octal 111 = 73 = `'I'`.
+  - id: main
+    type: code
+    title: Print the signal panel
+    prompt: |
+      Read a character code and print the archive panel for it. Separate the
+      columns with a **tab** (`\t`). For input `65` the output is:
+
+      ```
+      Signal	Code	Char
+      "beacon"	65	'A'
+      Path: C:\archive\65
+      ```
+
+      (The gaps in the first two lines are single tab characters.)
+    stdin: "65\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int code;
+
+          scanf("%d", &code);
+          printf("Signal Code Char\n");
+          /* second line: "beacon"<tab>code<tab>'character' */
+          /* third line: Path: C:\archive\code */
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int code;
+
+          scanf("%d", &code);
+          printf("Signal\tCode\tChar\n");
+          printf("\"beacon\"\t%d\t'%c'\n", code, code);
+          printf("Path: C:\\archive\\%d\n", code);
+          return 0;
+      }
+    explanation: |
+      `\t` produces the tab characters, `\"` puts a double quote inside the
+      string, and `\\` produces one backslash. A single quote needs no escape
+      inside a *string* (only inside a character constant: `'\''`).
+    hints:
+      - "Special characters are written with a backslash: tab, double quote and backslash each have an escape sequence."
+      - "Replace the spaces in the header with `\\t`, and print the character with `%c` between single quotes."
+      - "`\\\"` prints `\"` and `\\\\` prints one backslash."
+      - "`printf(\"\\\"beacon\\\"\\t%d\\t'%c'\\n\", code, code);`"
+      - "The full solution prints three lines with tabs, escaped quotes and escaped backslashes."
+    tests:
+      - id: a
+        stdin: "65\n"
+        expect: { output: "Signal\tCode\tChar\n\"beacon\"\t65\t'A'\nPath: C:\\archive\\65\n" }
+      - id: lowercase
+        stdin: "122\n"
+        expect: { output: "Signal\tCode\tChar\n\"beacon\"\t122\t'z'\nPath: C:\\archive\\122\n" }
+      - id: digit
+        stdin: "55\n"
+        note: Code 55 is the digit character '7'.
+        expect: { output: "Signal\tCode\tChar\n\"beacon\"\t55\t'7'\nPath: C:\\archive\\55\n" }
+    wrong:
+      - code: |
+          #include <stdio.h>
+          int main(void)
+          {
+              int code;
+              scanf("%d", &code);
+              printf("Signal    Code    Char\n");
+              printf("\"beacon\"    %d    '%c'\n", code, code);
+              printf("Path: C:\\archive\\%d\n", code);
+              return 0;
+          }
+        why: uses spaces instead of tab characters
+        expect: outputMismatch

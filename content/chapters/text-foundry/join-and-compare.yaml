@@ -1,0 +1,236 @@
+id: text-foundry/join-and-compare
+version: 1
+kind: guided
+source:
+  - { lecture: L11, slides: [39, 40, 41, 42] }
+topics: [L11.strcat, L11.strcmp]
+prerequisites: [text-foundry/length-and-copy]
+estimatedMinutes: 25
+objectives:
+  - Build a longer string with strcpy followed by strcat.
+  - Compare strings with strcmp and use only the sign of its result.
+  - Explain why == does not compare the text of two strings.
+world:
+  scene: terminal
+  label: NAME SPLICER
+  goal: Join and sort crew names
+title: Join and Compare
+briefing: |
+  Crew pairs in the archive are filed under a joined name like
+  `delta-alpha`, and the foundry must know which name comes first in the
+  alphabet — and whether both names are the same.
+lesson: |
+  ### strcat — append
+  `strcat(destination, source);` appends `source` to the end of
+  `destination`: the old terminator is overwritten by the first character
+  of `source`, and a new terminator is added. The destination must already
+  hold a string — usually start with `strcpy` — and must be big enough.
+
+  ```c example
+  #include <stdio.h>
+  #include <string.h>
+
+  int main(void)
+  {
+      char str[80];
+
+      strcpy(str, "these ");
+      strcat(str, "strings ");
+      strcat(str, "are ");
+      strcat(str, "concatenated.");
+      puts(str);
+      return 0;
+  }
+  ```
+
+  ### strcmp — compare
+  `strcmp(str1, str2)` compares character by character until two differ or
+  a string ends. It returns
+
+  * `0` if the strings are equal,
+  * a value **> 0** if the first differing character is greater in `str1`,
+  * a value **< 0** otherwise.
+
+  For letters of the same case this is alphabetical order:
+  `strcmp("alpha", "beta") < 0`.
+
+  ```c example
+  #include <stdio.h>
+  #include <string.h>
+
+  int main(void)
+  {
+      char str1[] = "string1";
+      char str2[] = "string2";
+
+      printf("%d\n", strcmp(str1, str2));
+      return 0;
+  }
+  ```
+
+  > [!warning] `if (name == "alpha")` compares two **addresses**, not the
+  > text — it is practically always false. Use `strcmp(name, "alpha") == 0`.
+
+  > [!correction] Slide 42 shows the result `-1`. The standard only defines
+  > the **sign**; some libraries return the difference of the two
+  > characters instead (`strcmp("apple", "apricot")` may give -6). Always
+  > compare the result with 0.
+
+  > [!note] Upper-case letters have smaller codes than lower-case ones, so
+  > `strcmp("Zebra", "apple") < 0`. This mission uses lower-case names.
+success: |
+  `strcat` appends to an existing string, `strcmp` compares two strings and
+  tells you only through the sign of its result which comes first — 0 means
+  equal.
+steps:
+  - id: sign-predict
+    type: predict
+    title: Signs only
+    prompt: What does this program print?
+    code: |
+      #include <stdio.h>
+      #include <string.h>
+
+      int main(void)
+      {
+          printf("%d %d %d\n", strcmp("apple", "apricot") < 0, strcmp("pip", "pi") > 0, strcmp("core", "core") == 0);
+          return 0;
+      }
+    answer:
+      kind: choice
+      choices:
+        - "1 1 1"
+        - "1 0 1"
+        - "0 1 1"
+        - "-6 1 0"
+      correct: 0
+      actualOutput: "1 1 1\n"
+    explanation: |
+      `'l' < 'r'`, so apple comes first (negative). `"pi"` ends where `"pip"`
+      still has a `'p'`, so the longer string is greater (positive). Equal
+      strings give 0. All three comparisons are true, so the program prints
+      `1 1 1`.
+  - id: equal-quiz
+    type: quiz
+    title: Comparing text
+    question: "`name` holds the text `alpha`. Which condition is true exactly when name is \"alpha\"?"
+    choices:
+      - "`name == \"alpha\"`"
+      - "`strcmp(name, \"alpha\")`"
+      - "`strcmp(name, \"alpha\") == 0`"
+      - "`strcmp(name, \"alpha\") == 1`"
+    correct: 2
+    explanation: |
+      `==` compares addresses. `strcmp` returns 0 for equal strings, so the
+      plain `strcmp(...)` is true when they *differ*, and comparing with 1
+      relies on a value the standard does not promise.
+  - id: main
+    type: code
+    title: Splice the names
+    prompt: |
+      Read two names (each one word, at most 19 lower-case letters). Build
+      `joined` = first name + `-` + second name with `strcpy` and `strcat`.
+      Then use `strcmp` to print which name comes first alphabetically and
+      whether they are the same. For input `delta alpha`:
+
+      ```
+      Joined: delta-alpha
+      First: alpha
+      Same: no
+      ```
+    stdin: "delta alpha\n"
+    starter: |
+      #include <stdio.h>
+      #include <string.h>
+
+      int main(void)
+      {
+          char a[20];
+          char b[20];
+          char joined[41];
+
+          scanf("%19s %19s", a, b);
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+      #include <string.h>
+
+      int main(void)
+      {
+          char a[20];
+          char b[20];
+          char joined[41];
+
+          scanf("%19s %19s", a, b);
+
+          strcpy(joined, a);
+          strcat(joined, "-");
+          strcat(joined, b);
+          printf("Joined: %s\n", joined);
+
+          if (strcmp(a, b) <= 0) {
+              printf("First: %s\n", a);
+          } else {
+              printf("First: %s\n", b);
+          }
+
+          if (strcmp(a, b) == 0) {
+              printf("Same: yes\n");
+          } else {
+              printf("Same: no\n");
+          }
+          return 0;
+      }
+    explanation: |
+      `joined` has room for 19 + 1 + 19 characters and the terminator. It is
+      started with `strcpy` and extended twice with `strcat`. The comparisons
+      only look at the sign of `strcmp` (or at 0), never at a particular
+      value.
+    hints:
+      - "First copy, then append twice: the name, the dash, the second name."
+      - "The order depends only on the sign of strcmp(a, b); 0 means the names are equal."
+      - "`strcpy(joined, a); strcat(joined, \"-\"); strcat(joined, b);`"
+      - "`if (strcmp(a, b) <= 0) printf(\"First: %s\\n\", a); else printf(\"First: %s\\n\", b);`"
+      - "The full solution builds joined and uses two if/else statements with strcmp."
+    tests:
+      - id: example
+        stdin: "delta alpha\n"
+        expect: { output: "Joined: delta-alpha\nFirst: alpha\nSame: no\n" }
+      - id: ordered
+        stdin: "kilo lima\n"
+        expect: { output: "Joined: kilo-lima\nFirst: kilo\nSame: no\n" }
+      - id: same
+        stdin: "echo echo\n"
+        expect: { output: "Joined: echo-echo\nFirst: echo\nSame: yes\n" }
+      - id: prefix
+        stdin: "pipe pip\n"
+        note: A name that is the start of another comes first.
+        expect: { output: "Joined: pipe-pip\nFirst: pip\nSame: no\n" }
+      - id: longest
+        stdin: "abcdefghijklmnopqrs tuvwxyzabcdefghijkl\n"
+        note: Two 19-letter names fill joined completely.
+        expect: { output: "Joined: abcdefghijklmnopqrs-tuvwxyzabcdefghijkl\nFirst: abcdefghijklmnopqrs\nSame: no\n" }
+    require:
+      calls: [strcat, strcmp]
+    wrong:
+      - code: |
+          #include <stdio.h>
+          #include <string.h>
+          int main(void)
+          {
+              char a[20], b[20], joined[41];
+              scanf("%19s %19s", a, b);
+              strcpy(joined, a);
+              strcat(joined, "-");
+              strcat(joined, b);
+              printf("Joined: %s\n", joined);
+              if (strcmp(a, b) <= 0) printf("First: %s\n", a);
+              else printf("First: %s\n", b);
+              if (a == b) printf("Same: yes\n");
+              else printf("Same: no\n");
+              return 0;
+          }
+        why: compares the two arrays with ==, which compares addresses, not text
+        expect: outputMismatch

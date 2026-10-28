@@ -114,6 +114,53 @@ Slide numbers are the numbers printed on the slides (PDF page = slide − 1 for 
 - **Slide 31** — sayHi(1234567) needs int to be wider than 16 bits; the standard only guarantees up to 32767. Use long for IDs that can exceed that on small systems. _(taught in `core-systems/void-functions`)_
 - **Slide 30** — In the slide's call distance(1, i, x1, sqrt(y1)+2) inside distance y1 is 2.0 (a double), since the int argument i is converted to the parameter type. _(taught in `core-systems/arguments-and-conversion`)_
 
+## L11 — Arrays; arrays as function arguments; characters and C-style strings
+
+| Topic | Slides | Missions |
+|---|---|---|
+| Lecture outline and section dividers (`L11.outline`) | 2, 3, 13, 25, 31 | _(lecture outline / section divider)_ |
+| An array is an ordered collection of values of the same type (`L11.array-concept`) | 4 | `data-vault/storage-racks`<br>`data-vault/vault-ledger` |
+| Declaring arrays (char letters[4]; int values[3];) and their layout in memory as consecutive elements (`L11.array-declaration`) | 5, 6 | `data-vault/storage-racks`<br>`data-vault/memory-map` |
+| Array elements are numbered from 0 in C (`L11.zero-index`) | 7 | `data-vault/storage-racks`<br>`archive-core/restore-archive` |
+| Square brackets select an element in assignments and expressions; ++ and += on elements (`L11.element-access`) | 8, 9 | `data-vault/storage-racks`<br>`data-vault/vault-ledger` |
+| An integer variable or expression as the index; processing arrays with for loops (`L11.loop-index`) | 10 | `data-vault/rack-loops`<br>`data-vault/vault-ledger`<br>`relay-station/calibration`<br>`archive-core/restore-archive` |
+| #define constants as array sizes; variable sizes only since C99 (`L11.define-size`) | 11 | `data-vault/rack-loops`<br>`data-vault/vault-ledger`<br>`archive-core/restore-archive` |
+| C does not check indexes: writing past the end stores the value outside the array (`L11.bounds`) | 12 | `data-vault/overflow-alarm`<br>`archive-core/restore-archive` |
+| An array cannot be assigned as a whole (scores = ...; is illegal) (`L11.no-array-assign`) | 14 | `data-vault/copy-protocol` |
+| Passing an array to a function by its name: the function receives the address of element 0 and changes the caller's elements (ClearIntegerArray) (`L11.array-argument`) | 15, 16, 17, 18, 19, 20 | `relay-station/clear-banks`<br>`relay-station/signal-tools`<br>`relay-station/calibration`<br>`archive-core/restore-archive` |
+| Practice: swap two integers using an array as the argument (`L11.swap-practice`) | 21 | `relay-station/swap-pair` |
+| Array parameters: int array[] in the prototype, the size in brackets is ignored, pass the length as a separate parameter (`L11.array-parameter`) | 22, 23, 24 | `relay-station/clear-banks`<br>`relay-station/signal-tools`<br>`relay-station/calibration`<br>`archive-core/restore-archive` |
+| ASCII codes 0-127 (review) (`L11.ascii`) | 26 | `signal-archive/escape-sequences` |
+| Special characters and escape sequences (\n \t \v \b \r \f \a \\ \' \" \ooo \xhh \0) (`L11.escapes`) | 27, 28 | `signal-archive/escape-sequences` |
+| Character arithmetic: 'A' == 65, testing for a digit, converting a digit with ch - '0' (`L11.char-arithmetic`) | 29 | `signal-archive/digit-decoder`<br>`signal-archive/phone-keypad`<br>`text-foundry/palindrome` (optional) |
+| Practice: convert the letters of a phone number into keypad digits (`L11.phone-practice`) | 30 | `signal-archive/phone-keypad` |
+| C-style strings: char arrays ending with the null character '\0'; printing with %s (`L11.c-strings`) | 32 | `signal-archive/null-terminator`<br>`text-foundry/palindrome` (optional) |
+| Reading strings: scanf("%s") stops at spaces; gets is unsafe, fgets keeps the newline (`L11.reading-strings`) | 33 | `signal-archive/null-terminator`<br>`archive-core/restore-archive` |
+| &lt;string.h&gt;: copying, concatenation, comparison, searching (`L11.string-h`) | 34 | `text-foundry/length-and-copy` |
+| strlen returns the length without the terminator (`L11.strlen`) | 35 | `text-foundry/length-and-copy`<br>`text-foundry/palindrome` (optional) |
+| strcpy copies a string including its terminator (`L11.strcpy`) | 36 | `text-foundry/length-and-copy` |
+| strncpy copies at most num characters and may leave the result unterminated (`L11.strncpy`) | 37, 38 | `text-foundry/length-and-copy` |
+| strcat appends one string to another (`L11.strcat`) | 39, 40 | `text-foundry/join-and-compare` |
+| strcmp compares strings: 0 if equal, negative or positive otherwise (`L11.strcmp`) | 41, 42 | `text-foundry/join-and-compare`<br>`text-foundry/command-console`<br>`archive-core/restore-archive` |
+| strchr finds a character; the position is the result minus the array (`L11.strchr`) | 43 | `text-foundry/search` |
+| strstr finds a substring or returns a null pointer (`L11.strstr`) | 44 | `text-foundry/search` |
+| &lt;stdlib.h&gt; atoi, atof, atol convert text to numbers (`L11.atoi`) | 45, 46 | `text-foundry/numbers-from-text`<br>`text-foundry/command-console` |
+| Practice: parse a command line keyword parameter1 parameter2 (add 1 2 -&gt; 3) (`L11.command-practice`) | 47 | `text-foundry/command-console`<br>`archive-core/restore-archive` |
+
+### Corrections and modern-C notes for L11
+
+- **Slide 11, 14, 15, 16, 17, 18, 19, 20** — The examples write main() without a return type. 'Implicit int' was removed in C99; in C17 write int main(void) and return 0. _(taught in `data-vault/rack-loops`)_
+- **Slide 9** — The slide writes value[1]++ and value[1] += 1, but the array is called values: values[1]++. _(taught in `data-vault/storage-racks`)_
+- **Slide 11** — Variable-length arrays (int scores[n];) were added in C99 but are optional since C11 (__STDC_NO_VLA__), cannot be initialised, and can overflow the stack for large n. A #define constant is the portable choice. _(taught in `data-vault/rack-loops`)_
+- **Slide 12** — Writing outside an array is undefined behaviour: it may overwrite another variable, crash, or appear to work. The game's compiler adds a runtime check that stops such a program. _(taught in `data-vault/overflow-alarm`)_
+- **Slide 17, 18, 19** — Strictly, the array name converts to a pointer to its first element when passed. The function's parameter is that pointer, so sizeof inside the function gives the pointer size, not the array size (clang warns about it). _(taught in `relay-station/clear-banks`)_
+- **Slide 33, 35** — gets was not just unsafe: it was removed from the language in C11, so a C17 compiler rejects it. Use fgets(buf, sizeof buf, stdin), and give scanf a width (scanf("%29s", city)). _(taught in `signal-archive/null-terminator`)_
+- **Slide 33** — scanf(“%s”, city) uses typographic quotes; real code needs plain " quotes. _(taught in `signal-archive/null-terminator`)_
+- **Slide 35** — strlen returns size_t. Since C99 it is printed with %zu; the slide's cast to unsigned with %u also works. _(taught in `text-foundry/length-and-copy`)_
+- **Slide 42** — Only the sign of strcmp's result is defined. The slide's -1 is what some libraries return; others return the difference of the characters (for example -6). Compare the result with 0, never with -1 or 1. _(taught in `text-foundry/join-and-compare`)_
+- **Slide 43** — pch - str has type ptrdiff_t, so printing it with %d is not portable. Use %td or convert it: (int)(pch - str). The prototype on the slide also lacks the parameter name str. _(taught in `text-foundry/search`)_
+- **Slide 45** — atoi and atof cannot report errors: atoi("abc") is 0 and atoi("12abc") is 12. strtol and strtod (also in &lt;stdlib.h&gt;) report where the number ended. _(taught in `text-foundry/numbers-from-text`)_
+
 ## Campaign order
 
 ### First Contact (`first-contact`)
@@ -207,3 +254,39 @@ Slide numbers are the numbers printed on the slides (PDF page = slide − 1 for 
 - `expedition-extras/collatz-drone` — The Wandering Drone _(mastery, optional)_ — L10 slides 4
 - `expedition-extras/gcd-gears` — Gear Alignment _(mastery, optional)_ — L10 slides 4, 21
 - `expedition-extras/prime-beacons` — Prime Beacons _(mastery, optional)_ — L10 slides 11, 13, 21
+
+### Data Vault (`data-vault`)
+
+- `data-vault/storage-racks` — Storage Racks _(guided)_ — L11 slides 4, 5, 6, 7, 8, 9
+- `data-vault/rack-loops` — Racks and Loops _(guided)_ — L11 slides 10, 11
+- `data-vault/memory-map` — The Memory Map _(predict)_ — L11 slides 5, 6
+- `data-vault/overflow-alarm` — Overflow Alarm _(debug)_ — L11 slides 12
+- `data-vault/copy-protocol` — Copy Protocol _(debug)_ — L11 slides 14
+- `data-vault/vault-ledger` — Chapter Challenge: The Vault Ledger _(chapter-challenge)_ — L11 slides 4, 7, 10, 11, 12
+
+### Relay Station (`relay-station`)
+
+- `relay-station/clear-banks` — Clearing the Banks _(guided)_ — L11 slides 15, 16, 17, 18, 19, 20, 22, 23, 24
+- `relay-station/swap-pair` — The Swap Relay _(challenge)_ — L11 slides 21
+- `relay-station/signal-tools` — Signal Tools _(challenge)_ — L11 slides 22, 24
+- `relay-station/calibration` — Chapter Challenge: Relay Calibration _(chapter-challenge)_ — L11 slides 15, 19, 22, 24
+
+### Signal Archive (`signal-archive`)
+
+- `signal-archive/escape-sequences` — Special Characters _(guided)_ — L11 slides 26, 27, 28
+- `signal-archive/null-terminator` — The Null Terminator _(guided)_ — L11 slides 32, 33
+- `signal-archive/digit-decoder` — The Digit Decoder _(guided)_ — L11 slides 29
+- `signal-archive/phone-keypad` — The Phone Keypad _(challenge)_ — L11 slides 29, 30
+
+### Text Foundry (`text-foundry`)
+
+- `text-foundry/length-and-copy` — Measure and Copy _(guided)_ — L11 slides 34, 35, 36, 37, 38
+- `text-foundry/join-and-compare` — Join and Compare _(guided)_ — L11 slides 39, 40, 41, 42
+- `text-foundry/search` — Search the Logs _(guided)_ — L11 slides 43, 44
+- `text-foundry/numbers-from-text` — Numbers from Text _(guided)_ — L11 slides 45, 46
+- `text-foundry/command-console` — Chapter Challenge: The Command Console _(chapter-challenge)_ — L11 slides 41, 45, 47
+- `text-foundry/palindrome` — The Mirror Gate _(mastery, optional)_ — L11 slides 29, 32, 35
+
+### The Archive Core (`archive-core`)
+
+- `archive-core/restore-archive` — Restore the Archive Core _(capstone)_ — L11 slides 7, 10, 11, 12, 15, 24, 33, 41, 45, 47

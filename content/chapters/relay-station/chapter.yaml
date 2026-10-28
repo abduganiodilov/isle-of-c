@@ -1,0 +1,20 @@
+id: relay-station
+version: 1
+letter: H
+title: Relay Station
+region: West Coast — Relay Station
+lectures: [L11]
+intro: >
+  On the west coast, the relay station passes whole banks of signal values
+  between its modules. PIP-7 learns to hand arrays to functions — and finds
+  out why a function can change an array but not an ordinary argument.
+outro: >
+  The relay station hums again. PIP-7 passes arrays to functions together
+  with their length, and knows the function works on the caller's own
+  elements, not on a copy.
+map: { x: 14, y: 52 }
+missions:
+  - clear-banks
+  - swap-pair
+  - signal-tools
+  - calibration

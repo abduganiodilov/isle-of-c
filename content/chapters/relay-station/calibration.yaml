@@ -1,0 +1,281 @@
+id: relay-station/calibration
+version: 1
+kind: chapter-challenge
+source:
+  - { lecture: L11, slides: [15, 19, 22, 24] }
+topics: [L11.array-argument, L11.array-parameter, L11.loop-index]
+prerequisites: [relay-station/signal-tools]
+estimatedMinutes: 30
+objectives:
+  - Split an array program into functions that read, analyse, change and print an array.
+  - Pass the same array through several functions, each working on the caller's elements.
+world:
+  scene: terminal
+  label: RELAY CALIBRATOR
+  goal: Remove the baseline from the relay signals
+title: "Chapter Challenge: Relay Calibration"
+briefing: |
+  Every relay channel carries a constant offset — its baseline. To
+  calibrate, measure the lowest reading, subtract it from every reading,
+  and report how many readings are still above a noise threshold.
+lesson: |
+  This challenge is built entirely from array functions. Even reading the
+  input is a function: `read_array(a, n)` fills the caller's array, because
+  `scanf("%d", &a[i])` inside it stores into the caller's elements.
+
+  Plan the program top-down: `main` only reads the sizes and calls the
+  functions in order; each function does one job on the array it receives.
+success: |
+  The relay is calibrated with four small functions that all share the
+  caller's array: one fills it, one measures it, one changes it and one
+  prints it.
+steps:
+  - id: main
+    type: code
+    title: Calibrate the relay
+    prompt: |
+      **Input:** `n` (1 ≤ n ≤ 50), `n` integer readings, then a threshold `t`.
+
+      Write and use these functions:
+
+      | Function | Specification |
+      |---|---|
+      | `void read_array(int a[], int n)` | reads `n` integers into `a` |
+      | `void print_array(int a[], int n)` | prints each element preceded by a space, then a newline |
+      | `int min_value(int a[], int n)` | returns the smallest element |
+      | `void shift(int a[], int n, int amount)` | adds `amount` to each element |
+
+      **Output:** for input `5`, `12 15 11 20 11`, `3`:
+
+      ```
+      Raw: 12 15 11 20 11
+      Baseline: 11
+      Calibrated: 1 4 0 9 0
+      Above 3: 2
+      ```
+
+      (`Above t` counts calibrated readings strictly greater than `t`.)
+    stdin: "5\n12 15 11 20 11\n3\n"
+    starter: |
+      #include <stdio.h>
+
+      #define MAX_READINGS 50
+
+      void read_array(int a[], int n);
+      void print_array(int a[], int n);
+      int min_value(int a[], int n);
+      void shift(int a[], int n, int amount);
+
+      int main(void)
+      {
+          int reading[MAX_READINGS];
+          int n, threshold;
+
+          scanf("%d", &n);
+          read_array(reading, n);
+          scanf("%d", &threshold);
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      #define MAX_READINGS 50
+
+      void read_array(int a[], int n);
+      void print_array(int a[], int n);
+      int min_value(int a[], int n);
+      void shift(int a[], int n, int amount);
+
+      int main(void)
+      {
+          int reading[MAX_READINGS];
+          int n, threshold, baseline, i;
+          int above = 0;
+
+          scanf("%d", &n);
+          read_array(reading, n);
+          scanf("%d", &threshold);
+
+          printf("Raw:");
+          print_array(reading, n);
+
+          baseline = min_value(reading, n);
+          printf("Baseline: %d\n", baseline);
+
+          shift(reading, n, -baseline);
+          printf("Calibrated:");
+          print_array(reading, n);
+
+          for (i = 0; i < n; i++) {
+              if (reading[i] > threshold) {
+                  above++;
+              }
+          }
+          printf("Above %d: %d\n", threshold, above);
+          return 0;
+      }
+
+      void read_array(int a[], int n)
+      {
+          int i;
+          for (i = 0; i < n; i++) {
+              scanf("%d", &a[i]);
+          }
+      }
+
+      void print_array(int a[], int n)
+      {
+          int i;
+          for (i = 0; i < n; i++) {
+              printf(" %d", a[i]);
+          }
+          printf("\n");
+      }
+
+      int min_value(int a[], int n)
+      {
+          int i;
+          int min = a[0];
+
+          for (i = 1; i < n; i++) {
+              if (a[i] < min) {
+                  min = a[i];
+              }
+          }
+          return min;
+      }
+
+      void shift(int a[], int n, int amount)
+      {
+          int i;
+          for (i = 0; i < n; i++) {
+              a[i] += amount;
+          }
+      }
+    explanation: |
+      `main` reads like the plan: read, print, measure, shift by the negative
+      baseline, print, count. Each helper works on the caller's array through
+      its parameter, so `shift` changes `reading` in main without returning
+      anything.
+    harness: |
+      #include <stdio.h>
+      void read_array(int a[], int n);
+      void print_array(int a[], int n);
+      int min_value(int a[], int n);
+      void shift(int a[], int n, int amount);
+      int main(void)
+      {
+          int a[6];
+          read_array(a, 6);
+          printf("min %d / first3 %d\n", min_value(a, 6), min_value(a, 3));
+          shift(a, 4, 10);
+          print_array(a, 6);
+          shift(a, 6, -1);
+          print_array(a, 1);
+          return 0;
+      }
+    hints:
+      - "main should only call the functions in order: read, print, find the minimum, shift, print, count."
+      - "To subtract the baseline with `shift`, pass it a negative amount: `shift(reading, n, -baseline);`"
+      - "min_value: start with `int min = a[0];` and compare the remaining elements."
+      - "read_array: `for (i = 0; i < n; i++) scanf(\"%d\", &a[i]);` — it fills the caller's array."
+      - "The full solution writes the four functions and a main that calls them, plus a counting loop."
+    tests:
+      - id: example
+        stdin: "5\n12 15 11 20 11\n3\n"
+        expect: { output: "Raw: 12 15 11 20 11\nBaseline: 11\nCalibrated: 1 4 0 9 0\nAbove 3: 2\n" }
+      - id: negative-baseline
+        stdin: "4\n-3 2 -7 0\n5\n"
+        note: A negative baseline raises every reading.
+        expect: { output: "Raw: -3 2 -7 0\nBaseline: -7\nCalibrated: 4 9 0 7\nAbove 5: 2\n" }
+      - id: flat
+        stdin: "3\n6 6 6\n0\n"
+        expect: { output: "Raw: 6 6 6\nBaseline: 6\nCalibrated: 0 0 0\nAbove 0: 0\n" }
+      - id: functions
+        harness: true
+        stdin: "9 4 7 -2 5 3\n"
+        note: The harness calls each function directly.
+        expect: { output: "min -2 / first3 4\n 19 14 17 8 5 3\n 18\n" }
+    require:
+      functions: [read_array, print_array, min_value, shift]
+      calls: [min_value, shift]
+    wrong:
+      - code: |
+          #include <stdio.h>
+
+          #define MAX_READINGS 50
+
+          void read_array(int a[], int n);
+          void print_array(int a[], int n);
+          int min_value(int a[], int n);
+          void shift(int a[], int n, int amount);
+
+          int main(void)
+          {
+              int reading[MAX_READINGS];
+              int n, threshold, baseline, i;
+              int above = 0;
+
+              scanf("%d", &n);
+              read_array(reading, n);
+              scanf("%d", &threshold);
+
+              printf("Raw:");
+              print_array(reading, n);
+
+              baseline = min_value(reading, n);
+              printf("Baseline: %d\n", baseline);
+
+              shift(reading, n, -baseline);
+              printf("Calibrated:");
+              print_array(reading, n);
+
+              for (i = 0; i < n; i++) {
+                  if (reading[i] > threshold) {
+                      above++;
+                  }
+              }
+              printf("Above %d: %d\n", threshold, above);
+              return 0;
+          }
+
+          void read_array(int a[], int n)
+          {
+              int i;
+              for (i = 0; i < n; i++) {
+                  scanf("%d", &a[i]);
+              }
+          }
+
+          void print_array(int a[], int n)
+          {
+              int i;
+              for (i = 0; i < n; i++) {
+                  printf(" %d", a[i]);
+              }
+              printf("\n");
+          }
+
+          int min_value(int a[], int n)
+          {
+              int i;
+              int min = 0;
+
+              for (i = 0; i < n; i++) {
+                  if (a[i] < min) {
+                      min = a[i];
+                  }
+              }
+              return min;
+          }
+
+          void shift(int a[], int n, int amount)
+          {
+              int i;
+              for (i = 0; i < n; i++) {
+                  a[i] += amount;
+              }
+          }
+        why: starts the minimum at 0, so a positive baseline is never found
+        expect: outputMismatch

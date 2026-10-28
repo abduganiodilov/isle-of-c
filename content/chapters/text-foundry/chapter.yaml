@@ -1,0 +1,21 @@
+id: text-foundry
+version: 1
+letter: J
+title: Text Foundry
+region: South Shore — Text Foundry
+lectures: [L11]
+intro: >
+  In the text foundry, messages are cut, copied, joined, compared and
+  searched by a toolbox of library functions. PIP-7 learns <string.h> —
+  and to leave room for the terminator every time.
+outro: >
+  The foundry runs. PIP-7 measures, copies, joins, compares and searches
+  strings with <string.h>, converts text to numbers, and parses commands.
+map: { x: 71, y: 76 }
+missions:
+  - length-and-copy
+  - join-and-compare
+  - search
+  - numbers-from-text
+  - command-console
+  - palindrome

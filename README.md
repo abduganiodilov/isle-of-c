@@ -5,13 +5,14 @@ A small maintenance robot, PIP-7, wakes up on an abandoned research island; ever
 on the island runs on C. You write genuine C programs, a genuine compiler builds them, and
 the island reacts to what your program actually did.
 
-The campaign currently covers two lecture decks (Lecture 9: start with C, data types,
-expressions, if/switch, simple for loop; Lecture 10: while/for/do-while loops, functions).
+The campaign currently covers three lecture decks (Lecture 9: start with C, data types,
+expressions, if/switch, simple for loop; Lecture 10: while/for/do-while loops, functions;
+Lecture 11: arrays, arrays as function arguments, characters, C strings and `<string.h>`).
 It ends with *"Current expedition complete. To be continued…"* and grows when new lecture
 material is added (see [Adding a lecture](docs/ADDING_A_LECTURE.md)).
 
-* 8 chapters, **68 missions** (62 mandatory + 6 optional mastery challenges)
-* every instructional topic of both lectures mapped to missions — [coverage map](docs/COVERAGE.md)
+* 13 chapters, **89 missions** (82 mandatory + 7 optional mastery challenges)
+* every instructional topic of all three lectures mapped to missions — [coverage map](docs/COVERAGE.md)
 * real compilation (Clang 22 → WebAssembly) **inside the browser**, sandboxed execution
 * English and Russian (complete translation, separate from game logic)
 * progress, drafts and settings saved automatically; export/import as JSON

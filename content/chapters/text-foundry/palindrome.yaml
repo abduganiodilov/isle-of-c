@@ -1,0 +1,156 @@
+id: text-foundry/palindrome
+version: 1
+kind: mastery
+optional: true
+source:
+  - { lecture: L11, slides: [29, 32, 35] }
+topics: [L11.strlen, L11.char-arithmetic, L11.c-strings]
+prerequisites: [text-foundry/command-console]
+estimatedMinutes: 20
+objectives:
+  - Compare characters from both ends of a string, using strlen for the last index.
+  - Ignore the difference between upper- and lower-case letters with character arithmetic.
+world:
+  scene: sorter
+  label: MIRROR GATE
+  bins:
+    - { label: Palindrome, match: "is a palindrome" }
+    - { label: Not a palindrome, match: "is not a palindrome" }
+title: The Mirror Gate
+briefing: |
+  An optional puzzle: the old mirror gate only opens for passwords that read
+  the same forwards and backwards — and it does not care about upper or
+  lower case.
+lesson: |
+  A **palindrome** reads the same in both directions: `level`, `Racecar`,
+  `noon`. Compare the first character with the last, the second with the
+  second-to-last, and so on, up to the middle — like the `reverse` tool in
+  the relay station, but comparing instead of swapping. `strlen` tells you
+  where the last character is: at index `strlen(word) - 1`.
+
+  To ignore case, compare lower-case versions: if a character is between
+  `'A'` and `'Z'`, adding `'a' - 'A'` (32) gives its lower-case letter.
+success: |
+  Two indexes moving towards each other check a string from both ends at
+  once; character arithmetic makes the comparison case-insensitive.
+steps:
+  - id: main
+    type: code
+    title: Open the mirror gate
+    prompt: |
+      Write `int is_palindrome(char word[])` that returns 1 if the word reads
+      the same forwards and backwards ignoring case, otherwise 0. `main`
+      reads words (at most 39 characters) until the input ends and prints
+      for each:
+
+      ```
+      Racecar is a palindrome
+      Gate is not a palindrome
+      ```
+    stdin: "Racecar\nGate\n"
+    starter: |
+      #include <stdio.h>
+      #include <string.h>
+
+      int is_palindrome(char word[]);
+
+      int main(void)
+      {
+          char word[40];
+
+          while (scanf("%39s", word) == 1) {
+              if (is_palindrome(word)) {
+                  printf("%s is a palindrome\n", word);
+              } else {
+                  printf("%s is not a palindrome\n", word);
+              }
+          }
+          return 0;
+      }
+
+      int is_palindrome(char word[])
+      {
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+      #include <string.h>
+
+      int is_palindrome(char word[]);
+      char lower(char ch);
+
+      int main(void)
+      {
+          char word[40];
+
+          while (scanf("%39s", word) == 1) {
+              if (is_palindrome(word)) {
+                  printf("%s is a palindrome\n", word);
+              } else {
+                  printf("%s is not a palindrome\n", word);
+              }
+          }
+          return 0;
+      }
+
+      char lower(char ch)
+      {
+          if (ch >= 'A' && ch <= 'Z') {
+              return ch + ('a' - 'A');
+          }
+          return ch;
+      }
+
+      int is_palindrome(char word[])
+      {
+          int left = 0;
+          int right = (int) strlen(word) - 1;
+
+          while (left < right) {
+              if (lower(word[left]) != lower(word[right])) {
+                  return 0;
+              }
+              left++;
+              right--;
+          }
+          return 1;
+      }
+    explanation: |
+      `left` starts at the first character and `right` at the last
+      (`strlen - 1`). They move towards each other; the first mismatch
+      returns 0. If they meet without a mismatch, the word is a palindrome.
+      The helper `lower` makes the comparison ignore case.
+    harness: |
+      #include <stdio.h>
+      int is_palindrome(char word[]);
+      int main(void)
+      {
+          char a[] = "a";
+          char b[] = "ab";
+          char c[] = "Aa";
+          char d[] = "abcCBA";
+          char e[] = "abcdba";
+          char f[] = "12321";
+          printf("%d %d %d %d %d %d\n", is_palindrome(a), is_palindrome(b), is_palindrome(c), is_palindrome(d), is_palindrome(e), is_palindrome(f));
+          return 0;
+      }
+    hints:
+      - "Compare pairs from the outside in: first with last, second with second-to-last, and stop in the middle."
+      - "Use two indexes, left = 0 and right = strlen(word) - 1, and move them towards each other while left < right."
+      - "Ignore case by converting both characters to lower case before comparing: `if (ch >= 'A' && ch <= 'Z') ch = ch + ('a' - 'A');`"
+      - "`if (lower(word[left]) != lower(word[right])) return 0;` — after the loop, `return 1;`"
+      - "The full solution adds a small helper `lower` and a while loop in is_palindrome."
+    tests:
+      - id: example
+        stdin: "Racecar\nGate\n"
+        expect: { output: "Racecar is a palindrome\nGate is not a palindrome\n" }
+      - id: more
+        stdin: "noon x Level abca\n"
+        expect: { output: "noon is a palindrome\nx is a palindrome\nLevel is a palindrome\nabca is not a palindrome\n" }
+      - id: direct
+        harness: true
+        note: Short, mixed-case, even and odd lengths, digits.
+        expect: { output: "1 0 1 1 0 1\n" }
+    require:
+      functions: [is_palindrome]
+      calls: [strlen]

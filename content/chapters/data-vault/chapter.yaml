@@ -1,0 +1,22 @@
+id: data-vault
+version: 1
+letter: G
+title: Data Vault
+region: Western Cliffs — Data Vault
+lectures: [L11]
+intro: >
+  Carved into the western cliffs is the island's data vault: long racks of
+  numbered storage cells. Single variables are not enough any more — PIP-7
+  must learn to keep whole rows of values in arrays, walk through them with
+  loops, and never step past the last cell.
+outro: >
+  The vault is in order. PIP-7 can declare arrays, index them from 0, process
+  them with loops, and knows that C never checks an index for you.
+map: { x: 34, y: 28 }
+missions:
+  - storage-racks
+  - rack-loops
+  - memory-map
+  - overflow-alarm
+  - copy-protocol
+  - vault-ledger

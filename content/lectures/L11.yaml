@@ -1,0 +1,81 @@
+# Lecture 11 — source of truth for coverage (slide numbers as printed; PDF page = slide - 1).
+id: L11
+title: "Arrays; arrays as function arguments; characters and C-style strings"
+file: Lecture11_text_only.pdf
+slideCount: 47
+pageOffset: -1
+topics:
+  - { id: L11.outline, slides: [2, 3, 13, 25, 31], title: "Lecture outline and section dividers", coverage: meta }
+  - { id: L11.array-concept, slides: [4], title: "An array is an ordered collection of values of the same type" }
+  - { id: L11.array-declaration, slides: [5, 6], title: "Declaring arrays (char letters[4]; int values[3];) and their layout in memory as consecutive elements" }
+  - { id: L11.zero-index, slides: [7], title: "Array elements are numbered from 0 in C" }
+  - { id: L11.element-access, slides: [8, 9], title: "Square brackets select an element in assignments and expressions; ++ and += on elements" }
+  - { id: L11.loop-index, slides: [10], title: "An integer variable or expression as the index; processing arrays with for loops" }
+  - { id: L11.define-size, slides: [11], title: "#define constants as array sizes; variable sizes only since C99" }
+  - { id: L11.bounds, slides: [12], title: "C does not check indexes: writing past the end stores the value outside the array" }
+  - { id: L11.no-array-assign, slides: [14], title: "An array cannot be assigned as a whole (scores = ...; is illegal)" }
+  - { id: L11.array-argument, slides: [15, 16, 17, 18, 19, 20], title: "Passing an array to a function by its name: the function receives the address of element 0 and changes the caller's elements (ClearIntegerArray)" }
+  - { id: L11.swap-practice, slides: [21], title: "Practice: swap two integers using an array as the argument" }
+  - { id: L11.array-parameter, slides: [22, 23, 24], title: "Array parameters: int array[] in the prototype, the size in brackets is ignored, pass the length as a separate parameter" }
+  - { id: L11.ascii, slides: [26], title: "ASCII codes 0-127 (review)" }
+  - { id: L11.escapes, slides: [27, 28], title: "Special characters and escape sequences (\\n \\t \\v \\b \\r \\f \\a \\\\ \\' \\\" \\ooo \\xhh \\0)" }
+  - { id: L11.char-arithmetic, slides: [29], title: "Character arithmetic: 'A' == 65, testing for a digit, converting a digit with ch - '0'" }
+  - { id: L11.phone-practice, slides: [30], title: "Practice: convert the letters of a phone number into keypad digits" }
+  - { id: L11.c-strings, slides: [32], title: "C-style strings: char arrays ending with the null character '\\0'; printing with %s" }
+  - { id: L11.reading-strings, slides: [33], title: "Reading strings: scanf(\"%s\") stops at spaces; gets is unsafe, fgets keeps the newline" }
+  - { id: L11.string-h, slides: [34], title: "<string.h>: copying, concatenation, comparison, searching" }
+  - { id: L11.strlen, slides: [35], title: "strlen returns the length without the terminator" }
+  - { id: L11.strcpy, slides: [36], title: "strcpy copies a string including its terminator" }
+  - { id: L11.strncpy, slides: [37, 38], title: "strncpy copies at most num characters and may leave the result unterminated" }
+  - { id: L11.strcat, slides: [39, 40], title: "strcat appends one string to another" }
+  - { id: L11.strcmp, slides: [41, 42], title: "strcmp compares strings: 0 if equal, negative or positive otherwise" }
+  - { id: L11.strchr, slides: [43], title: "strchr finds a character; the position is the result minus the array" }
+  - { id: L11.strstr, slides: [44], title: "strstr finds a substring or returns a null pointer" }
+  - { id: L11.atoi, slides: [45, 46], title: "<stdlib.h> atoi, atof, atol convert text to numbers" }
+  - { id: L11.command-practice, slides: [47], title: "Practice: parse a command line keyword parameter1 parameter2 (add 1 2 -> 3)" }
+
+corrections:
+  - id: implicit-int-main
+    slides: [11, 14, 15, 16, 17, 18, 19, 20]
+    missions: [data-vault/rack-loops]
+    text: "The examples write main() without a return type. 'Implicit int' was removed in C99; in C17 write int main(void) and return 0."
+  - id: value-typo
+    slides: [9]
+    missions: [data-vault/storage-racks]
+    text: "The slide writes value[1]++ and value[1] += 1, but the array is called values: values[1]++."
+  - id: vla-optional
+    slides: [11]
+    missions: [data-vault/rack-loops]
+    text: "Variable-length arrays (int scores[n];) were added in C99 but are optional since C11 (__STDC_NO_VLA__), cannot be initialised, and can overflow the stack for large n. A #define constant is the portable choice."
+  - id: out-of-bounds-ub
+    slides: [12]
+    missions: [data-vault/overflow-alarm]
+    text: "Writing outside an array is undefined behaviour: it may overwrite another variable, crash, or appear to work. The game's compiler adds a runtime check that stops such a program."
+  - id: array-name-address
+    slides: [17, 18, 19]
+    missions: [relay-station/clear-banks]
+    text: "Strictly, the array name converts to a pointer to its first element when passed. The function's parameter is that pointer, so sizeof inside the function gives the pointer size, not the array size (clang warns about it)."
+  - id: gets-removed
+    slides: [33, 35]
+    missions: [signal-archive/null-terminator]
+    text: "gets was not just unsafe: it was removed from the language in C11, so a C17 compiler rejects it. Use fgets(buf, sizeof buf, stdin), and give scanf a width (scanf(\"%29s\", city))."
+  - id: smart-quotes-l11
+    slides: [33]
+    missions: [signal-archive/null-terminator]
+    text: "scanf(“%s”, city) uses typographic quotes; real code needs plain \" quotes."
+  - id: size-t-format
+    slides: [35]
+    missions: [text-foundry/length-and-copy]
+    text: "strlen returns size_t. Since C99 it is printed with %zu; the slide's cast to unsigned with %u also works."
+  - id: strcmp-sign
+    slides: [42]
+    missions: [text-foundry/join-and-compare]
+    text: "Only the sign of strcmp's result is defined. The slide's -1 is what some libraries return; others return the difference of the characters (for example -6). Compare the result with 0, never with -1 or 1."
+  - id: strchr-format
+    slides: [43]
+    missions: [text-foundry/search]
+    text: "pch - str has type ptrdiff_t, so printing it with %d is not portable. Use %td or convert it: (int)(pch - str). The prototype on the slide also lacks the parameter name str."
+  - id: atoi-errors
+    slides: [45]
+    missions: [text-foundry/numbers-from-text]
+    text: "atoi and atof cannot report errors: atoi(\"abc\") is 0 and atoi(\"12abc\") is 12. strtol and strtod (also in <stdlib.h>) report where the number ended."

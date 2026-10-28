@@ -1,0 +1,17 @@
+id: archive-core
+version: 1
+letter: "◆"
+title: The Archive Core
+region: Central Plateau — The Archive Core
+lectures: [L11]
+intro: >
+  Beneath the central plateau lies the Archive Core, the island's memory.
+  It is controlled by typed commands that store and analyse numbers in its
+  memory slots. To restore it, PIP-7 must combine everything from the latest
+  regions: arrays, array functions and strings.
+outro: >
+  The Archive Core remembers again. Every region of the current lectures is
+  restored — and the island's memory is ready for whatever comes next.
+map: { x: 64, y: 33 }
+missions:
+  - restore-archive

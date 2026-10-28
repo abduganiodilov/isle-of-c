@@ -1,0 +1,203 @@
+id: text-foundry/numbers-from-text
+version: 1
+kind: guided
+source:
+  - { lecture: L11, slides: [45, 46] }
+topics: [L11.atoi]
+prerequisites: [text-foundry/search]
+estimatedMinutes: 25
+objectives:
+  - Convert strings to numbers with atoi, atol and atof from <stdlib.h>.
+  - Decide from a word's first character whether it is a number before converting it.
+  - Know that atoi and atof cannot report invalid input.
+world:
+  scene: gauges
+  label: CARGO SCALE
+  gauges:
+    - { label: Numbers, pattern: "Numbers: (\\d+)", max: 10 }
+    - { label: Total, pattern: "Total: (-?[\\d.]+)", max: 100 }
+title: Numbers from Text
+briefing: |
+  The cargo manifest arrives as plain words: weights mixed with crate
+  names. The scale must add up only the words that are numbers, until the
+  word `end`.
+lesson: |
+  ### Text is not a number
+  The string `"42"` is three characters `'4'`, `'2'`, `'\0'` — not the
+  integer 42. `<stdlib.h>` converts text to numbers:
+
+  | Function | Converts to |
+  |---|---|
+  | `int atoi(const char *str)` | `int` |
+  | `long atol(const char *str)` | `long` |
+  | `double atof(const char *str)` | `double` |
+
+  ```c example
+  #include <stdio.h>
+  #include <stdlib.h>
+
+  int main(void)
+  {
+      printf("%d\n", atoi("4") + atoi("5"));
+      printf("%g\n", atof("4.5") + atof("5.6"));
+      return 0;
+  }
+  ```
+
+  ### They cannot complain
+  `atoi` reads digits for as long as it can: `atoi("12abc")` is 12, and
+  `atoi("abc")` is simply **0** — exactly like `atoi("0")`. So check the text
+  yourself before converting, for example by looking at its first
+  character (a digit, or a `-` sign).
+
+  > [!correction] The lecture does not mention it: `atoi` and `atof` have
+  > no way to report bad input. `strtol` and `strtod` (also in
+  > `<stdlib.h>`) tell you where the number ended, which is how real
+  > programs validate numbers.
+success: |
+  `atoi`, `atol` and `atof` turn text into numbers, but they cannot detect
+  invalid text. Check the characters first (here, the first character) and
+  convert only what really is a number.
+steps:
+  - id: atoi-predict
+    type: predict
+    title: Converting text
+    prompt: Type exactly what this program prints.
+    code: |
+      #include <stdio.h>
+      #include <stdlib.h>
+
+      int main(void)
+      {
+          printf("%d %d %d\n", atoi("4") + atoi("5"), atoi("12abc"), atoi("abc"));
+          printf("%g\n", atof("4.5") + atof("5.6"));
+          return 0;
+      }
+    answer:
+      kind: output
+      output: "9 12 0\n10.1\n"
+    explanation: |
+      `atoi("4") + atoi("5")` is 9 (not `"45"`). `atoi` stops at the first
+      non-digit, so `"12abc"` gives 12, and `"abc"` gives 0. 4.5 + 5.6 is 10.1,
+      which `%g` prints without trailing zeros.
+  - id: main
+    type: code
+    title: Weigh the manifest
+    prompt: |
+      Read words (each at most 19 characters) until the word `end`. A word is
+      a **number** if its first character is a digit or a `-`; convert those
+      with `atof` and add them up. All other words are ignored. Print:
+
+      ```
+      Numbers: 3
+      Total: 16.50
+      Ignored: 1
+      ```
+
+      for the input `12 7.5 crate -3 end`.
+    stdin: "12 7.5 crate -3 end\n"
+    starter: |
+      #include <stdio.h>
+      #include <stdlib.h>
+      #include <string.h>
+
+      int main(void)
+      {
+          char word[20];
+          int numbers = 0;
+          int ignored = 0;
+          double total = 0;
+
+          scanf("%19s", word);
+          while (strcmp(word, "end") != 0) {
+              /* classify and convert the word */
+
+              scanf("%19s", word);
+          }
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+      #include <stdlib.h>
+      #include <string.h>
+
+      int main(void)
+      {
+          char word[20];
+          int numbers = 0;
+          int ignored = 0;
+          double total = 0;
+
+          scanf("%19s", word);
+          while (strcmp(word, "end") != 0) {
+              if ((word[0] >= '0' && word[0] <= '9') || word[0] == '-') {
+                  total += atof(word);
+                  numbers++;
+              } else {
+                  ignored++;
+              }
+              scanf("%19s", word);
+          }
+
+          printf("Numbers: %d\n", numbers);
+          printf("Total: %.2f\n", total);
+          printf("Ignored: %d\n", ignored);
+          return 0;
+      }
+    explanation: |
+      The loop stops when `strcmp` reports that the word equals `"end"`. The
+      first character decides whether a word is a number — a digit or a minus
+      sign — and only those words are converted with `atof`, which handles
+      both `12` and `7.5`.
+    hints:
+      - "The loop is already there; inside it, look only at word[0] to decide whether the word is a number."
+      - "A number starts with a digit ('0' to '9') or with '-'. Convert those with atof and count them; count the others as ignored."
+      - "`if ((word[0] >= '0' && word[0] <= '9') || word[0] == '-')`"
+      - "`total += atof(word); numbers++;` — then print the three lines after the loop with `%.2f` for the total."
+      - "The full solution adds one if/else inside the loop and three printf calls."
+    tests:
+      - id: example
+        stdin: "12 7.5 crate -3 end\n"
+        expect: { output: "Numbers: 3\nTotal: 16.50\nIgnored: 1\n" }
+      - id: empty
+        stdin: "end\n"
+        expect: { output: "Numbers: 0\nTotal: 0.00\nIgnored: 0\n" }
+      - id: words-only
+        stdin: "crate barrel box end\n"
+        expect: { output: "Numbers: 0\nTotal: 0.00\nIgnored: 3\n" }
+      - id: lines
+        stdin: "0.25\nlid\n100\n-0.5\n2e1\nend\n"
+        note: Words on separate lines, a zero-point value and 2e1 (scientific notation, 20).
+        expect: { output: "Numbers: 4\nTotal: 119.75\nIgnored: 1\n" }
+      - id: after-end
+        stdin: "5 end 99\n"
+        note: Words after end are not read.
+        expect: { output: "Numbers: 1\nTotal: 5.00\nIgnored: 0\n" }
+    require:
+      calls: [atof]
+    wrong:
+      - code: |
+          #include <stdio.h>
+          #include <stdlib.h>
+          #include <string.h>
+          int main(void)
+          {
+              char word[20];
+              int numbers = 0, ignored = 0;
+              double total = 0;
+              scanf("%19s", word);
+              while (strcmp(word, "end") != 0) {
+                  if (word[0] >= '0' && word[0] <= '9') {
+                      total += atoi(word);
+                      numbers++;
+                  } else {
+                      ignored++;
+                  }
+                  scanf("%19s", word);
+              }
+              printf("Numbers: %d\nTotal: %.2f\nIgnored: %d\n", numbers, total, ignored);
+              return 0;
+          }
+        why: uses atoi, which drops the decimals, and treats negative numbers as words
+        expect: outputMismatch

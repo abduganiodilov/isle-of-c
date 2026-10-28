@@ -18,10 +18,10 @@ New material is **appended**: no engine rewrite, no renumbering, no lost progres
 ## 1. Read all instructional content
 
 ```bash
-pdftotext -layout Lecture11.pdf - | less          # text with layout
-pdftotext -f 7 -l 7 Lecture11.pdf -               # one page
-pdfimages -list Lecture11.pdf                     # embedded images?
-pdftoppm -r 110 -png Lecture11.pdf /tmp/l11       # render pages; look at every page image
+pdftotext -layout Lecture12.pdf - | less          # text with layout
+pdftotext -f 7 -l 7 Lecture12.pdf -               # one page
+pdfimages -list Lecture12.pdf                     # embedded images?
+pdftoppm -r 110 -png Lecture12.pdf /tmp/l12       # render pages; look at every page image
 ```
 
 Read code examples, tables and text inside images (render the pages and look at them).
@@ -30,11 +30,11 @@ Note the slide number printed on each slide and how it relates to the PDF page
 
 ## 2. Write the lecture file
 
-Create `content/lectures/L11.yaml` (template: `content/templates/chapter-template/lecture-L11.yaml`):
+Create `content/lectures/L12.yaml` (template: `content/templates/chapter-template/lecture-L12.yaml`):
 one `topics` entry per instructional element (definitions, syntax, examples, practice
 exercises, style advice), with printed slide numbers. Mark outline/divider slides
 `coverage: meta`. Record inaccurate or outdated statements under `corrections`.
-Add `L11` to `lectures` in the manifest.
+Add `L12` to `lectures` in the manifest.
 
 ## 3. Compare with the existing curriculum
 
@@ -51,7 +51,7 @@ Start from `content/templates/chapter-template/`:
 
 1. `content/chapters/<new-chapter>/chapter.yaml` — next free `letter`, a `map` position
    (x/y in percent on the island map; the islets on the right and the cliffs top-left are
-   free), `lectures: [L11]`.
+   free), `lectures: [L12]`.
 2. One YAML file per mission. Follow the learning progression inside missions and across
    the chapter: explain one idea → working example (```` ```c example ````) → predict →
    modify a partial program → write independently → revisit later. Mix mission kinds:

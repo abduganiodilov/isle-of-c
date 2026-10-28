@@ -240,7 +240,7 @@ export default {
     styleName: 'The name `{name}` is too short to be descriptive.',
   },
   trap: {
-    runtimeCheck: 'runtime check failed — undefined behaviour such as integer division by zero, signed integer overflow or an invalid shift',
+    runtimeCheck: 'runtime check failed — undefined behaviour such as an array index outside the array, integer division by zero, signed integer overflow or an invalid shift',
     divideByZero: 'integer division by zero',
     integerOverflow: 'integer overflow',
     memoryOutOfBounds: 'memory access out of bounds',
@@ -293,7 +293,7 @@ export default {
   ending: {
     title: 'Current expedition complete.',
     toBeContinued: 'To be continued…',
-    text: 'You have restored every system covered by the lectures so far: from your first printf to a modular core built from your own functions. The next region of the island will unlock when another lecture is added to the game.',
+    text: 'You have restored every system covered by the lectures so far: from your first printf to functions, arrays, strings and a command-driven archive core. The next region of the island will unlock when another lecture is added to the game.',
     stats: '{missions} missions completed · {mastered} mastered · {topics} lecture topics practised',
     replay: 'Replay missions',
     improve: 'Improve mastery ({n} missions can still be mastered)',

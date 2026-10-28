@@ -1,0 +1,198 @@
+id: data-vault/overflow-alarm
+version: 1
+kind: debug
+source:
+  - { lecture: L11, slides: [12] }
+topics: [L11.bounds]
+prerequisites: [data-vault/memory-map]
+estimatedMinutes: 20
+objectives:
+  - Explain that C does not check array indexes and that writing past the end is undefined behaviour.
+  - Recognise the runtime error the game reports for an index outside an array.
+  - Guard every write with a check against the array size.
+world:
+  scene: terminal
+  label: ALARM LOG
+  goal: Stop the log from writing past its last cell
+title: Overflow Alarm
+briefing: |
+  The vault's alarm log has room for five entries. On a busy night more
+  alarms arrive, and the log program keeps writing — past the end of its
+  array. Make it keep the first five entries and count the ones it had to
+  drop.
+lesson: |
+  ### C does not check indexes
+  When you write `scores[i] = 100;`, C trusts you that `i` is a valid index.
+  If `scores` has 500 elements and `i` is 523, the value is stored
+  **somewhere** in memory — but not in the array. It may overwrite another
+  variable, crash the program, or seem to work until much later.
+
+  This is **undefined behaviour**: the C standard does not say what happens.
+  The game's compiler adds a runtime check, so such a program is stopped
+  with *"runtime check failed"* and the function where it happened. A normal
+  compiler gives you no such warning — the program just misbehaves.
+
+  ### Guard the index
+  Before writing, make sure the index is inside the array:
+
+  ```c
+  if (count < MAX_LOG) {
+      entries[count] = value;
+      count++;
+  }
+  ```
+
+  The valid indexes are `0` to `MAX_LOG - 1`, so the test is `<`, never
+  `<=`.
+
+  > [!correction] Slide 12 says the value is stored "somewhere". More
+  > precisely, the behaviour is undefined: anything may happen, including
+  > a crash or silently wrong results.
+success: |
+  Every array write needs an index between 0 and size − 1, and C will not
+  check it for you. Test the index against the same `#define` constant that
+  sized the array.
+steps:
+  - id: bounds-quiz
+    type: quiz
+    title: What does C do?
+    question: "`int scores[500];` and `i` is 523. What happens on `scores[i] = 100;` in standard C?"
+    choices:
+      - "The compiler reports an error."
+      - "The array grows to 524 elements."
+      - "The behaviour is undefined: the value lands outside the array, and anything may happen."
+      - "The statement is skipped."
+    correct: 2
+    explanation: |
+      C does not check indexes, either when compiling (i is only known at run
+      time) or when running. Writing outside the array is undefined
+      behaviour.
+  - id: main
+    type: code
+    title: Fix the alarm log
+    prompt: |
+      The input is a number `n` followed by `n` alarm codes. Store **only the
+      first `MAX_LOG` (5)** codes in the array; count the others as
+      dropped. For input `7` and `4 8 15 16 23 42 99`:
+
+      ```
+      Stored: 5
+      Dropped: 2
+      Log: 4 8 15 16 23
+      ```
+
+      Run the starter first with this input to see what the overflow does.
+    stdin: "7\n4 8 15 16 23 42 99\n"
+    starter: |
+      #include <stdio.h>
+
+      #define MAX_LOG 5
+
+      int main(void)
+      {
+          int entries[MAX_LOG];
+          int n, i, code;
+          int stored = 0;
+          int dropped = 0;
+
+          scanf("%d", &n);
+          for (i = 0; i < n; i++) {
+              scanf("%d", &code);
+              entries[stored] = code;
+              stored++;
+          }
+
+          printf("Stored: %d\n", stored);
+          printf("Dropped: %d\n", dropped);
+          printf("Log:");
+          for (i = 0; i < stored; i++) {
+              printf(" %d", entries[i]);
+          }
+          printf("\n");
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      #define MAX_LOG 5
+
+      int main(void)
+      {
+          int entries[MAX_LOG];
+          int n, i, code;
+          int stored = 0;
+          int dropped = 0;
+
+          scanf("%d", &n);
+          for (i = 0; i < n; i++) {
+              scanf("%d", &code);
+              if (stored < MAX_LOG) {
+                  entries[stored] = code;
+                  stored++;
+              } else {
+                  dropped++;
+              }
+          }
+
+          printf("Stored: %d\n", stored);
+          printf("Dropped: %d\n", dropped);
+          printf("Log:");
+          for (i = 0; i < stored; i++) {
+              printf(" %d", entries[i]);
+          }
+          printf("\n");
+          return 0;
+      }
+    explanation: |
+      Every code is still **read** (so the input stays in step), but it is only
+      **stored** while `stored < MAX_LOG`. When the log is full, the code is
+      counted as dropped instead. The index never reaches `MAX_LOG`.
+    hints:
+      - "Run the starter with 7 codes: the runtime check stops it when it writes entries[5], which does not exist."
+      - "Keep reading every code, but only store it if there is still room; otherwise count it as dropped."
+      - "Room is left while `stored < MAX_LOG`."
+      - "`if (stored < MAX_LOG) { entries[stored] = code; stored++; } else { dropped++; }`"
+      - "The full solution wraps the store in that if/else inside the reading loop."
+    tests:
+      - id: overflow
+        stdin: "7\n4 8 15 16 23 42 99\n"
+        note: Two codes more than the log can hold.
+        expect: { output: "Stored: 5\nDropped: 2\nLog: 4 8 15 16 23\n" }
+      - id: exactly-full
+        stdin: "5\n1 2 3 4 5\n"
+        expect: { output: "Stored: 5\nDropped: 0\nLog: 1 2 3 4 5\n" }
+      - id: few
+        stdin: "2\n70 71\n"
+        expect: { output: "Stored: 2\nDropped: 0\nLog: 70 71\n" }
+      - id: none
+        stdin: "0\n"
+        note: A quiet night.
+        expect: { output: "Stored: 0\nDropped: 0\nLog:\n" }
+      - id: flood
+        stdin: "12\n1 2 3 4 5 6 7 8 9 10 11 12\n"
+        expect: { output: "Stored: 5\nDropped: 7\nLog: 1 2 3 4 5\n" }
+    wrong:
+      - code: |
+          #include <stdio.h>
+          #define MAX_LOG 5
+          int main(void)
+          {
+              int entries[MAX_LOG];
+              int n, i, code, stored = 0, dropped = 0;
+              scanf("%d", &n);
+              for (i = 0; i < n; i++) {
+                  scanf("%d", &code);
+                  if (stored <= MAX_LOG) {
+                      entries[stored] = code;
+                      stored++;
+                  } else {
+                      dropped++;
+                  }
+              }
+              printf("Stored: %d\nDropped: %d\nLog:", stored, dropped);
+              for (i = 0; i < stored; i++) printf(" %d", entries[i]);
+              printf("\n");
+              return 0;
+          }
+        why: uses <= so it still writes entries[5]
+        expect: trap

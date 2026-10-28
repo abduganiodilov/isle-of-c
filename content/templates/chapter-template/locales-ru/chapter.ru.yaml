@@ -51,8 +51,8 @@ missions:
         tests:
           zero: Граничный случай.
 lectures:
-  L11:
+  L12:
     title: Пример лекции
     topics:
-      L11.outline: План лекции
-      L11.example-topic: Пример темы
+      L12.outline: План лекции
+      L12.example-topic: Пример темы

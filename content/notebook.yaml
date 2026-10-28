@@ -471,3 +471,158 @@ entries:
       the caller's variable — return the new value and assign it:
       `fuel = refuel(fuel, 25);`. A function cannot see another function's
       local variables.
+
+  - id: arrays
+    title: Arrays
+    tags: [array, index, element, brackets, initialiser]
+    unlockedBy: [data-vault/storage-racks]
+    summary: Declare, index from 0, loop over all elements.
+    body: |
+      ```c
+      #define N 5
+      int values[N];               /* N ints, consecutive in memory */
+      int counts[3] = {7, 0, 2};   /* initialiser list; missing ones are 0 */
+
+      values[0] = 4;               /* first element  */
+      values[N - 1] = 9;           /* last element   */
+      values[1]++;                 /* elements work like variables */
+
+      for (i = 0; i < N; i++) {    /* every element: i < N, not i <= N */
+          scanf("%d", &values[i]);
+      }
+      ```
+
+      * Indexes run from **0 to N − 1**.
+      * `sizeof values` = bytes of the whole array;
+        `sizeof values / sizeof values[0]` = number of elements.
+      * An array cannot be assigned with `=` — copy it element by element.
+
+  - id: array-bounds
+    title: Array bounds
+    tags: [array, bounds, overflow, undefined behaviour, define]
+    unlockedBy: [data-vault/overflow-alarm]
+    summary: C never checks indexes - you must.
+    body: |
+      Writing `a[i]` with `i < 0` or `i >= size` is **undefined behaviour**: it
+      may overwrite other variables, crash, or seem to work. C does not check.
+      In the game, a runtime check stops such a program ("runtime check
+      failed").
+
+      Size arrays with a `#define` constant and test indexes against the same
+      constant: `if (count < MAX_LOG) entries[count++] = value;`.
+
+  - id: array-functions
+    title: Arrays and functions
+    tags: [array, function, parameter, address, length]
+    unlockedBy: [relay-station/clear-banks]
+    summary: Pass the array name and its length.
+    body: |
+      ```c
+      void ClearIntegerArray(int array[], int n);   /* prototype */
+
+      ClearIntegerArray(values, N_VALUES);          /* call: just the name */
+
+      void ClearIntegerArray(int array[], int n)
+      {
+          int i;
+          for (i = 0; i < n; i++)
+              array[i] = 0;
+      }
+      ```
+
+      * The function receives the **address of element 0**, not a copy, so it
+        changes the caller's elements.
+      * A size inside the parameter's brackets is ignored; pass the length as
+        a separate parameter.
+      * `sizeof array` inside the function is the size of an address, not of
+        the array.
+
+  - id: escape-table
+    title: All escape sequences
+    tags: [escape, backslash, special character, octal, hexadecimal, null]
+    unlockedBy: [signal-archive/escape-sequences]
+    summary: "\\n \\t \\v \\b \\r \\f \\a \\\\ \\' \\\" \\ooo \\xhh \\0"
+    body: |
+      | Sequence | Meaning | Code |
+      |---|---|---|
+      | `\n` | newline | 10 |
+      | `\t` | horizontal tab | 9 |
+      | `\v` | vertical tab | 11 |
+      | `\b` | backspace | 8 |
+      | `\r` | carriage return | 13 |
+      | `\f` | form feed | 12 |
+      | `\a` | alert (bell) | 7 |
+      | `\\` | backslash | 92 |
+      | `\'` | single quote | 39 |
+      | `\"` | double quote | 34 |
+      | `\0` | null character (ends strings) | 0 |
+      | `\101` | octal code: `'A'` | 65 |
+      | `\x41` | hexadecimal code: `'A'` | 65 |
+
+  - id: c-strings
+    title: C strings
+    tags: [string, char, null terminator, "%s", scanf, fgets, gets]
+    unlockedBy: [signal-archive/null-terminator]
+    summary: char arrays ending with '\0'; reading words and lines.
+    body: |
+      ```c
+      char word[] = "PIP";          /* 'P' 'I' 'P' '\0' : 4 elements */
+      char name[20];                /* up to 19 characters + '\0' */
+
+      scanf("%19s", name);          /* one word; no & ; width = size - 1 */
+      fgets(name, sizeof name, stdin);   /* a whole line, keeps '\n' */
+      printf("%s\n", name);         /* prints up to the '\0' */
+
+      for (i = 0; name[i] != '\0'; i++) { /* visit each character */ }
+      ```
+
+      `gets` was removed from C (C11): never use it.
+
+  - id: char-arithmetic
+    title: Character arithmetic
+    tags: [char, digit, ascii, conversion, upper case, lower case]
+    unlockedBy: [signal-archive/digit-decoder]
+    summary: Characters are integers.
+    body: |
+      | Task | Code |
+      |---|---|
+      | is ch a digit? | `ch >= '0' && ch <= '9'` |
+      | digit value | `ch - '0'` |
+      | append a digit to a number | `number = number * 10 + (ch - '0')` |
+      | is ch an upper-case letter? | `ch >= 'A' && ch <= 'Z'` |
+      | to lower case | `ch + ('a' - 'A')` (that is, + 32) |
+      | to upper case | `ch - 'a' + 'A'` |
+
+  - id: string-h
+    title: string.h
+    tags: [string, strlen, strcpy, strncpy, strcat, strcmp, strchr, strstr]
+    unlockedBy: [text-foundry/length-and-copy]
+    summary: Length, copy, join, compare, search.
+    body: |
+      `#include <string.h>`
+
+      | Call | Does |
+      |---|---|
+      | `strlen(s)` | number of characters before `'\0'` (`size_t`, print with `%zu`) |
+      | `strcpy(dst, src)` | copies src with its `'\0'`; dst must be big enough |
+      | `strncpy(dst, src, n)` | copies at most n characters; add `dst[n] = '\0';` yourself |
+      | `strcat(dst, src)` | appends src to the string in dst |
+      | `strcmp(a, b)` | 0 if equal, < 0 if a comes first, > 0 otherwise (only the sign counts) |
+      | `strchr(s, ch)` | address of the first ch, or `NULL` |
+      | `strstr(s, sub)` | address of the first sub, or `NULL` |
+
+      Position of a search result: `(int) (p - s)` (0-based). Next match:
+      search again from `p + 1`. Never compare text with `==`.
+
+  - id: stdlib-conversions
+    title: Text to numbers
+    tags: [atoi, atof, atol, stdlib, convert, number]
+    unlockedBy: [text-foundry/numbers-from-text]
+    summary: atoi, atol, atof from stdlib.h.
+    body: |
+      `#include <stdlib.h>` — `atoi("42")` → 42 (`int`), `atol` → `long`,
+      `atof("4.5")` → 4.5 (`double`).
+
+      They stop at the first character that does not fit (`atoi("12abc")` is
+      12) and return 0 for text without a number (`atoi("abc")`), so they
+      cannot report errors. Check the text first, or use `strtol` / `strtod`.

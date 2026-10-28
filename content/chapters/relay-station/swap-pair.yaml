@@ -1,0 +1,220 @@
+id: relay-station/swap-pair
+version: 1
+kind: challenge
+source:
+  - { lecture: L11, slides: [21] }
+topics: [L11.swap-practice]
+prerequisites: [relay-station/clear-banks]
+estimatedMinutes: 20
+objectives:
+  - Explain why a function with two int parameters cannot swap the caller's variables.
+  - Swap two values inside an array passed to a function, using a temporary variable.
+world:
+  scene: frames
+  label: SWAP RELAY
+  illustration:
+    - caption: "A failed attempt: swap(int a, int b) receives COPIES. It swaps its copies, and main's variables never change."
+      frames:
+        - { name: main, vars: [{ name: x, value: "3" }, { name: y, value: "8" }] }
+        - { name: swap, vars: [{ name: a, value: "8", changed: true }, { name: b, value: "3", changed: true }] }
+    - caption: "With an array, swap_pair(pair) receives the address of pair[0] and swaps main's own elements."
+      frames:
+        - { name: main, vars: [{ name: "pair[0]", value: "8", changed: true }, { name: "pair[1]", value: "3", changed: true }] }
+        - { name: swap_pair, vars: [{ name: pair, value: "→ pair[0]", copy: true }, { name: temp, value: "3" }] }
+title: The Swap Relay
+briefing: |
+  Two relay channels are wired the wrong way round. Write a module that
+  swaps them — the lecture's practice problem: swap two integers using an
+  array as the argument.
+lesson: |
+  ### Why an int swap function fails
+  From the core systems you know that parameters are copies. A function
+  `void swap(int a, int b)` can exchange `a` and `b`, but those are its own
+  copies; the caller's variables stay as they were.
+
+  ### Swapping through an array
+  An array argument gives the function access to the caller's elements. To
+  exchange two elements you need a **temporary** variable — otherwise the
+  first assignment overwrites a value before it is saved:
+
+  ```c
+  temp = pair[0];
+  pair[0] = pair[1];
+  pair[1] = temp;
+  ```
+
+  > [!note] A function that reuses another function is fine: once
+  > `swap_pair` exists, `sort_pair` only needs to decide *whether* to call it.
+success: |
+  Ordinary arguments are copies, so a swap needs access to the caller's own
+  storage — here an array. Exchanging two values always needs a temporary
+  variable.
+steps:
+  - id: swap-predict
+    type: predict
+    title: The copy swap
+    prompt: Type exactly what this program prints.
+    code: |
+      #include <stdio.h>
+
+      void swap(int a, int b)
+      {
+          int temp = a;
+          a = b;
+          b = temp;
+      }
+
+      int main(void)
+      {
+          int x = 3, y = 8;
+
+          swap(x, y);
+          printf("%d %d\n", x, y);
+          return 0;
+      }
+    answer:
+      kind: output
+      output: "3 8\n"
+    explanation: |
+      `swap` exchanges its own copies `a` and `b`. Nothing is returned and
+      main's `x` and `y` are not touched, so the program prints `3 8`.
+  - id: main
+    type: code
+    title: Swap and sort
+    prompt: |
+      Write two functions (keep `main` unchanged):
+
+      | Function | Specification |
+      |---|---|
+      | `void swap_pair(int pair[])` | exchanges `pair[0]` and `pair[1]` |
+      | `void sort_pair(int pair[])` | puts the smaller value in `pair[0]` (use `swap_pair`) |
+
+      For input `3 8`:
+
+      ```
+      Swapped: 8 3
+      Sorted: 3 8
+      ```
+    stdin: "3 8\n"
+    starter: |
+      #include <stdio.h>
+
+      void swap_pair(int pair[]);
+      void sort_pair(int pair[]);
+
+      int main(void)
+      {
+          int pair[2];
+
+          scanf("%d %d", &pair[0], &pair[1]);
+          swap_pair(pair);
+          printf("Swapped: %d %d\n", pair[0], pair[1]);
+          sort_pair(pair);
+          printf("Sorted: %d %d\n", pair[0], pair[1]);
+          return 0;
+      }
+
+      /* write swap_pair and sort_pair here */
+    solution: |
+      #include <stdio.h>
+
+      void swap_pair(int pair[]);
+      void sort_pair(int pair[]);
+
+      int main(void)
+      {
+          int pair[2];
+
+          scanf("%d %d", &pair[0], &pair[1]);
+          swap_pair(pair);
+          printf("Swapped: %d %d\n", pair[0], pair[1]);
+          sort_pair(pair);
+          printf("Sorted: %d %d\n", pair[0], pair[1]);
+          return 0;
+      }
+
+      void swap_pair(int pair[])
+      {
+          int temp;
+
+          temp = pair[0];
+          pair[0] = pair[1];
+          pair[1] = temp;
+      }
+
+      void sort_pair(int pair[])
+      {
+          if (pair[0] > pair[1]) {
+              swap_pair(pair);
+          }
+      }
+    explanation: |
+      `swap_pair` saves `pair[0]` in `temp` before overwriting it. Because the
+      parameter refers to main's array, the exchange is visible in main.
+      `sort_pair` passes the same array on to `swap_pair` only when the two
+      values are in the wrong order.
+    harness: |
+      #include <stdio.h>
+      void swap_pair(int pair[]);
+      void sort_pair(int pair[]);
+      int main(void)
+      {
+          int p[2];
+          while (scanf("%d %d", &p[0], &p[1]) == 2) {
+              swap_pair(p);
+              printf("%d %d | ", p[0], p[1]);
+              sort_pair(p);
+              printf("%d %d\n", p[0], p[1]);
+          }
+          return 0;
+      }
+    hints:
+      - "The function can change main's elements because it receives the array, not copies of the values."
+      - "Save one value in a temporary variable before you overwrite it."
+      - "`temp = pair[0]; pair[0] = pair[1]; pair[1] = temp;`"
+      - "sort_pair: `if (pair[0] > pair[1]) swap_pair(pair);` — pass the array name on."
+      - "The full solution defines both functions; sort_pair calls swap_pair."
+    tests:
+      - id: example
+        stdin: "3 8\n"
+        expect: { output: "Swapped: 8 3\nSorted: 3 8\n" }
+      - id: already-swapped
+        stdin: "9 -2\n"
+        expect: { output: "Swapped: -2 9\nSorted: -2 9\n" }
+      - id: equal
+        stdin: "5 5\n"
+        expect: { output: "Swapped: 5 5\nSorted: 5 5\n" }
+      - id: direct
+        harness: true
+        stdin: "1 2\n2 1\n0 -7\n-3 -3\n"
+        note: The harness calls swap_pair then sort_pair on several pairs.
+        expect: { output: "2 1 | 1 2\n1 2 | 1 2\n-7 0 | -7 0\n-3 -3 | -3 -3\n" }
+    require:
+      functions: [swap_pair, sort_pair]
+      calls: [swap_pair]
+    wrong:
+      - code: |
+          #include <stdio.h>
+          void swap_pair(int pair[]);
+          void sort_pair(int pair[]);
+          int main(void)
+          {
+              int pair[2];
+              scanf("%d %d", &pair[0], &pair[1]);
+              swap_pair(pair);
+              printf("Swapped: %d %d\n", pair[0], pair[1]);
+              sort_pair(pair);
+              printf("Sorted: %d %d\n", pair[0], pair[1]);
+              return 0;
+          }
+          void swap_pair(int pair[])
+          {
+              pair[0] = pair[1];
+              pair[1] = pair[0];
+          }
+          void sort_pair(int pair[])
+          {
+              if (pair[0] > pair[1]) swap_pair(pair);
+          }
+        why: swaps without a temporary variable, so both elements end up equal
+        expect: outputMismatch

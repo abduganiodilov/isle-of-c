@@ -91,6 +91,8 @@ const CONSTRUCTS = {
   // a = b = ... (chained assignment)
   'chained=': (t) => t.some((x, i) => /^[A-Za-z_]\w*$/.test(x) && t[i + 1] === '=' && /^[A-Za-z_]\w*$/.test(t[i + 2] || '') && t[i + 3] === '='),
   sizeof: (t) => t.includes('sizeof'),
+  // any array declaration or element access
+  array: (t) => t.includes('['),
 };
 
 /** Lightweight, explainable style checks (used by the style-review mission). */

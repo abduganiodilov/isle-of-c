@@ -1,0 +1,210 @@
+id: text-foundry/length-and-copy
+version: 1
+kind: guided
+source:
+  - { lecture: L11, slides: [34, 35, 36, 37, 38] }
+topics: [L11.string-h, L11.strlen, L11.strcpy, L11.strncpy]
+prerequisites: [signal-archive/phone-keypad]
+estimatedMinutes: 25
+objectives:
+  - Include <string.h> and read its prototypes.
+  - Measure a string with strlen and copy it with strcpy.
+  - Copy at most n characters with strncpy and add the terminator yourself.
+world:
+  scene: terminal
+  label: LABEL PRESS
+  goal: Copy words and press short labels
+title: Measure and Copy
+briefing: |
+  The foundry's label press needs every word twice: once as a full copy for
+  the archive, and once cut down to a five-letter tag for the crate label.
+lesson: |
+  ### The <string.h> toolbox
+  Strings are arrays, so `=` cannot copy them and `==` cannot compare their
+  text. `#include <string.h>` provides functions for copying,
+  concatenation, comparison and searching.
+
+  The prototypes look unfamiliar because they use *pointers*: `char *` and
+  `const char *` mean "the address of a character" — exactly what an array
+  name gives you. `const` promises that the function will not change that
+  string. `size_t` is an unsigned integer type for sizes.
+
+  ### strlen — length
+  `size_t strlen(const char *str);` returns the number of characters
+  **before** the `'\0'`. Print a `size_t` with `%zu`.
+
+  ### strcpy — copy
+  `strcpy(destination, source);` copies `source` **including** its
+  terminator into `destination`. The destination must be large enough —
+  `strcpy` does not check.
+
+  ```c example
+  #include <stdio.h>
+  #include <string.h>
+
+  int main(void)
+  {
+      char str1[] = "Sample string";
+      char str2[40];
+      char str3[40];
+
+      strcpy(str2, str1);
+      strcpy(str3, "copy successful");
+      printf("str1: %s\nstr2: %s\nstr3: %s\n", str1, str2, str3);
+      printf("length of str1: %zu\n", strlen(str1));
+      return 0;
+  }
+  ```
+
+  ### strncpy — copy at most n characters
+  `strncpy(destination, source, num);` copies the first `num` characters.
+  If `source` is shorter, the rest is filled with `'\0'`. But if `source`
+  has `num` or more characters, **no terminator is added** — you must add it:
+
+  ```c example
+  #include <stdio.h>
+  #include <string.h>
+
+  int main(void)
+  {
+      char str1[] = "To be or not to be";
+      char str2[6];
+
+      strncpy(str2, str1, 5);
+      str2[5] = '\0';          /* important! */
+      puts(str2);              /* puts prints a string and a newline */
+      return 0;
+  }
+  ```
+
+  > [!correction] Slide 35 prints `strlen` with `%u` after a cast to
+  > `unsigned`. That works, but the matching conversion for `size_t` is
+  > `%zu` (since C99). The slide also uses `gets`, which no longer exists.
+success: |
+  `strlen` counts the characters before `'\0'`, `strcpy` copies a whole
+  string with its terminator, and `strncpy` copies at most n characters —
+  you add the terminator when the source is longer.
+steps:
+  - id: strncpy-predict
+    type: predict
+    title: Five characters
+    prompt: Type exactly what this program prints.
+    code: |
+      #include <stdio.h>
+      #include <string.h>
+
+      int main(void)
+      {
+          char source[] = "Lighthouse";
+          char part[8];
+
+          strncpy(part, source, 5);
+          part[5] = '\0';
+          printf("%s %zu %zu\n", part, strlen(part), strlen(source));
+          return 0;
+      }
+    answer:
+      kind: output
+      output: "Light 5 10\n"
+    explanation: |
+      `strncpy` copies `L i g h t`, and the program adds the terminator at
+      index 5. `strlen` counts 5 characters in `part` and 10 in `source`.
+  - id: main
+    type: code
+    title: Press the labels
+    prompt: |
+      Read a word (at most 29 characters) into `word`. Copy it into
+      `archive` with `strcpy`, and make `tag` hold its first 5 characters
+      with `strncpy` (or the whole word if it is shorter). Print:
+
+      ```
+      Word: Navigator (9 letters)
+      Archive: Navigator
+      Tag: Navig
+      ```
+    stdin: "Navigator\n"
+    starter: |
+      #include <stdio.h>
+      #include <string.h>
+
+      #define TAG_LEN 5
+
+      int main(void)
+      {
+          char word[30];
+          char archive[30];
+          char tag[TAG_LEN + 1];
+
+          scanf("%29s", word);
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+      #include <string.h>
+
+      #define TAG_LEN 5
+
+      int main(void)
+      {
+          char word[30];
+          char archive[30];
+          char tag[TAG_LEN + 1];
+
+          scanf("%29s", word);
+
+          strcpy(archive, word);
+          strncpy(tag, word, TAG_LEN);
+          tag[TAG_LEN] = '\0';
+
+          printf("Word: %s (%zu letters)\n", word, strlen(word));
+          printf("Archive: %s\n", archive);
+          printf("Tag: %s\n", tag);
+          return 0;
+      }
+    explanation: |
+      `archive` has the same size as `word`, so `strcpy` always fits. `tag`
+      has room for 5 characters plus the terminator: `strncpy` copies at most
+      5, and `tag[TAG_LEN] = '\0';` makes sure it is terminated even when the
+      word is longer. For a shorter word, `strncpy` has already filled the
+      rest with `'\0'`.
+    hints:
+      - "Three library calls do the work: one measures, one copies everything, one copies at most 5 characters."
+      - "After strncpy, write the terminator into the last element of tag yourself."
+      - "`strcpy(archive, word);` and `strncpy(tag, word, TAG_LEN);`"
+      - "`tag[TAG_LEN] = '\\0';` then print the length with `%zu` and `strlen(word)`."
+      - "The full solution adds three lines of copying and three printf calls."
+    tests:
+      - id: long
+        stdin: "Navigator\n"
+        expect: { output: "Word: Navigator (9 letters)\nArchive: Navigator\nTag: Navig\n" }
+      - id: short
+        stdin: "Sun\n"
+        note: A word shorter than the tag.
+        expect: { output: "Word: Sun (3 letters)\nArchive: Sun\nTag: Sun\n" }
+      - id: exact
+        stdin: "Delta\n"
+        note: Exactly 5 letters - strncpy adds no terminator here.
+        expect: { output: "Word: Delta (5 letters)\nArchive: Delta\nTag: Delta\n" }
+      - id: very-long
+        stdin: "Supercalifragilisticexpialid\n"
+        expect: { output: "Word: Supercalifragilisticexpialid (28 letters)\nArchive: Supercalifragilisticexpialid\nTag: Super\n" }
+    require:
+      calls: [strcpy, strncpy, strlen]
+    wrong:
+      - code: |
+          #include <stdio.h>
+          #include <string.h>
+          int main(void)
+          {
+              char word[30], archive[30], tag[30];
+              scanf("%29s", word);
+              strcpy(archive, word);
+              strcpy(tag, word);
+              printf("Word: %s (%zu letters)\n", word, strlen(word));
+              printf("Archive: %s\n", archive);
+              printf("Tag: %s\n", tag);
+              return 0;
+          }
+        why: copies the whole word into the tag instead of at most 5 characters
+        expect: outputMismatch

@@ -1,0 +1,176 @@
+id: text-foundry/command-console
+version: 1
+kind: chapter-challenge
+source:
+  - { lecture: L11, slides: [41, 45, 47] }
+topics: [L11.command-practice, L11.strcmp, L11.atoi]
+prerequisites: [text-foundry/numbers-from-text]
+estimatedMinutes: 30
+objectives:
+  - Parse commands of the form keyword parameter1 parameter2.
+  - Choose an action by comparing the keyword with strcmp, and convert parameters with atoi.
+world:
+  scene: terminal
+  label: FOUNDRY CONSOLE
+  goal: Bring the command console online
+title: "Chapter Challenge: The Command Console"
+briefing: |
+  The foundry is controlled from a console that understands short
+  commands such as `add 1 2`. Write the command interpreter — the lecture's
+  final practice problem, extended with a few more commands.
+lesson: |
+  A command line has the form `keyword parameter1 parameter2 …`. A simple
+  interpreter reads the keyword as a word, compares it with every known
+  command using `strcmp`, and reads and converts the parameters for the
+  command it found.
+
+  Reading each parameter as a word and converting it with `atoi` keeps the
+  input handling the same for every command.
+success: |
+  You wrote an interpreter: read a keyword, select the command with
+  `strcmp`, convert its parameters with `atoi`, and answer — the same idea
+  behind every command-line program.
+steps:
+  - id: main
+    type: code
+    title: Interpret the commands
+    prompt: |
+      Read commands until `quit` (or the end of the input). Every command
+      except `quit` is followed by two integer parameters.
+
+      | Command | Output |
+      |---|---|
+      | `add a b` | a + b |
+      | `sub a b` | a − b |
+      | `mul a b` | a × b |
+      | `div a b` | a / b (integer division), or `error: division by zero` |
+      | `quit` | `bye`, and the program ends |
+      | anything else | `unknown command: <keyword>` (its two parameters are skipped) |
+
+      Example input and output:
+
+      ```
+      add 1 2          3
+      mul 6 7          42
+      sub 3 10         -7
+      div 7 0          error: division by zero
+      jump 1 2         unknown command: jump
+      quit             bye
+      ```
+
+      (Input on the left, the program's output lines on the right.)
+    stdin: "add 1 2\nmul 6 7\nsub 3 10\ndiv 7 0\njump 1 2\nquit\n"
+    starter: |
+      #include <stdio.h>
+      #include <stdlib.h>
+      #include <string.h>
+
+      int main(void)
+      {
+          char keyword[16];
+          char p1[16];
+          char p2[16];
+
+          while (scanf("%15s", keyword) == 1) {
+              /* quit? otherwise read the two parameters and run the command */
+          }
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+      #include <stdlib.h>
+      #include <string.h>
+
+      int main(void)
+      {
+          char keyword[16];
+          char p1[16];
+          char p2[16];
+          int a, b;
+
+          while (scanf("%15s", keyword) == 1) {
+              if (strcmp(keyword, "quit") == 0) {
+                  printf("bye\n");
+                  break;
+              }
+              scanf("%15s %15s", p1, p2);
+              a = atoi(p1);
+              b = atoi(p2);
+
+              if (strcmp(keyword, "add") == 0) {
+                  printf("%d\n", a + b);
+              } else if (strcmp(keyword, "sub") == 0) {
+                  printf("%d\n", a - b);
+              } else if (strcmp(keyword, "mul") == 0) {
+                  printf("%d\n", a * b);
+              } else if (strcmp(keyword, "div") == 0) {
+                  if (b == 0) {
+                      printf("error: division by zero\n");
+                  } else {
+                      printf("%d\n", a / b);
+                  }
+              } else {
+                  printf("unknown command: %s\n", keyword);
+              }
+          }
+          return 0;
+      }
+    explanation: |
+      The loop reads one keyword per iteration and stops at the end of the
+      input. `quit` is handled first because it has no parameters. For every
+      other keyword the two parameters are read as words and converted with
+      `atoi`; an else-if chain of `strcmp` calls selects the command.
+    hints:
+      - "Handle quit before reading parameters - it has none. Every other command reads two words."
+      - "Compare the keyword with each command name using strcmp(...) == 0, in an else-if chain; the final else is the unknown command."
+      - "`scanf(\"%15s %15s\", p1, p2); a = atoi(p1); b = atoi(p2);`"
+      - "For div, test b == 0 before dividing; for quit, print bye and `break;` out of the loop."
+      - "The full solution has one while loop with an else-if chain of five strcmp tests."
+    tests:
+      - id: example
+        stdin: "add 1 2\nmul 6 7\nsub 3 10\ndiv 7 0\njump 1 2\nquit\n"
+        expect: { output: "3\n42\n-7\nerror: division by zero\nunknown command: jump\nbye\n" }
+      - id: lecture
+        stdin: "add 1 2\n"
+        note: The lecture's example, without quit - the input simply ends.
+        expect: { output: "3\n" }
+      - id: negative
+        stdin: "add -5 3\ndiv -7 2\nmul -4 -4\nquit\n"
+        note: Integer division truncates toward zero.
+        expect: { output: "-2\n-3\n16\nbye\n" }
+      - id: after-quit
+        stdin: "sub 10 1\nquit\nadd 1 1\n"
+        note: Commands after quit are not executed.
+        expect: { output: "9\nbye\n" }
+      - id: case
+        stdin: "ADD 1 2\nadd 0 0\nquit\n"
+        note: Keywords are case-sensitive.
+        expect: { output: "unknown command: ADD\n0\nbye\n" }
+    require:
+      calls: [strcmp, atoi]
+    wrong:
+      - code: |
+          #include <stdio.h>
+          #include <stdlib.h>
+          #include <string.h>
+          int main(void)
+          {
+              char keyword[16], p1[16], p2[16];
+              int a, b;
+              while (scanf("%15s", keyword) == 1) {
+                  if (strcmp(keyword, "quit") == 0) { printf("bye\n"); continue; }
+                  scanf("%15s %15s", p1, p2);
+                  a = atoi(p1);
+                  b = atoi(p2);
+                  if (strcmp(keyword, "add") == 0) printf("%d\n", a + b);
+                  else if (strcmp(keyword, "sub") == 0) printf("%d\n", a - b);
+                  else if (strcmp(keyword, "mul") == 0) printf("%d\n", a * b);
+                  else if (strcmp(keyword, "div") == 0) {
+                      if (b == 0) printf("error: division by zero\n");
+                      else printf("%d\n", a / b);
+                  } else printf("unknown command: %s\n", keyword);
+              }
+              return 0;
+          }
+        why: prints bye but keeps running the commands after quit
+        expect: outputMismatch

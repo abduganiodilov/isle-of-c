@@ -272,6 +272,90 @@
     "expedition-extras/prime-beacons": {
       "version": 1,
       "chapter": "expedition-extras"
+    },
+    "data-vault/storage-racks": {
+      "version": 1,
+      "chapter": "data-vault"
+    },
+    "data-vault/rack-loops": {
+      "version": 1,
+      "chapter": "data-vault"
+    },
+    "data-vault/memory-map": {
+      "version": 1,
+      "chapter": "data-vault"
+    },
+    "data-vault/overflow-alarm": {
+      "version": 1,
+      "chapter": "data-vault"
+    },
+    "data-vault/copy-protocol": {
+      "version": 1,
+      "chapter": "data-vault"
+    },
+    "data-vault/vault-ledger": {
+      "version": 1,
+      "chapter": "data-vault"
+    },
+    "relay-station/clear-banks": {
+      "version": 1,
+      "chapter": "relay-station"
+    },
+    "relay-station/swap-pair": {
+      "version": 1,
+      "chapter": "relay-station"
+    },
+    "relay-station/signal-tools": {
+      "version": 1,
+      "chapter": "relay-station"
+    },
+    "relay-station/calibration": {
+      "version": 1,
+      "chapter": "relay-station"
+    },
+    "signal-archive/escape-sequences": {
+      "version": 1,
+      "chapter": "signal-archive"
+    },
+    "signal-archive/null-terminator": {
+      "version": 1,
+      "chapter": "signal-archive"
+    },
+    "signal-archive/digit-decoder": {
+      "version": 1,
+      "chapter": "signal-archive"
+    },
+    "signal-archive/phone-keypad": {
+      "version": 1,
+      "chapter": "signal-archive"
+    },
+    "text-foundry/length-and-copy": {
+      "version": 1,
+      "chapter": "text-foundry"
+    },
+    "text-foundry/join-and-compare": {
+      "version": 1,
+      "chapter": "text-foundry"
+    },
+    "text-foundry/search": {
+      "version": 1,
+      "chapter": "text-foundry"
+    },
+    "text-foundry/numbers-from-text": {
+      "version": 1,
+      "chapter": "text-foundry"
+    },
+    "text-foundry/command-console": {
+      "version": 1,
+      "chapter": "text-foundry"
+    },
+    "text-foundry/palindrome": {
+      "version": 1,
+      "chapter": "text-foundry"
+    },
+    "archive-core/restore-archive": {
+      "version": 1,
+      "chapter": "archive-core"
     }
   },
   "chapters": {
@@ -294,9 +378,24 @@
       "version": 1
     },
     "island-core": {
-      "version": 1
+      "version": 2
     },
     "expedition-extras": {
+      "version": 1
+    },
+    "data-vault": {
+      "version": 1
+    },
+    "relay-station": {
+      "version": 1
+    },
+    "signal-archive": {
+      "version": 1
+    },
+    "text-foundry": {
+      "version": 1
+    },
+    "archive-core": {
       "version": 1
     }
   },
@@ -329,6 +428,14 @@
     "island-api": true,
     "functions": true,
     "math-library": true,
-    "call-by-value": true
+    "call-by-value": true,
+    "arrays": true,
+    "array-bounds": true,
+    "array-functions": true,
+    "escape-table": true,
+    "c-strings": true,
+    "char-arithmetic": true,
+    "string-h": true,
+    "stdlib-conversions": true
   }
 }

@@ -1,0 +1,21 @@
+id: signal-archive
+version: 1
+letter: I
+title: Signal Archive
+region: Southern Hills — Signal Archive
+lectures: [L11]
+intro: >
+  The signal archive stores decades of radio messages as rows of
+  characters. To read them, PIP-7 must master special characters, character
+  arithmetic, and C's way of storing text: arrays of characters that end with
+  an invisible null character.
+outro: >
+  The archive speaks again. PIP-7 reads and writes C-style strings, walks
+  them character by character up to the '\0', and converts digit characters
+  into numbers.
+map: { x: 35, y: 61 }
+missions:
+  - escape-sequences
+  - null-terminator
+  - digit-decoder
+  - phone-keypad

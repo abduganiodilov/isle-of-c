@@ -1,0 +1,233 @@
+id: data-vault/storage-racks
+version: 1
+kind: guided
+source:
+  - { lecture: L11, slides: [4, 5, 6, 7, 8, 9] }
+topics: [L11.array-concept, L11.array-declaration, L11.zero-index, L11.element-access]
+prerequisites: [island-core/restore-core]
+estimatedMinutes: 20
+objectives:
+  - Explain what an array is - an ordered collection of values of the same type.
+  - Declare an array with a size in square brackets.
+  - Use indexes starting at 0 to read and change single elements, including ++ and +=.
+world:
+  scene: gauges
+  label: STORAGE RACK
+  gauges:
+    - { label: "rack[0]", pattern: "rack\\[0\\] = (-?\\d+)", max: 50 }
+    - { label: "rack[1]", pattern: "rack\\[1\\] = (-?\\d+)", max: 50 }
+    - { label: "rack[2]", pattern: "rack\\[2\\] = (-?\\d+)", max: 50 }
+title: Storage Racks
+briefing: |
+  The first vault rack has three numbered shelves, and the inventory system
+  keeps their crate counts in a single array. Update the shelves after
+  today's delivery.
+lesson: |
+  ### What is an array?
+  An **array** is an **ordered** collection of values of the **same type**:
+  all `int`s, or all `double`s, or all `char`s. Ordered means each element
+  has a position, so you can ask for the 1st, the 2nd, …
+
+  ### Declaring an array
+  Write the type, the name and — in square brackets — how many elements
+  the array has:
+
+  ```c
+  char letters[4];   /* 4 char elements */
+  int values[3];     /* 3 int elements  */
+  ```
+
+  The elements sit **next to each other in memory**. `letters` occupies 4
+  consecutive bytes; `values` occupies 12 bytes when an `int` uses 4 bytes.
+
+  ### Elements are numbered from 0
+  In C the first element has index **0**, so the last element of an array of
+  size `n` has index `n - 1`:
+
+  | Array | Valid indexes |
+  |---|---|
+  | `char letters[4]` | 0, 1, 2, 3 |
+  | `int values[3]` | 0, 1, 2 |
+
+  ### Using elements
+  `values[1]` is one `int` — use it anywhere an `int` variable can go: on the
+  left of `=`, in expressions, with `++` or `+=`.
+
+  ```c example
+  #include <stdio.h>
+
+  int main(void)
+  {
+      char letters[4];
+      int values[3];
+      int i;
+
+      letters[0] = 'A';
+      values[1] = 23;
+      i = values[1] + 2;      /* i is 25 */
+      values[1]++;            /* same as values[1] += 1; now 24 */
+
+      printf("%c %d %d\n", letters[0], values[1], i);
+      return 0;
+  }
+  ```
+
+  To read a value into an element with `scanf`, give the element's address
+  just as for a variable: `scanf("%d", &values[0]);`
+
+  > [!tip] You can also give an array its starting values with an
+  > **initialiser list**: `int values[3] = {7, 23, 5};`. Elements you leave
+  > out are set to 0, so `int counts[10] = {0};` starts with ten zeros.
+
+  > [!correction] Slide 9 writes `value[1]++`; the array in the example is
+  > called `values`, so it is `values[1]++`.
+success: |
+  An array stores several values of one type under one name. `rack[0]` is
+  the first element, `rack[2]` the third; each element behaves like an
+  ordinary variable.
+steps:
+  - id: element-predict
+    type: predict
+    title: Follow the elements
+    prompt: What does this program print?
+    code: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int values[3];
+          int i;
+
+          values[0] = 4;
+          values[1] = 23;
+          values[2] = values[0] * 2;
+          i = values[1] + 2;
+          values[1]++;
+          values[0] += values[2];
+
+          printf("%d %d %d %d\n", values[0], values[1], values[2], i);
+          return 0;
+      }
+    answer:
+      kind: choice
+      choices:
+        - "4 23 8 25"
+        - "12 24 8 25"
+        - "12 24 8 26"
+        - "4 24 8 25"
+      correct: 1
+      actualOutput: "12 24 8 25\n"
+    explanation: |
+      `values[2]` becomes 8 and `i` becomes 23 + 2 = 25. Then `values[1]++`
+      makes it 24 (i keeps 25), and `values[0] += values[2]` makes it 4 + 8 = 12.
+  - id: index-quiz
+    type: quiz
+    title: Which shelf?
+    question: "The array is declared as `int rack[3];`. Which expression is the **last** element?"
+    choices:
+      - "`rack[3]`"
+      - "`rack[2]`"
+      - "`rack[-1]`"
+      - "`rack[1]`"
+    correct: 1
+    explanation: |
+      Indexes start at 0, so an array of 3 elements has indexes 0, 1 and 2.
+      `rack[3]` would be *past* the end of the array.
+  - id: main
+    type: code
+    title: Update the rack
+    prompt: |
+      Read the crate counts of the three shelves into the array `rack`. Then
+      apply today's changes **to the array elements**:
+
+      1. shelf 0 receives a delivery of 10 crates (use `+=`),
+      2. shelf 2 receives one extra crate (use `++`),
+      3. shelf 1 is relabelled as the reserve shelf: it now holds the total of
+         shelves 0 and 2.
+
+      Print the three shelves. For input `5 7 9`:
+
+      ```
+      rack[0] = 15
+      rack[1] = 25
+      rack[2] = 10
+      ```
+    stdin: "5 7 9\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int rack[3];
+
+          scanf("%d %d %d", &rack[0], &rack[1], &rack[2]);
+
+          /* 1. delivery to shelf 0 */
+          /* 2. one extra crate on shelf 2 */
+          /* 3. shelf 1 = shelf 0 + shelf 2 */
+
+          printf("rack[0] = %d\n", rack[0]);
+          printf("rack[1] = %d\n", rack[1]);
+          printf("rack[2] = %d\n", rack[2]);
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int rack[3];
+
+          scanf("%d %d %d", &rack[0], &rack[1], &rack[2]);
+
+          rack[0] += 10;
+          rack[2]++;
+          rack[1] = rack[0] + rack[2];
+
+          printf("rack[0] = %d\n", rack[0]);
+          printf("rack[1] = %d\n", rack[1]);
+          printf("rack[2] = %d\n", rack[2]);
+          return 0;
+      }
+    explanation: |
+      Each element is used like a variable: `rack[0] += 10;` and `rack[2]++;`
+      change single elements, and `rack[1] = rack[0] + rack[2];` reads two
+      elements and stores the result in a third. The order matters: shelf 1
+      is computed after the other two changes.
+    hints:
+      - "Each `rack[k]` is an ordinary int variable with a number in its name. The first shelf is index 0."
+      - "Apply the changes in the order given: first shelves 0 and 2, then compute shelf 1 from the new values."
+      - "`rack[0] += 10;` adds 10 to the first element; `rack[2]++;` adds 1 to the third."
+      - "The last change is `rack[1] = rack[0] + rack[2];`"
+      - "The full solution adds three statements between scanf and the printf calls."
+    tests:
+      - id: example
+        stdin: "5 7 9\n"
+        expect: { output: "rack[0] = 15\nrack[1] = 25\nrack[2] = 10\n" }
+      - id: empty
+        stdin: "0 0 0\n"
+        note: Empty shelves.
+        expect: { output: "rack[0] = 10\nrack[1] = 11\nrack[2] = 1\n" }
+      - id: negative
+        stdin: "-10 3 -1\n"
+        note: Negative counts are corrections from earlier mistakes.
+        expect: { output: "rack[0] = 0\nrack[1] = 0\nrack[2] = 0\n" }
+    require:
+      constructs: [array, "+=", "++"]
+    wrong:
+      - code: |
+          #include <stdio.h>
+          int main(void)
+          {
+              int rack[3];
+              scanf("%d %d %d", &rack[0], &rack[1], &rack[2]);
+              rack[1] += 10;
+              rack[3]++;
+              rack[2] = rack[1] + rack[3];
+              printf("rack[0] = %d\n", rack[1]);
+              printf("rack[1] = %d\n", rack[2]);
+              printf("rack[2] = %d\n", rack[3]);
+              return 0;
+          }
+        why: counts shelves from 1, so rack[3] is outside the array
+        expect: trap

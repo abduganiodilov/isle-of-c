@@ -3,9 +3,9 @@
 # bump curriculumVersion. Never remove or rename ids (see docs/ADDING_A_LECTURE.md).
 title: Isle of C
 schemaVersion: 1
-curriculumVersion: 1
+curriculumVersion: 2
 cStandard: C17
-lectures: [L09, L10]
+lectures: [L09, L10, L11]
 chapters:
   - first-contact
   - sensor-lab
@@ -15,6 +15,11 @@ chapters:
   - core-systems
   - island-core
   - expedition-extras
+  - data-vault
+  - relay-station
+  - signal-archive
+  - text-foundry
+  - archive-core
 # Chapters whose missions are all optional and are not required for the ending.
 optionalChapters: [expedition-extras]
 retiredMissions: []
@@ -22,4 +27,4 @@ ending:
   # Shown when every mandatory mission currently in the campaign is complete.
   # When a new lecture is appended, new mandatory missions appear and the
   # expedition continues from the new region.
-  key: expedition-1
+  key: expedition-2

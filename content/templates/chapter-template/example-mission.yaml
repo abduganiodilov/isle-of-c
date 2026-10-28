@@ -4,8 +4,8 @@ id: template-arrays/example-mission
 version: 1
 kind: guided                # guided | lesson | predict | debug | challenge | chapter-challenge | mastery | capstone
 source:
-  - { lecture: L11, slides: [4, 5] }          # printed slide numbers
-topics: [L11.example-topic]                     # ids from content/lectures/L11.yaml
+  - { lecture: L12, slides: [4, 5] }          # printed slide numbers
+topics: [L12.example-topic]                     # ids from content/lectures/L12.yaml
 prerequisites: [island-core/restore-core]       # earlier mission ids
 estimatedMinutes: 10
 objectives:

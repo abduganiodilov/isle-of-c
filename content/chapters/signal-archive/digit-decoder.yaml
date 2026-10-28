@@ -1,0 +1,192 @@
+id: signal-archive/digit-decoder
+version: 1
+kind: guided
+source:
+  - { lecture: L11, slides: [29] }
+topics: [L11.char-arithmetic]
+prerequisites: [signal-archive/null-terminator]
+estimatedMinutes: 20
+objectives:
+  - Treat characters as integers in comparisons and arithmetic.
+  - Test whether a character is a digit with ch >= '0' && ch <= '9'.
+  - Convert a digit character to its value with ch - '0' and build a number from digits.
+world:
+  scene: gauges
+  label: CODE DECODER
+  gauges:
+    - { label: Digits, pattern: "Digits: (\\d+)", max: 20 }
+    - { label: Digit sum, pattern: "Digit sum: (\\d+)", max: 100 }
+title: The Digit Decoder
+briefing: |
+  Archive message IDs mix letters and digits, like `A7B42`. The index only
+  needs the digits: how many there are, their sum, and the number they form
+  when read in order.
+lesson: |
+  ### Characters are integers
+  A `char` holds a character's code, so it can be compared and used in
+  arithmetic like any integer: `'A' == 65` is true, and `'A' + 1` is `'B'`.
+
+  ### Is it a digit?
+  The digit characters `'0'` to `'9'` have consecutive codes (48 to 57), so
+
+  ```c
+  if (ch >= '0' && ch <= '9')    /* ch is a digit */
+  ```
+
+  ### Character to value
+  Because the codes are consecutive, subtracting the code of `'0'` gives the
+  digit's value: `'7' - '0'` is `55 - 48 = 7`.
+
+  ```c example
+  #include <stdio.h>
+
+  int main(void)
+  {
+      char ch = '7';
+
+      printf("code %d, value %d\n", ch, ch - '0');
+      printf("%c is a digit: %d\n", 'x', 'x' >= '0' && 'x' <= '9');
+      return 0;
+  }
+  ```
+
+  ### Digits to a number
+  Read digits from left to right and shift the number one place each time:
+  `number = number * 10 + (ch - '0');` — for `"742"` this gives 7, 74, 742.
+success: |
+  Characters are small integers. `ch >= '0' && ch <= '9'` tests for a digit,
+  `ch - '0'` gives its value, and `number * 10 + value` builds a number
+  digit by digit.
+steps:
+  - id: arith-predict
+    type: predict
+    title: Character arithmetic
+    prompt: What does this program print?
+    code: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          printf("%d %d %c\n", '9' - '0', 'A' + 2, 'a' - 32);
+          return 0;
+      }
+    answer:
+      kind: choice
+      choices:
+        - "9 C a"
+        - "9 67 A"
+        - "57 67 A"
+        - "9 67 65"
+      correct: 1
+      actualOutput: "9 67 A\n"
+    explanation: |
+      `'9' - '0'` is 57 − 48 = 9. `'A' + 2` is 67, printed with `%d`. `'a' - 32`
+      is 97 − 32 = 65, printed with `%c` as `A` (lower and upper case letters
+      are 32 apart in ASCII).
+  - id: main
+    type: code
+    title: Decode the message ID
+    prompt: |
+      Read a message ID (one word, at most 31 characters) and look at each
+      character up to the `'\0'`. Print how many digits it contains, their
+      sum, and the number formed by the digits in order. For input `A7B42`:
+
+      ```
+      Digits: 3
+      Digit sum: 13
+      Number: 742
+      ```
+
+      If there are no digits, the number is 0. IDs never contain more than 9
+      digits.
+    stdin: "A7B42\n"
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          char id[32];
+          int i;
+          int digits = 0;
+          int sum = 0;
+          int number = 0;
+
+          scanf("%31s", id);
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          char id[32];
+          int i;
+          int digits = 0;
+          int sum = 0;
+          int number = 0;
+
+          scanf("%31s", id);
+          for (i = 0; id[i] != '\0'; i++) {
+              if (id[i] >= '0' && id[i] <= '9') {
+                  digits++;
+                  sum += id[i] - '0';
+                  number = number * 10 + (id[i] - '0');
+              }
+          }
+
+          printf("Digits: %d\n", digits);
+          printf("Digit sum: %d\n", sum);
+          printf("Number: %d\n", number);
+          return 0;
+      }
+    explanation: |
+      The loop condition `id[i] != '\0'` stops at the end of the string. For
+      each digit character, `id[i] - '0'` is its value, which is added to the
+      sum and appended to the number with `number * 10 + value`.
+    hints:
+      - "Visit every character until '\\0' and decide for each one whether it is a digit."
+      - "For a digit: count it, add its value, and append its value to the number."
+      - "Digit test: `id[i] >= '0' && id[i] <= '9'`. Value: `id[i] - '0'`."
+      - "`number = number * 10 + (id[i] - '0');`"
+      - "The full solution uses one for loop with the condition `id[i] != '\\0'`."
+    tests:
+      - id: example
+        stdin: "A7B42\n"
+        expect: { output: "Digits: 3\nDigit sum: 13\nNumber: 742\n" }
+      - id: none
+        stdin: "NODIGITS\n"
+        expect: { output: "Digits: 0\nDigit sum: 0\nNumber: 0\n" }
+      - id: zeros
+        stdin: "x0y0z5\n"
+        note: Leading zeros do not change the number.
+        expect: { output: "Digits: 3\nDigit sum: 5\nNumber: 5\n" }
+      - id: all-digits
+        stdin: "123456789\n"
+        expect: { output: "Digits: 9\nDigit sum: 45\nNumber: 123456789\n" }
+      - id: symbols
+        stdin: "#9:/@\n"
+        note: Characters next to the digits in ASCII ('/' is 47, ':' is 58) are not digits.
+        expect: { output: "Digits: 1\nDigit sum: 9\nNumber: 9\n" }
+    require:
+      constructs: ["&&"]
+    wrong:
+      - code: |
+          #include <stdio.h>
+          int main(void)
+          {
+              char id[32];
+              int i, digits = 0, sum = 0, number = 0;
+              scanf("%31s", id);
+              for (i = 0; id[i] != '\0'; i++) {
+                  if (id[i] >= '0' && id[i] <= '9') {
+                      digits++;
+                      sum += id[i];
+                      number = number * 10 + id[i];
+                  }
+              }
+              printf("Digits: %d\nDigit sum: %d\nNumber: %d\n", digits, sum, number);
+              return 0;
+          }
+        why: adds the character codes (48 to 57) instead of the digit values
+        expect: outputMismatch

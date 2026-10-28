@@ -1,0 +1,194 @@
+id: data-vault/copy-protocol
+version: 1
+kind: debug
+source:
+  - { lecture: L11, slides: [14] }
+topics: [L11.no-array-assign]
+prerequisites: [data-vault/overflow-alarm]
+estimatedMinutes: 15
+objectives:
+  - Explain that an array cannot be assigned as a whole with =.
+  - Copy an array element by element with a loop.
+world:
+  scene: terminal
+  label: BACKUP UNIT
+  goal: Back up the readings before recalibrating them
+title: Copy Protocol
+briefing: |
+  Before the vault recalibrates its sensors, it must keep a backup of the
+  original readings. The engineer tried to copy the whole array with one
+  `=`, and the compiler refuses. Write the copy properly.
+lesson: |
+  ### No assignment for whole arrays
+  An array name stands for the whole block of elements, and C does not let
+  you assign a block with `=`:
+
+  ```c example error
+  int main(void)
+  {
+      int readings[4] = {1, 2, 3, 4};
+      int backup[4];
+
+      backup = readings;     /* error: array type is not assignable */
+      return 0;
+  }
+  ```
+
+  ### Copy element by element
+  Copy one element at a time with a loop:
+
+  ```c
+  for (i = 0; i < N; i++) {
+      backup[i] = readings[i];
+  }
+  ```
+
+  After the copy the two arrays are independent: changing `readings[0]`
+  later does not change `backup[0]`.
+success: |
+  `=` cannot copy an array. A loop copies it element by element, and the
+  copy is a separate array you can keep while the original changes.
+steps:
+  - id: assign-predict
+    type: predict
+    title: One big assignment?
+    prompt: What happens when this program is compiled?
+    expectCompileError: true
+    code: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          int a[3] = {5, 6, 7};
+          int b[3];
+
+          b = a;
+          printf("%d\n", b[0]);
+          return 0;
+      }
+    answer:
+      kind: choice
+      choices:
+        - "It prints 5"
+        - "It prints 0"
+        - "The compiler reports an error: an array type is not assignable"
+        - "It compiles, but b stays uninitialised"
+      correct: 2
+    explanation: |
+      `b = a;` tries to assign a whole array, which C does not allow. Clang
+      reports *array type 'int[3]' is not assignable*.
+  - id: main
+    type: code
+    title: Back up, then recalibrate
+    prompt: |
+      Read `N` (4) readings into `readings`, copy them into `backup`, then
+      recalibrate: double every element of `readings`. Print both arrays. For
+      input `1 2 3 4`:
+
+      ```
+      Readings: 2 4 6 8
+      Backup: 1 2 3 4
+      ```
+    stdin: "1 2 3 4\n"
+    starter: |
+      #include <stdio.h>
+
+      #define N 4
+
+      int main(void)
+      {
+          int readings[N];
+          int backup[N];
+          int i;
+
+          for (i = 0; i < N; i++) {
+              scanf("%d", &readings[i]);
+          }
+
+          backup = readings;
+
+          for (i = 0; i < N; i++) {
+              readings[i] *= 2;
+          }
+
+          printf("Readings:");
+          for (i = 0; i < N; i++) {
+              printf(" %d", readings[i]);
+          }
+          printf("\nBackup:");
+          for (i = 0; i < N; i++) {
+              printf(" %d", backup[i]);
+          }
+          printf("\n");
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      #define N 4
+
+      int main(void)
+      {
+          int readings[N];
+          int backup[N];
+          int i;
+
+          for (i = 0; i < N; i++) {
+              scanf("%d", &readings[i]);
+          }
+
+          for (i = 0; i < N; i++) {
+              backup[i] = readings[i];
+          }
+
+          for (i = 0; i < N; i++) {
+              readings[i] *= 2;
+          }
+
+          printf("Readings:");
+          for (i = 0; i < N; i++) {
+              printf(" %d", readings[i]);
+          }
+          printf("\nBackup:");
+          for (i = 0; i < N; i++) {
+              printf(" %d", backup[i]);
+          }
+          printf("\n");
+          return 0;
+      }
+    explanation: |
+      The illegal `backup = readings;` is replaced by a loop that copies each
+      element. The copy happens **before** the recalibration, so `backup`
+      keeps the original values.
+    hints:
+      - "Read the compiler error: a whole array cannot be on the left of =."
+      - "Copy the elements one by one, and do it before the readings are doubled."
+      - "A copying loop has the same header as the reading loop: `for (i = 0; i < N; i++)`."
+      - "Its body is `backup[i] = readings[i];`"
+      - "The full solution replaces the assignment with that loop."
+    tests:
+      - id: example
+        stdin: "1 2 3 4\n"
+        expect: { output: "Readings: 2 4 6 8\nBackup: 1 2 3 4\n" }
+      - id: mixed
+        stdin: "-5 0 12 7\n"
+        expect: { output: "Readings: -10 0 24 14\nBackup: -5 0 12 7\n" }
+    wrong:
+      - code: |
+          #include <stdio.h>
+          #define N 4
+          int main(void)
+          {
+              int readings[N], backup[N], i;
+              for (i = 0; i < N; i++) scanf("%d", &readings[i]);
+              for (i = 0; i < N; i++) readings[i] *= 2;
+              for (i = 0; i < N; i++) backup[i] = readings[i];
+              printf("Readings:");
+              for (i = 0; i < N; i++) printf(" %d", readings[i]);
+              printf("\nBackup:");
+              for (i = 0; i < N; i++) printf(" %d", backup[i]);
+              printf("\n");
+              return 0;
+          }
+        why: copies after recalibrating, so the backup holds the doubled values
+        expect: outputMismatch

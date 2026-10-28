@@ -1,0 +1,172 @@
+id: data-vault/vault-ledger
+version: 1
+kind: chapter-challenge
+source:
+  - { lecture: L11, slides: [4, 7, 10, 11, 12] }
+topics: [L11.array-concept, L11.loop-index, L11.define-size, L11.element-access]
+prerequisites: [data-vault/copy-protocol]
+estimatedMinutes: 30
+objectives:
+  - Store a variable number of values (up to a maximum) in an array.
+  - Combine several passes over the same array to answer different questions.
+world:
+  scene: table
+  label: VAULT LEDGER
+  goal: Audit the vault's deposits
+title: "Chapter Challenge: The Vault Ledger"
+briefing: |
+  The vault keeps a ledger of energy deposits. Audit it: the total, the
+  largest deposit and where it is, and every deposit that is above the
+  average.
+lesson: |
+  This challenge uses everything from the vault: an array sized with a
+  `#define` constant, a variable number of elements actually used (`n`),
+  indexes from 0, and several loops over the same data.
+
+  > [!tip] To test "value is above the average" you do not need a `double`:
+  > `value > total / n` is the same as `value * n > total` for positive
+  > `n`, and the integer version has no rounding at all.
+success: |
+  You stored the data once and answered several questions about it, each
+  with its own pass over the array — the typical way arrays are used.
+steps:
+  - id: main
+    type: code
+    title: Audit the ledger
+    prompt: |
+      **Input:** `n` (1 ≤ n ≤ `MAX_ENTRIES` = 100), then `n` integer
+      deposits.
+
+      **Output:**
+
+      ```
+      Entries: <n>
+      Total: <sum of all deposits>
+      Largest: <largest deposit> at index <its index, the first one if it appears several times>
+      Above average: <the deposits greater than the average, in input order, or none>
+      ```
+
+      For input `5` and `10 20 5 25 0` (average 12):
+
+      ```
+      Entries: 5
+      Total: 60
+      Largest: 25 at index 3
+      Above average: 20 25
+      ```
+    stdin: "5\n10 20 5 25 0\n"
+    starter: |
+      #include <stdio.h>
+
+      #define MAX_ENTRIES 100
+
+      int main(void)
+      {
+          int deposit[MAX_ENTRIES];
+          int n;
+
+          scanf("%d", &n);
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      #define MAX_ENTRIES 100
+
+      int main(void)
+      {
+          int deposit[MAX_ENTRIES];
+          int n, i;
+          int total = 0;
+          int best = 0;
+          int found = 0;
+
+          scanf("%d", &n);
+          for (i = 0; i < n; i++) {
+              scanf("%d", &deposit[i]);
+              total += deposit[i];
+          }
+
+          for (i = 1; i < n; i++) {
+              if (deposit[i] > deposit[best]) {
+                  best = i;
+              }
+          }
+
+          printf("Entries: %d\n", n);
+          printf("Total: %d\n", total);
+          printf("Largest: %d at index %d\n", deposit[best], best);
+
+          printf("Above average:");
+          for (i = 0; i < n; i++) {
+              if (deposit[i] * n > total) {
+                  printf(" %d", deposit[i]);
+                  found++;
+              }
+          }
+          if (found == 0) {
+              printf(" none");
+          }
+          printf("\n");
+          return 0;
+      }
+    explanation: |
+      The first loop reads and adds up. The second remembers the **index** of
+      the largest deposit (`best`), starting with element 0 and replacing it
+      only on a strictly larger value, so the first maximum wins. The third
+      loop compares every deposit with the average without any rounding
+      (`deposit[i] * n > total`) and counts what it prints, so it can print
+      `none`.
+    hints:
+      - "Read the deposits into the array first; every question afterwards is one loop over deposit[0] … deposit[n-1]."
+      - "For the largest, remember its index rather than its value: start with index 0 and replace it only when you find a strictly larger deposit."
+      - "Above average: `deposit[i] * n > total`. Count how many you print so you can print ` none` when there were none."
+      - "`for (i = 1; i < n; i++) if (deposit[i] > deposit[best]) best = i;`"
+      - "The full solution uses three loops: read and add, find the largest index, print the deposits above average."
+    tests:
+      - id: example
+        stdin: "5\n10 20 5 25 0\n"
+        expect: { output: "Entries: 5\nTotal: 60\nLargest: 25 at index 3\nAbove average: 20 25\n" }
+      - id: single
+        stdin: "1\n7\n"
+        note: One deposit is never above its own average.
+        expect: { output: "Entries: 1\nTotal: 7\nLargest: 7 at index 0\nAbove average: none\n" }
+      - id: ties
+        stdin: "4\n5 9 9 1\n"
+        note: The first of two equal largest deposits counts.
+        expect: { output: "Entries: 4\nTotal: 24\nLargest: 9 at index 1\nAbove average: 9 9\n" }
+      - id: negative
+        stdin: "3\n-5 -1 -9\n"
+        note: Withdrawals are negative.
+        expect: { output: "Entries: 3\nTotal: -15\nLargest: -1 at index 1\nAbove average: -1\n" }
+      - id: equal
+        stdin: "3\n4 4 4\n"
+        expect: { output: "Entries: 3\nTotal: 12\nLargest: 4 at index 0\nAbove average: none\n" }
+      - id: long
+        stdin: "12\n3 1 4 1 5 9 2 6 5 3 5 8\n"
+        note: Average 52 / 12 = 4.33.
+        expect: { output: "Entries: 12\nTotal: 52\nLargest: 9 at index 5\nAbove average: 5 9 6 5 5 8\n" }
+    require:
+      constructs: [array]
+    wrong:
+      - code: |
+          #include <stdio.h>
+          #define MAX_ENTRIES 100
+          int main(void)
+          {
+              int deposit[MAX_ENTRIES];
+              int n, i, total = 0, best = 0, found = 0;
+              scanf("%d", &n);
+              for (i = 0; i < n; i++) { scanf("%d", &deposit[i]); total += deposit[i]; }
+              for (i = 1; i < n; i++) if (deposit[i] >= deposit[best]) best = i;
+              printf("Entries: %d\nTotal: %d\n", n, total);
+              printf("Largest: %d at index %d\n", deposit[best], best);
+              printf("Above average:");
+              for (i = 0; i < n; i++) if (deposit[i] * n > total) { printf(" %d", deposit[i]); found++; }
+              if (found == 0) printf(" none");
+              printf("\n");
+              return 0;
+          }
+        why: uses >= so the LAST of equal largest deposits wins
+        expect: outputMismatch

@@ -1,0 +1,346 @@
+id: relay-station/clear-banks
+version: 1
+kind: guided
+source:
+  - { lecture: L11, slides: [15, 16, 17, 18, 19, 20, 22, 23, 24] }
+topics: [L11.array-argument, L11.array-parameter]
+prerequisites: [data-vault/vault-ledger]
+estimatedMinutes: 25
+objectives:
+  - Pass an array to a function by its name, together with its length.
+  - Declare an array parameter as int array[] in the prototype and the definition.
+  - Explain that the function receives the address of element 0 and therefore changes the caller's elements.
+world:
+  scene: frames
+  label: CALL STACK
+  illustration:
+    - caption: "main has an array values with 5 elements. (The lecture uses 500; the idea is the same.)"
+      frames:
+        - { name: main, vars: [{ name: "values[0..4]", value: "3 1 4 1 5" }] }
+    - caption: "main calls ClearIntegerArray(values, 5). The function does NOT get a copy of the elements: its parameter array receives the ADDRESS of values[0], and n receives a copy of 5."
+      frames:
+        - { name: main, vars: [{ name: "values[0..4]", value: "3 1 4 1 5" }] }
+        - { name: ClearIntegerArray, vars: [{ name: array, value: "→ values[0]", copy: true }, { name: n, value: "5", copy: true }] }
+    - caption: "array[i] = 0; writes through that address, so it changes main's elements."
+      frames:
+        - { name: main, vars: [{ name: "values[0..4]", value: "0 0 0 0 0", changed: true }] }
+        - { name: ClearIntegerArray, vars: [{ name: array, value: "→ values[0]" }, { name: n, value: "5" }] }
+    - caption: "The function returns. Its own variables disappear, but the changes to values stay."
+      frames:
+        - { name: main, vars: [{ name: "values[0..4]", value: "0 0 0 0 0" }] }
+title: Clearing the Banks
+briefing: |
+  The relay keeps its signals in banks of integers. A reset module should
+  clear a bank and a fill module should load a test pattern — both as
+  functions that receive the bank as an array.
+lesson: |
+  ### Passing an array
+  To pass an array to a function, use the array **name** as the argument,
+  and pass its length as a separate argument:
+
+  ```c
+  ClearIntegerArray(values, N_VALUES);
+  ```
+
+  In the prototype and the definition, an array parameter is written with
+  empty brackets:
+
+  ```c
+  void ClearIntegerArray(int array[], int n);
+  ```
+
+  ### Not a copy — an address
+  For ordinary arguments C passes a **copy** of the value (call by value).
+  An array is not copied. The value of the array name is the **address of
+  its first element**, and that address is what the function receives. So
+  `array[i]` inside the function is the very same element as `values[i]` in
+  `main` — the function can change the caller's elements. (The address
+  itself is still passed by value: the function cannot make `values` refer
+  to another array.)
+
+  ```c example
+  #include <stdio.h>
+
+  #define N_VALUES 5
+
+  void ClearIntegerArray(int array[], int n);
+
+  int main(void)
+  {
+      int values[N_VALUES] = {3, 1, 4, 1, 5};
+      int i;
+
+      ClearIntegerArray(values, N_VALUES);
+      for (i = 0; i < N_VALUES; i++) {
+          printf("%d ", values[i]);
+      }
+      printf("\n");
+      return 0;
+  }
+
+  void ClearIntegerArray(int array[], int n)
+  {
+      int i;
+      for (i = 0; i < n; i++) {
+          array[i] = 0;
+      }
+  }
+  ```
+
+  ### What about the size?
+  C allows `int array[N_VALUES]` in a parameter list, but **ignores** the
+  number: the function only gets an address and cannot know how many
+  elements there are. That is why the length travels as a separate
+  parameter `n` — and the loop uses `n`, so the same function works for
+  arrays of any size.
+
+  > [!correction] Strictly, the array name is *converted* to the address of
+  > its first element when it is passed. `sizeof array` inside the function
+  > therefore gives the size of that address, not of the array — Clang warns
+  > about it.
+success: |
+  A function receives an array as the address of its first element, so it
+  works on the caller's own elements. The length must be passed separately,
+  and the size written in a parameter's brackets is ignored.
+steps:
+  - id: change-predict
+    type: predict
+    title: Which one changes?
+    prompt: Type exactly what this program prints.
+    code: |
+      #include <stdio.h>
+
+      void tryChange(int x, int a[])
+      {
+          x = 9;
+          a[0] = 9;
+      }
+
+      int main(void)
+      {
+          int x = 1;
+          int a[2] = {1, 2};
+
+          tryChange(x, a);
+          printf("%d %d %d\n", x, a[0], a[1]);
+          return 0;
+      }
+    answer:
+      kind: output
+      output: "1 9 2\n"
+    explanation: |
+      `x` is passed by value: the function changes only its copy, so main's x
+      stays 1. The array is passed as the address of `a[0]`, so `a[0] = 9;`
+      changes main's element. `a[1]` is untouched.
+  - id: size-quiz
+    type: quiz
+    title: The ignored size
+    question: "In `void ClearIntegerArray(int array[500], int n)`, what does the 500 do?"
+    choices:
+      - "The function receives a copy of 500 elements."
+      - "Nothing: the size in a parameter's brackets is ignored, the function only receives an address."
+      - "Calls with an array of another size do not compile."
+      - "It sets n to 500."
+    correct: 1
+    explanation: |
+      An array parameter is really the address of the first element. C
+      accepts a size in the brackets but ignores it, so the length has to be
+      passed in its own parameter.
+  - id: main
+    type: code
+    title: Reset and fill modules
+    prompt: |
+      Write the two functions below (keep `main` unchanged):
+
+      | Function | Specification |
+      |---|---|
+      | `void ClearIntegerArray(int array[], int n)` | sets the first `n` elements to 0 |
+      | `void FillIntegerArray(int array[], int n, int value)` | sets the first `n` elements to `value` |
+
+      `main` clears only the first 3 elements, then fills the whole bank with
+      7. For input `1 2 3 4 5 6`:
+
+      ```
+      Before: 1 2 3 4 5 6
+      After clear: 0 0 0 4 5 6
+      After fill: 7 7 7 7 7 7
+      ```
+
+      The tests also call your functions directly with other arrays.
+    stdin: "1 2 3 4 5 6\n"
+    starter: |
+      #include <stdio.h>
+
+      #define N_BANK 6
+
+      void ClearIntegerArray(int array[], int n);
+      void FillIntegerArray(int array[], int n, int value);
+      void PrintBank(int array[], int n);
+
+      int main(void)
+      {
+          int bank[N_BANK];
+          int i;
+
+          for (i = 0; i < N_BANK; i++) {
+              scanf("%d", &bank[i]);
+          }
+          printf("Before:");
+          PrintBank(bank, N_BANK);
+
+          ClearIntegerArray(bank, 3);
+          printf("After clear:");
+          PrintBank(bank, N_BANK);
+
+          FillIntegerArray(bank, N_BANK, 7);
+          printf("After fill:");
+          PrintBank(bank, N_BANK);
+          return 0;
+      }
+
+      void PrintBank(int array[], int n)
+      {
+          int i;
+          for (i = 0; i < n; i++) {
+              printf(" %d", array[i]);
+          }
+          printf("\n");
+      }
+
+      /* write ClearIntegerArray and FillIntegerArray here */
+    solution: |
+      #include <stdio.h>
+
+      #define N_BANK 6
+
+      void ClearIntegerArray(int array[], int n);
+      void FillIntegerArray(int array[], int n, int value);
+      void PrintBank(int array[], int n);
+
+      int main(void)
+      {
+          int bank[N_BANK];
+          int i;
+
+          for (i = 0; i < N_BANK; i++) {
+              scanf("%d", &bank[i]);
+          }
+          printf("Before:");
+          PrintBank(bank, N_BANK);
+
+          ClearIntegerArray(bank, 3);
+          printf("After clear:");
+          PrintBank(bank, N_BANK);
+
+          FillIntegerArray(bank, N_BANK, 7);
+          printf("After fill:");
+          PrintBank(bank, N_BANK);
+          return 0;
+      }
+
+      void PrintBank(int array[], int n)
+      {
+          int i;
+          for (i = 0; i < n; i++) {
+              printf(" %d", array[i]);
+          }
+          printf("\n");
+      }
+
+      void ClearIntegerArray(int array[], int n)
+      {
+          int i;
+          for (i = 0; i < n; i++) {
+              array[i] = 0;
+          }
+      }
+
+      void FillIntegerArray(int array[], int n, int value)
+      {
+          int i;
+          for (i = 0; i < n; i++) {
+              array[i] = value;
+          }
+      }
+    explanation: |
+      Both functions loop over the first `n` elements of the array they
+      receive. Because the parameter refers to main's own array, the changes
+      are visible in main after the call — no return value is needed.
+    harness: |
+      #include <stdio.h>
+      void ClearIntegerArray(int array[], int n);
+      void FillIntegerArray(int array[], int n, int value);
+      int main(void)
+      {
+          int a[8] = {9, 9, 9, 9, 9, 9, 9, 9};
+          int i;
+          ClearIntegerArray(a, 0);
+          ClearIntegerArray(a, 5);
+          FillIntegerArray(a, 2, -4);
+          FillIntegerArray(a, 0, 100);
+          for (i = 0; i < 8; i++) {
+              printf("%d ", a[i]);
+          }
+          printf("\n");
+          return 0;
+      }
+    hints:
+      - "The function's parameter refers to main's array, so assigning to array[i] changes main's elements directly."
+      - "Both functions are one for loop over the indexes 0 to n-1; n decides how many elements change."
+      - "`for (i = 0; i < n; i++) array[i] = 0;`"
+      - "FillIntegerArray has the same loop with `array[i] = value;`"
+      - "The full solution adds the two function definitions below PrintBank."
+    tests:
+      - id: example
+        stdin: "1 2 3 4 5 6\n"
+        expect: { output: "Before: 1 2 3 4 5 6\nAfter clear: 0 0 0 4 5 6\nAfter fill: 7 7 7 7 7 7\n" }
+      - id: negative
+        stdin: "-1 -2 -3 -4 -5 -6\n"
+        expect: { output: "Before: -1 -2 -3 -4 -5 -6\nAfter clear: 0 0 0 -4 -5 -6\nAfter fill: 7 7 7 7 7 7\n" }
+      - id: direct
+        harness: true
+        note: The harness clears 0 and 5 elements and fills 2 and 0 elements of an 8-element array.
+        expect: { output: "-4 -4 0 0 0 9 9 9 \n" }
+    require:
+      functions: [ClearIntegerArray, FillIntegerArray]
+    wrong:
+      - code: |
+          #include <stdio.h>
+          #define N_BANK 6
+          void ClearIntegerArray(int array[], int n);
+          void FillIntegerArray(int array[], int n, int value);
+          void PrintBank(int array[], int n);
+          int main(void)
+          {
+              int bank[N_BANK];
+              int i;
+              for (i = 0; i < N_BANK; i++) scanf("%d", &bank[i]);
+              printf("Before:");
+              PrintBank(bank, N_BANK);
+              ClearIntegerArray(bank, 3);
+              printf("After clear:");
+              PrintBank(bank, N_BANK);
+              FillIntegerArray(bank, N_BANK, 7);
+              printf("After fill:");
+              PrintBank(bank, N_BANK);
+              return 0;
+          }
+          void PrintBank(int array[], int n)
+          {
+              int i;
+              for (i = 0; i < n; i++) printf(" %d", array[i]);
+              printf("\n");
+          }
+          void ClearIntegerArray(int array[], int n)
+          {
+              int i;
+              for (i = 0; i < 6; i++) array[i] = 0;
+              (void) n;
+          }
+          void FillIntegerArray(int array[], int n, int value)
+          {
+              int i;
+              for (i = 0; i < n; i++) array[i] = value;
+          }
+        why: ignores n and always clears 6 elements
+        expect: outputMismatch

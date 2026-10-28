@@ -1,0 +1,154 @@
+id: data-vault/memory-map
+version: 1
+kind: predict
+source:
+  - { lecture: L11, slides: [5, 6] }
+topics: [L11.array-declaration]
+prerequisites: [data-vault/rack-loops]
+estimatedMinutes: 15
+objectives:
+  - Predict how many bytes an array occupies from its element type and size.
+  - Use sizeof on an array and compute its number of elements as sizeof array / sizeof array[0].
+world:
+  scene: terminal
+  label: VAULT MEMORY MAP
+  goal: Measure every storage block
+title: The Memory Map
+briefing: |
+  The vault's memory map lost its labels. Each block is an array; measure
+  how many bytes each one uses and how many elements it holds.
+lesson: |
+  ### Arrays in memory
+  The elements of an array are stored **one after another**. An array of `n`
+  elements of a type that uses `b` bytes therefore occupies `n × b` bytes:
+
+  | Declaration | Element size | Total |
+  |---|---|---|
+  | `char letters[4];` | 1 byte | 4 bytes |
+  | `int values[3];` | 4 bytes (here) | 12 bytes |
+  | `double samples[8];` | 8 bytes | 64 bytes |
+
+  `sizeof` (from the sensor lab) also works on an array: `sizeof values` is
+  the size of the **whole** array in bytes, and `sizeof values[0]` the size
+  of one element. Dividing them gives the number of elements:
+
+  ```c example
+  #include <stdio.h>
+
+  int main(void)
+  {
+      char letters[4];
+      int values[3];
+
+      printf("letters: %zu bytes\n", sizeof letters);
+      printf("values: %zu bytes\n", sizeof values);
+      printf("elements in values: %zu\n", sizeof values / sizeof values[0]);
+      return 0;
+  }
+  ```
+
+  > [!note] The sizes of `int` and `double` depend on the platform (slide 6
+  > says an int *might* require four bytes). In this game an `int` has 4
+  > bytes and a `double` 8 — the same as on most desktop computers.
+success: |
+  An array is one block of consecutive elements: its size in bytes is the
+  number of elements times the element size, and
+  `sizeof a / sizeof a[0]` gives the number of elements back.
+steps:
+  - id: bytes-quiz
+    type: quiz
+    title: How big is the block?
+    question: "An `int` uses 4 bytes. How many bytes does `int counts[25];` occupy?"
+    choices:
+      - "25"
+      - "29"
+      - "100"
+      - "4"
+    correct: 2
+    explanation: |
+      25 elements × 4 bytes each = 100 bytes, all in one consecutive block.
+  - id: sizeof-predict
+    type: predict
+    title: Measure the arrays
+    prompt: What does this program print? (In this game an int has 4 bytes and a double 8.)
+    code: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          char tag[10];
+          double level[5];
+
+          printf("%zu %zu %zu\n", sizeof tag, sizeof level, sizeof level / sizeof level[0]);
+          return 0;
+      }
+    answer:
+      kind: choice
+      choices:
+        - "10 5 5"
+        - "10 40 5"
+        - "10 40 8"
+        - "9 40 5"
+      correct: 1
+      actualOutput: "10 40 5\n"
+    explanation: |
+      `tag` holds 10 chars of 1 byte: 10 bytes. `level` holds 5 doubles of 8
+      bytes: 40 bytes. 40 / 8 = 5 elements.
+  - id: main
+    type: code
+    title: Label the memory map
+    prompt: |
+      Complete the program so that it prints the size in bytes and the number
+      of elements of each of the three arrays, **computed with `sizeof`** (do
+      not type the numbers yourself — the declarations may change later):
+
+      ```
+      samples: 64 bytes, 8 elements
+      tags: 12 bytes, 12 elements
+      counts: 20 bytes, 5 elements
+      ```
+    starter: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          double samples[8];
+          char tags[12];
+          int counts[5];
+
+          printf("samples: %zu bytes, %zu elements\n", sizeof samples, sizeof samples / sizeof samples[0]);
+          /* tags */
+          /* counts */
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+
+      int main(void)
+      {
+          double samples[8];
+          char tags[12];
+          int counts[5];
+
+          printf("samples: %zu bytes, %zu elements\n", sizeof samples, sizeof samples / sizeof samples[0]);
+          printf("tags: %zu bytes, %zu elements\n", sizeof tags, sizeof tags / sizeof tags[0]);
+          printf("counts: %zu bytes, %zu elements\n", sizeof counts, sizeof counts / sizeof counts[0]);
+          return 0;
+      }
+    explanation: |
+      `sizeof name` gives the bytes of the whole array; dividing by the size
+      of one element gives the count. For `char` the two numbers are equal
+      because a char is exactly one byte.
+    hints:
+      - "Copy the pattern of the samples line for the other two arrays."
+      - "Bytes: `sizeof tags`. Elements: the whole size divided by the size of one element."
+      - "`sizeof counts / sizeof counts[0]`"
+      - "`printf(\"tags: %zu bytes, %zu elements\\n\", sizeof tags, sizeof tags / sizeof tags[0]);`"
+      - "The full solution adds one printf for tags and one for counts."
+    tests:
+      - id: map
+        expect: { output: "samples: 64 bytes, 8 elements\ntags: 12 bytes, 12 elements\ncounts: 20 bytes, 5 elements\n" }
+    require:
+      constructs: [sizeof]
+      minCalls: { printf: 3 }

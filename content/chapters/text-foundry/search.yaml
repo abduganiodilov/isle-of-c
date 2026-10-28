@@ -1,0 +1,236 @@
+id: text-foundry/search
+version: 1
+kind: guided
+source:
+  - { lecture: L11, slides: [43, 44] }
+topics: [L11.strchr, L11.strstr]
+prerequisites: [text-foundry/join-and-compare]
+estimatedMinutes: 30
+objectives:
+  - Find a character with strchr and every further occurrence by searching again from the next position.
+  - Find a substring with strstr and test the result against NULL.
+  - Turn a search result into a position by subtracting the start of the array.
+  - Read a whole line with fgets and remove its newline.
+world:
+  scene: terminal
+  label: LOG SCANNER
+  goal: Locate separators and errors in a log line
+title: Search the Logs
+briefing: |
+  The foundry's log lines are long, and the engineers need to know where
+  the separators are and whether — and where — an ERROR was reported.
+lesson: |
+  ### Search results are addresses
+  `strchr(str, ch)` looks for the first `ch` in `str`. It does not return an
+  index: it returns the **address** of the found character (type `char *`,
+  a *pointer*), or the special value **`NULL`** if the character is not
+  there. Store the result in a pointer variable:
+
+  ```c
+  char *pch;               /* pch can hold the address of a char */
+  pch = strchr(str, 's');
+  if (pch != NULL) { ... }
+  ```
+
+  Two facts about such addresses are enough here:
+
+  * `pch - str` is the **index** of the found character (`+ 1` for the
+    1-based position people count with);
+  * `pch + 1` is the address of the next character — a string that starts
+    right after the match, so `strchr(pch + 1, 's')` finds the **next**
+    occurrence.
+
+  ```c example
+  #include <stdio.h>
+  #include <string.h>
+
+  int main(void)
+  {
+      char str[] = "This is a sample string";
+      char *pch;
+
+      printf("Looking for the 's' character in \"%s\"...\n", str);
+      pch = strchr(str, 's');
+      while (pch != NULL) {
+          printf("found at %d\n", (int) (pch - str + 1));
+          pch = strchr(pch + 1, 's');
+      }
+      return 0;
+  }
+  ```
+
+  `strstr(str1, str2)` works the same way for a whole substring: it returns
+  the address where `str2` first appears in `str1`, or `NULL`.
+
+  ### Reading a line
+  `fgets(line, sizeof line, stdin)` reads a whole line, spaces included, but
+  keeps the `'\n'`. `strchr` removes it neatly:
+
+  ```c
+  pch = strchr(line, '\n');
+  if (pch != NULL) {
+      *pch = '\0';         /* * means: the character at that address */
+  }
+  ```
+
+  > [!correction] Slide 43 prints `pch - str + 1` with `%d`, but the
+  > difference of two addresses has type `ptrdiff_t`; convert it with
+  > `(int)` or print it with `%td`. The prototype on the slide also lacks the
+  > first parameter's name: `char *strchr(const char *str, int character);`.
+
+  > [!note] Pointers get a lecture of their own later; for now, treat
+  > `char *` as "where in the string".
+success: |
+  `strchr` and `strstr` return where they found something, or `NULL`.
+  Subtracting the array gives the index, and searching again from `pch + 1`
+  finds the next match.
+steps:
+  - id: strstr-predict
+    type: predict
+    title: Where is it?
+    prompt: Type exactly what this program prints.
+    code: |
+      #include <stdio.h>
+      #include <string.h>
+
+      int main(void)
+      {
+          char str[] = "core: pump ok, fan ok";
+          char *p = strstr(str, "ok");
+          char *q = strstr(str, "fail");
+
+          printf("%d %d\n", (int) (p - str), q == NULL);
+          return 0;
+      }
+    answer:
+      kind: output
+      output: "11 1\n"
+    explanation: |
+      The first `"ok"` starts at index 11 (`c` is index 0). `"fail"` does
+      not appear, so `strstr` returns `NULL` and `q == NULL` is 1.
+  - id: main
+    type: code
+    title: Scan a log line
+    prompt: |
+      Read one line (at most 79 characters) with `fgets` and remove its
+      newline. Print the line, the **1-based** positions of every `:` (or
+      `none`), and the 1-based position of the first `ERROR` (or `none`). For
+      input `12:05 pump ERROR: low pressure`:
+
+      ```
+      Line: 12:05 pump ERROR: low pressure
+      Colons at: 3 17
+      ERROR at: 12
+      ```
+    stdin: "12:05 pump ERROR: low pressure\n"
+    starter: |
+      #include <stdio.h>
+      #include <string.h>
+
+      int main(void)
+      {
+          char line[80];
+          char *pch;
+
+          fgets(line, sizeof line, stdin);
+          /* remove the newline */
+
+          printf("Line: %s\n", line);
+
+          return 0;
+      }
+    solution: |
+      #include <stdio.h>
+      #include <string.h>
+
+      int main(void)
+      {
+          char line[80];
+          char *pch;
+          int found = 0;
+
+          fgets(line, sizeof line, stdin);
+          pch = strchr(line, '\n');
+          if (pch != NULL) {
+              *pch = '\0';
+          }
+
+          printf("Line: %s\n", line);
+
+          printf("Colons at:");
+          pch = strchr(line, ':');
+          while (pch != NULL) {
+              printf(" %d", (int) (pch - line + 1));
+              found++;
+              pch = strchr(pch + 1, ':');
+          }
+          if (found == 0) {
+              printf(" none");
+          }
+          printf("\n");
+
+          pch = strstr(line, "ERROR");
+          if (pch != NULL) {
+              printf("ERROR at: %d\n", (int) (pch - line + 1));
+          } else {
+              printf("ERROR at: none\n");
+          }
+          return 0;
+      }
+    explanation: |
+      `strchr(line, '\n')` finds the newline that `fgets` kept, and
+      `*pch = '\0';` ends the string there. The colon loop is the lecture's
+      pattern: search, print, search again from `pch + 1`. `strstr` answers
+      the ERROR question, and `NULL` means it was not found.
+    hints:
+      - "First remove the newline, then search for colons in a loop, then search once for ERROR."
+      - "Each search returns NULL when nothing (more) is found; that ends the loop or selects the `none` output."
+      - "Position: `(int) (pch - line + 1)`. Next colon: `pch = strchr(pch + 1, ':');`"
+      - "`pch = strstr(line, \"ERROR\"); if (pch != NULL) ... else printf(\"ERROR at: none\\n\");`"
+      - "The full solution uses strchr three times and strstr once."
+    tests:
+      - id: example
+        stdin: "12:05 pump ERROR: low pressure\n"
+        expect: { output: "Line: 12:05 pump ERROR: low pressure\nColons at: 3 17\nERROR at: 12\n" }
+      - id: quiet
+        stdin: "all systems nominal\n"
+        expect: { output: "Line: all systems nominal\nColons at: none\nERROR at: none\n" }
+      - id: start
+        stdin: "ERROR::\n"
+        note: Matches at the very beginning and next to each other.
+        expect: { output: "Line: ERROR::\nColons at: 6 7\nERROR at: 1\n" }
+      - id: lowercase
+        stdin: "fan: error 7: ERRORS logged\n"
+        note: strstr is case-sensitive, and ERRORS contains ERROR.
+        expect: { output: "Line: fan: error 7: ERRORS logged\nColons at: 4 13\nERROR at: 15\n" }
+    require:
+      calls: [strchr, strstr, fgets]
+    wrong:
+      - code: |
+          #include <stdio.h>
+          #include <string.h>
+          int main(void)
+          {
+              char line[80];
+              char *pch;
+              int found = 0;
+              fgets(line, sizeof line, stdin);
+              pch = strchr(line, '\n');
+              if (pch != NULL) *pch = '\0';
+              printf("Line: %s\n", line);
+              printf("Colons at:");
+              pch = strchr(line, ':');
+              while (pch != NULL) {
+                  printf(" %d", (int) (pch - line));
+                  found++;
+                  pch = strchr(pch + 1, ':');
+              }
+              if (found == 0) printf(" none");
+              printf("\n");
+              pch = strstr(line, "ERROR");
+              if (pch != NULL) printf("ERROR at: %d\n", (int) (pch - line));
+              else printf("ERROR at: none\n");
+              return 0;
+          }
+        why: prints 0-based indexes instead of 1-based positions
+        expect: outputMismatch

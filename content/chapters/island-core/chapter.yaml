@@ -1,5 +1,5 @@
 id: island-core
-version: 1
+version: 2
 letter: "★"
 title: The Island Core
 region: Summit — The Island Core
@@ -10,7 +10,8 @@ intro: >
   calculations, decisions, loops and functions.
 outro: >
   The Island Core is online. Every station reports in, and the island hums
-  with life again. The expedition through the current lectures is complete.
+  with life again. Beyond the summit, the cliffs and the southern shore
+  still hold regions that wait to be restored.
 map: { x: 62, y: 14 }
 missions:
   - restore-core

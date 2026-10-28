@@ -1,0 +1,182 @@
+id: signal-archive/phone-keypad
+version: 1
+kind: challenge
+source:
+  - { lecture: L11, slides: [29, 30] }
+topics: [L11.phone-practice, L11.char-arithmetic]
+prerequisites: [signal-archive/digit-decoder]
+estimatedMinutes: 25
+objectives:
+  - Map characters to other characters with comparisons on their codes.
+  - Change a string in place, character by character, and print the result.
+world:
+  scene: terminal
+  label: OLD RADIO PHONE
+  goal: Dial the archive's emergency number
+title: The Phone Keypad
+briefing: |
+  The archive's emergency contact is written in letters, like
+  `021-CODEGAME`, but the old radio phone only dials digits. Convert the
+  letters into the digits on a phone keypad — the lecture's practice
+  problem.
+lesson: |
+  On a phone keypad each digit key also carries letters:
+
+  | Key | Letters |
+  |---|---|
+  | 2 | ABC |
+  | 3 | DEF |
+  | 4 | GHI |
+  | 5 | JKL |
+  | 6 | MNO |
+  | 7 | PQRS |
+  | 8 | TUV |
+  | 9 | WXYZ |
+
+  So `021-CODEGAME` becomes `021-26334263`: digits and other characters
+  stay as they are, letters become their key's digit.
+
+  Because letters have consecutive codes, a range test such as
+  `ch >= 'A' && ch <= 'C'` selects a whole key. Lower-case letters can be
+  turned into upper case first: `ch - 'a' + 'A'`.
+success: |
+  Character comparisons and arithmetic turn one set of characters into
+  another. Changing `number[i]` in a loop up to `'\0'` rewrites the string
+  in place.
+steps:
+  - id: main
+    type: code
+    title: Dial the number
+    prompt: |
+      Write `char keypad_digit(char ch)`: for a letter (upper **or** lower
+      case) it returns the digit **character** of its key; any other
+      character is returned unchanged. In `main`, read the number (one word,
+      at most 31 characters), replace every character with
+      `keypad_digit(...)`, and print the result. For input `021-CODEGAME`:
+
+      ```
+      Dial: 021-26334263
+      ```
+    stdin: "021-CODEGAME\n"
+    starter: |
+      #include <stdio.h>
+
+      char keypad_digit(char ch);
+
+      int main(void)
+      {
+          char number[32];
+
+          scanf("%31s", number);
+
+          printf("Dial: %s\n", number);
+          return 0;
+      }
+
+      char keypad_digit(char ch)
+      {
+          return ch;
+      }
+    solution: |
+      #include <stdio.h>
+
+      char keypad_digit(char ch);
+
+      int main(void)
+      {
+          char number[32];
+          int i;
+
+          scanf("%31s", number);
+          for (i = 0; number[i] != '\0'; i++) {
+              number[i] = keypad_digit(number[i]);
+          }
+          printf("Dial: %s\n", number);
+          return 0;
+      }
+
+      char keypad_digit(char ch)
+      {
+          if (ch >= 'a' && ch <= 'z') {
+              ch = ch - 'a' + 'A';
+          }
+          if (ch >= 'A' && ch <= 'C') {
+              return '2';
+          } else if (ch >= 'D' && ch <= 'F') {
+              return '3';
+          } else if (ch >= 'G' && ch <= 'I') {
+              return '4';
+          } else if (ch >= 'J' && ch <= 'L') {
+              return '5';
+          } else if (ch >= 'M' && ch <= 'O') {
+              return '6';
+          } else if (ch >= 'P' && ch <= 'S') {
+              return '7';
+          } else if (ch >= 'T' && ch <= 'V') {
+              return '8';
+          } else if (ch >= 'W' && ch <= 'Z') {
+              return '9';
+          }
+          return ch;
+      }
+    explanation: |
+      `keypad_digit` first turns a lower-case letter into upper case, then
+      uses range tests on the codes to find the key. Note that 7 and 9 carry
+      four letters. `main` replaces each character in place and prints the
+      changed string.
+    harness: |
+      #include <stdio.h>
+      char keypad_digit(char ch);
+      int main(void)
+      {
+          char c;
+          for (c = 'A'; c <= 'Z'; c++) printf("%c", keypad_digit(c));
+          printf("\n");
+          for (c = 'a'; c <= 'z'; c++) printf("%c", keypad_digit(c));
+          printf("\n%c%c%c%c%c\n", keypad_digit('0'), keypad_digit('9'), keypad_digit('-'), keypad_digit('@'), keypad_digit('['));
+          return 0;
+      }
+    hints:
+      - "Letters have consecutive codes, so each key is a range of letters; compare the character with the first and last letter of each key."
+      - "Turn lower case into upper case first, then use an else-if chain over the eight keys. Return the digit as a character, like '2'."
+      - "`if (ch >= 'a' && ch <= 'z') ch = ch - 'a' + 'A';`"
+      - "In main: `for (i = 0; number[i] != '\\0'; i++) number[i] = keypad_digit(number[i]);`"
+      - "The full solution has an eight-branch else-if chain; PQRS and WXYZ are the four-letter keys."
+    tests:
+      - id: example
+        stdin: "021-CODEGAME\n"
+        expect: { output: "Dial: 021-26334263\n" }
+      - id: lowercase
+        stdin: "1-800-flowers\n"
+        note: Lower-case letters are dialled too.
+        expect: { output: "Dial: 1-800-3569377\n" }
+      - id: digits-only
+        stdin: "555-0199\n"
+        expect: { output: "Dial: 555-0199\n" }
+      - id: every-key
+        harness: true
+        note: The harness checks every letter and a few other characters.
+        expect: { output: "22233344455566677778889999\n22233344455566677778889999\n09-@[\n" }
+    require:
+      functions: [keypad_digit]
+    wrong:
+      - code: |
+          #include <stdio.h>
+          char keypad_digit(char ch);
+          int main(void)
+          {
+              char number[32];
+              int i;
+              scanf("%31s", number);
+              for (i = 0; number[i] != '\0'; i++) number[i] = keypad_digit(number[i]);
+              printf("Dial: %s\n", number);
+              return 0;
+          }
+          char keypad_digit(char ch)
+          {
+              if (ch >= 'a' && ch <= 'z') ch = ch - 'a' + 'A';
+              if (ch >= 'A' && ch <= 'Z') return '2' + (ch - 'A') / 3;
+              return ch;
+          }
+        why: assumes every key has exactly three letters
+        expect: outputMismatch

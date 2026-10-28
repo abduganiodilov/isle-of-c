@@ -1,0 +1,10 @@
+# Example lecture file (copy to content/lectures/L12.yaml and list it in the manifest).
+id: L12
+title: "Example lecture"
+file: Lecture12.pdf
+slideCount: 30
+pageOffset: -1
+topics:
+  - { id: L12.outline, slides: [2], title: "Lecture outline", coverage: meta }
+  - { id: L12.example-topic, slides: [4, 5], title: "Example topic" }
+corrections: []

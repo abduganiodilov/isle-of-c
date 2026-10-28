@@ -1,0 +1,289 @@
+id: archive-core/restore-archive
+version: 1
+kind: capstone
+source:
+  - { lecture: L11, slides: [7, 10, 11, 12, 15, 24, 33, 41, 45, 47] }
+topics: [L11.zero-index, L11.loop-index, L11.define-size, L11.bounds, L11.array-argument, L11.array-parameter, L11.reading-strings, L11.strcmp, L11.command-practice]
+prerequisites: [text-foundry/command-console]
+estimatedMinutes: 60
+objectives:
+  - Design a complete program that combines arrays, functions with array parameters, strings and command parsing.
+  - Protect every array access with a bounds check and report invalid input instead of crashing.
+world:
+  scene: core
+  checkpoints:
+    - Store and show values
+    - Add to slots and reject bad slots
+    - Analyse the memory
+    - Complete the command set
+title: Restore the Archive Core
+briefing: |
+  The Archive Core keeps ten numbered memory slots and is driven by typed
+  commands. Write its controller: store values, change them, analyse the
+  memory and refuse every command that would touch a slot that does not
+  exist.
+lesson: |
+  This is the **capstone** for arrays and strings. It uses only what the
+  lectures taught; the structure is up to you. The tests are grouped into
+  four **checkpoints**.
+
+  Suggested design:
+
+  * `int slot[MAX_SLOTS]` in `main`, all zeros at the start
+    (`= {0}` or a clearing function).
+  * One loop that reads a **keyword** with `scanf("%15s", keyword)`, and an
+    else-if chain of `strcmp` tests to choose the command.
+  * Small functions that receive the array and its length: printing,
+    summing, finding the maximum, clearing.
+  * A function `int valid_slot(int i)` that answers whether `0 <= i <
+    MAX_SLOTS` — **every** command with a slot number must check it before
+    touching the array.
+success: |
+  You combined the whole lecture: an array sized with a constant and
+  protected by bounds checks, functions that receive the array and its
+  length, and a string-driven command loop. The Archive Core is online.
+steps:
+  - id: main
+    type: code
+    title: Write the Archive Core controller
+    prompt: |
+      The core has `MAX_SLOTS` (10) integer slots, numbered 0–9, all 0 at the
+      start. Read commands until `quit` or the end of the input:
+
+      | Command | Effect and output |
+      |---|---|
+      | `set i v` | slot i = v; prints `slot <i> = <v>` |
+      | `add i v` | slot i += v; prints `slot <i> = <new value>` |
+      | `show` | prints `slots:` and the ten values, each after a space |
+      | `sum` | prints `sum: <total of all slots>` |
+      | `max` | prints `max: <largest value> at slot <its number>` (the lowest slot number if several are equal) |
+      | `clear` | sets all slots to 0; prints `cleared` |
+      | `quit` | prints `archive closed` and ends |
+
+      * If the slot number of `set` or `add` is outside 0–9, print
+        `error: no slot <i>` and change nothing.
+      * Any other keyword prints `unknown command: <keyword>` (it has no
+        parameters).
+
+      Example:
+
+      ```
+      set 2 40        slot 2 = 40
+      add 2 5         slot 2 = 45
+      set 10 1        error: no slot 10
+      set 7 -3        slot 7 = -3
+      show            slots: 0 0 45 0 0 0 0 -3 0 0
+      sum             sum: 42
+      max             max: 45 at slot 2
+      quit            archive closed
+      ```
+
+      (Input on the left, output on the right.)
+    stdin: "set 2 40\nadd 2 5\nset 10 1\nset 7 -3\nshow\nsum\nmax\nquit\n"
+    timeoutMs: 4000
+    starter: |
+      /*
+       * Archive Core controller.
+       * Plan: an array of MAX_SLOTS ints; a loop that reads a keyword and
+       * chooses the command with strcmp; small functions that receive the
+       * array and its length; a bounds check for every slot number.
+       */
+      #include <stdio.h>
+      #include <string.h>
+
+      #define MAX_SLOTS 10
+
+      int main(void)
+      {
+
+          return 0;
+      }
+    solution: |
+      /*
+       * Archive Core controller.
+       * Reads commands and applies them to MAX_SLOTS memory slots.
+       */
+      #include <stdio.h>
+      #include <string.h>
+
+      #define MAX_SLOTS 10
+
+      int valid_slot(int i);
+      void clear_slots(int a[], int n);
+      void show_slots(int a[], int n);
+      int sum_slots(int a[], int n);
+      int max_slot(int a[], int n);
+
+      int main(void)
+      {
+          int slot[MAX_SLOTS];
+          char keyword[16];
+          int i, v, best;
+
+          clear_slots(slot, MAX_SLOTS);
+
+          while (scanf("%15s", keyword) == 1) {
+              if (strcmp(keyword, "quit") == 0) {
+                  printf("archive closed\n");
+                  break;
+              } else if (strcmp(keyword, "set") == 0 || strcmp(keyword, "add") == 0) {
+                  scanf("%d %d", &i, &v);
+                  if (!valid_slot(i)) {
+                      printf("error: no slot %d\n", i);
+                  } else {
+                      if (strcmp(keyword, "set") == 0) {
+                          slot[i] = v;
+                      } else {
+                          slot[i] += v;
+                      }
+                      printf("slot %d = %d\n", i, slot[i]);
+                  }
+              } else if (strcmp(keyword, "show") == 0) {
+                  show_slots(slot, MAX_SLOTS);
+              } else if (strcmp(keyword, "sum") == 0) {
+                  printf("sum: %d\n", sum_slots(slot, MAX_SLOTS));
+              } else if (strcmp(keyword, "max") == 0) {
+                  best = max_slot(slot, MAX_SLOTS);
+                  printf("max: %d at slot %d\n", slot[best], best);
+              } else if (strcmp(keyword, "clear") == 0) {
+                  clear_slots(slot, MAX_SLOTS);
+                  printf("cleared\n");
+              } else {
+                  printf("unknown command: %s\n", keyword);
+              }
+          }
+          return 0;
+      }
+
+      int valid_slot(int i)
+      {
+          return i >= 0 && i < MAX_SLOTS;
+      }
+
+      void clear_slots(int a[], int n)
+      {
+          int i;
+          for (i = 0; i < n; i++) {
+              a[i] = 0;
+          }
+      }
+
+      void show_slots(int a[], int n)
+      {
+          int i;
+          printf("slots:");
+          for (i = 0; i < n; i++) {
+              printf(" %d", a[i]);
+          }
+          printf("\n");
+      }
+
+      int sum_slots(int a[], int n)
+      {
+          int i;
+          int sum = 0;
+          for (i = 0; i < n; i++) {
+              sum += a[i];
+          }
+          return sum;
+      }
+
+      int max_slot(int a[], int n)
+      {
+          int i;
+          int best = 0;
+          for (i = 1; i < n; i++) {
+              if (a[i] > a[best]) {
+                  best = i;
+              }
+          }
+          return best;
+      }
+    explanation: |
+      `main` is the command loop; every task on the array is a function that
+      receives the array and its length. `set` and `add` share the bounds
+      check `valid_slot`, so no command can write outside the array, and an
+      invalid slot number produces an error message instead of undefined
+      behaviour.
+    hints:
+      - "Build it checkpoint by checkpoint: first the loop with set, show and quit; then add and the slot check; then sum and max; then clear and unknown commands."
+      - "Read the keyword with scanf(\"%15s\", keyword) in a while loop and choose with strcmp(keyword, \"...\") == 0. Only set and add read two numbers afterwards."
+      - "Check the slot before using it: `if (i < 0 || i >= MAX_SLOTS) printf(\"error: no slot %d\\n\", i);`"
+      - "max: remember the index of the largest value, starting at 0 and replacing it only on a strictly larger value; print `slot[best]` and `best`."
+      - "The full solution has a command loop in main and five small functions; others pass the tests too."
+    tests:
+      - id: cp1-set-show
+        checkpoint: 1
+        stdin: "set 0 5\nset 9 7\nshow\nquit\n"
+        note: The first and the last slot.
+        expect: { output: "slot 0 = 5\nslot 9 = 7\nslots: 5 0 0 0 0 0 0 0 0 7\narchive closed\n" }
+      - id: cp1-start
+        checkpoint: 1
+        stdin: "show\n"
+        note: All slots start at 0; the input may end without quit.
+        expect: { output: "slots: 0 0 0 0 0 0 0 0 0 0\n" }
+      - id: cp2-add
+        checkpoint: 2
+        stdin: "set 3 10\nadd 3 -4\nadd 4 2\nshow\nquit\n"
+        expect: { output: "slot 3 = 10\nslot 3 = 6\nslot 4 = 2\nslots: 0 0 0 6 2 0 0 0 0 0\narchive closed\n" }
+      - id: cp2-bounds
+        checkpoint: 2
+        stdin: "set 10 1\nset -1 1\nadd 10 5\nadd 99 1\nset 9 1\nshow\nquit\n"
+        note: Slot numbers 10, -1 and 99 do not exist - the program must not crash.
+        expect: { output: "error: no slot 10\nerror: no slot -1\nerror: no slot 10\nerror: no slot 99\nslot 9 = 1\nslots: 0 0 0 0 0 0 0 0 0 1\narchive closed\n" }
+      - id: cp3-example
+        checkpoint: 3
+        stdin: "set 2 40\nadd 2 5\nset 10 1\nset 7 -3\nshow\nsum\nmax\nquit\n"
+        expect: { output: "slot 2 = 40\nslot 2 = 45\nerror: no slot 10\nslot 7 = -3\nslots: 0 0 45 0 0 0 0 -3 0 0\nsum: 42\nmax: 45 at slot 2\narchive closed\n" }
+      - id: cp3-max-ties
+        checkpoint: 3
+        stdin: "set 5 8\nset 1 8\nmax\nset 0 -1\nset 1 -1\nset 5 -1\nmax\nsum\n"
+        note: Ties go to the lowest slot; with negative values the largest may be an untouched 0.
+        expect: { output: "slot 5 = 8\nslot 1 = 8\nmax: 8 at slot 1\nslot 0 = -1\nslot 1 = -1\nslot 5 = -1\nmax: 0 at slot 2\nsum: -3\n" }
+      - id: cp4-clear-unknown
+        checkpoint: 4
+        stdin: "set 1 9\nclear\nshow\nformat\nsum\nquit\nset 1 1\n"
+        note: clear, an unknown command, and commands after quit.
+        expect: { output: "slot 1 = 9\ncleared\nslots: 0 0 0 0 0 0 0 0 0 0\nunknown command: format\nsum: 0\narchive closed\n" }
+      - id: cp4-long
+        checkpoint: 4
+        stdin: "set 0 1\nset 1 2\nset 2 3\nset 3 4\nset 4 5\nset 5 6\nset 6 7\nset 7 8\nset 8 9\nset 9 10\nsum\nmax\nadd 0 100\nmax\nclear\nmax\nquit\n"
+        expect: { output: "slot 0 = 1\nslot 1 = 2\nslot 2 = 3\nslot 3 = 4\nslot 4 = 5\nslot 5 = 6\nslot 6 = 7\nslot 7 = 8\nslot 8 = 9\nslot 9 = 10\nsum: 55\nmax: 10 at slot 9\nslot 0 = 101\nmax: 101 at slot 0\ncleared\nmax: 0 at slot 0\narchive closed\n" }
+    wrong:
+      - code: |
+          #include <stdio.h>
+          #include <string.h>
+          #define MAX_SLOTS 10
+          int main(void)
+          {
+              int slot[MAX_SLOTS] = {0};
+              char keyword[16];
+              int i, v, k, best, sum;
+              while (scanf("%15s", keyword) == 1) {
+                  if (strcmp(keyword, "quit") == 0) { printf("archive closed\n"); break; }
+                  else if (strcmp(keyword, "set") == 0 || strcmp(keyword, "add") == 0) {
+                      scanf("%d %d", &i, &v);
+                      if (i < 0 || i > MAX_SLOTS) { printf("error: no slot %d\n", i); continue; }
+                      if (strcmp(keyword, "set") == 0) slot[i] = v; else slot[i] += v;
+                      printf("slot %d = %d\n", i, slot[i]);
+                  } else if (strcmp(keyword, "show") == 0) {
+                      printf("slots:");
+                      for (k = 0; k < MAX_SLOTS; k++) printf(" %d", slot[k]);
+                      printf("\n");
+                  } else if (strcmp(keyword, "sum") == 0) {
+                      sum = 0;
+                      for (k = 0; k < MAX_SLOTS; k++) sum += slot[k];
+                      printf("sum: %d\n", sum);
+                  } else if (strcmp(keyword, "max") == 0) {
+                      best = 0;
+                      for (k = 1; k < MAX_SLOTS; k++) if (slot[k] > slot[best]) best = k;
+                      printf("max: %d at slot %d\n", slot[best], best);
+                  } else if (strcmp(keyword, "clear") == 0) {
+                      for (k = 0; k < MAX_SLOTS; k++) slot[k] = 0;
+                      printf("cleared\n");
+                  } else printf("unknown command: %s\n", keyword);
+              }
+              return 0;
+          }
+        why: the bounds check uses i > MAX_SLOTS, so slot 10 is written outside the array
+        expect: trap

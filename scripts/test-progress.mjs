@@ -123,10 +123,13 @@ try {
   fs.mkdirSync(chDir, { recursive: true });
   fs.copyFileSync(path.join(tpl, 'chapter.yaml'), path.join(chDir, 'chapter.yaml'));
   fs.copyFileSync(path.join(tpl, 'example-mission.yaml'), path.join(chDir, 'example-mission.yaml'));
-  fs.copyFileSync(path.join(tpl, 'lecture-L11.yaml'), path.join(content, 'lectures/L11.yaml'));
+  fs.copyFileSync(path.join(tpl, 'lecture-L12.yaml'), path.join(content, 'lectures/L12.yaml'));
   fs.copyFileSync(path.join(tpl, 'locales-ru/chapter.ru.yaml'), path.join(content, 'locales/ru/Z-template.yaml'));
   let manifest = fs.readFileSync(path.join(content, 'manifest.yaml'), 'utf8');
-  manifest = manifest.replace('lectures: [L09, L10]', 'lectures: [L09, L10, L11]').replace(/(chapters:\n(?:  - .*\n)+)/, '$1  - template-arrays\n').replace('curriculumVersion: 1', 'curriculumVersion: 2');
+  manifest = manifest
+    .replace(/lectures: \[([^\]]*)\]/, 'lectures: [$1, L12]')
+    .replace(/(chapters:\n(?:  - .*\n)+)/, '$1  - template-arrays\n')
+    .replace(/curriculumVersion: (\d+)/, (_, v) => `curriculumVersion: ${Number(v) + 1}`);
   fs.writeFileSync(path.join(content, 'manifest.yaml'), manifest);
 
   const before = JSON.parse(fs.readFileSync(path.join(ROOT, 'src/generated/curriculum.json'), 'utf8'));
